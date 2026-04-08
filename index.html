@@ -434,13 +434,14 @@ function getFirstDayOfMonth(year, month) {
   return new Date(year, month, 1).getDay();
 }
 
-// Get available slots for a track based on day rules, respecting 4pm cutoff
-function getSmartSlots(track, calEvents) {
+// Find open time slots for a task on the right days, checking real calendar
+function getSmartSlots(track, calEvents, durationHours=1.5) {
   const slots = [];
   const today = new Date();
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const HARD_CUTOFF = 16; // 4pm
 
-  for (let i=0; i<7; i++) {
+  for (let i=0; i<14; i++) { // look 2 weeks ahead
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     const dayName = dayNames[d.getDay()];
@@ -448,34 +449,86 @@ function getSmartSlots(track, calEvents) {
     const trackSlots = schedule.filter(s => s.track === track);
 
     for (const slot of trackSlots) {
-      // Hard cutoff at 4pm
-      const endHour = Math.min(slot.end, 16);
-      if (slot.start >= 16) continue;
+      const dayStart = Math.max(slot.start, 8); // never before 8am
+      const dayEnd   = Math.min(slot.end, HARD_CUTOFF); // never after 4pm
+      if (dayStart >= dayEnd) continue;
 
-      // Check for conflicts with existing calendar events
-      const startDt = new Date(d);
-      startDt.setHours(slot.start, 0, 0, 0);
-      const endDt = new Date(d);
-      endDt.setHours(endHour, 0, 0, 0);
+      // Get all calendar events for this day
+      const dayEvents = calEvents.filter(e => {
+        const es = e.start?.dateTime ? new Date(e.start.dateTime) : null;
+        return es && isSameDay(es, d);
+      }).map(e => ({
+        start: new Date(e.start.dateTime).getHours() + new Date(e.start.dateTime).getMinutes()/60,
+        end:   e.end?.dateTime ? new Date(e.end.dateTime).getHours() + new Date(e.end.dateTime).getMinutes()/60 : new Date(e.start.dateTime).getHours() + 1,
+        title: e.summary,
+      })).sort((a,b) => a.start - b.start);
 
-      const conflict = calEvents.find(e => {
-        if (!e.start?.dateTime) return false;
-        const es = new Date(e.start.dateTime), ee = new Date(e.end?.dateTime || e.start.dateTime);
-        return es < endDt && ee > startDt;
-      });
+      // Find open windows of at least durationHours within the slot
+      const windows = [];
+      let cursor = dayStart;
 
-      slots.push({
-        date: d,
-        dayName,
-        label: `${fmtDate(d)} ${slot.start}:00–${endHour}:00`,
-        startHour: slot.start,
-        endHour,
-        conflict: !!conflict,
-        conflictName: conflict?.summary || '',
-        startISO: startDt.toISOString(),
-        endISO: endDt.toISOString(),
-      });
+      for (const ev of dayEvents) {
+        if (ev.start > cursor && ev.start - cursor >= durationHours) {
+          windows.push({ start: cursor, end: Math.min(ev.start, dayEnd) });
+        }
+        cursor = Math.max(cursor, ev.end);
+      }
+      // Check remaining time after last event
+      if (dayEnd - cursor >= durationHours) {
+        windows.push({ start: cursor, end: dayEnd });
+      }
+
+      // Create 1-2 slots per window (morning and afternoon if room)
+      for (const win of windows) {
+        // Snap to nearest half hour
+        const startH = Math.ceil(win.start * 2) / 2;
+        const endH   = Math.min(startH + durationHours, win.end, HARD_CUTOFF);
+        if (endH - startH < durationHours * 0.75) continue; // skip if too short
+
+        const startDt = new Date(d);
+        startDt.setHours(Math.floor(startH), (startH % 1) * 60, 0, 0);
+        const endDt = new Date(d);
+        endDt.setHours(Math.floor(endH), (endH % 1) * 60, 0, 0);
+
+        const fmtH = h => {
+          const hr = Math.floor(h), min = (h % 1) * 60;
+          const ampm = hr >= 12 ? 'pm' : 'am';
+          const displayHr = hr > 12 ? hr - 12 : hr === 0 ? 12 : hr;
+          return min > 0 ? `${displayHr}:${String(min).padStart(2,'0')}${ampm}` : `${displayHr}${ampm}`;
+        };
+
+        slots.push({
+          date: new Date(d),
+          dayName,
+          label: `${d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})} · ${fmtH(startH)}–${fmtH(endH)}`,
+          startHour: startH,
+          endHour: endH,
+          conflict: false,
+          startISO: startDt.toISOString(),
+          endISO: endDt.toISOString(),
+          durationHours: endH - startH,
+        });
+
+        // If window is big enough, offer an afternoon slot too
+        const afternoonStart = Math.max(startH + durationHours + 0.5, 13);
+        if (win.end - afternoonStart >= durationHours && afternoonStart + durationHours <= HARD_CUTOFF) {
+          const aStartDt = new Date(d); aStartDt.setHours(Math.floor(afternoonStart),(afternoonStart%1)*60,0,0);
+          const aEndH = Math.min(afternoonStart + durationHours, HARD_CUTOFF);
+          const aEndDt = new Date(d); aEndDt.setHours(Math.floor(aEndH),(aEndH%1)*60,0,0);
+          slots.push({
+            date: new Date(d), dayName,
+            label: `${d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})} · ${fmtH(afternoonStart)}–${fmtH(aEndH)}`,
+            startHour: afternoonStart, endHour: aEndH, conflict: false,
+            startISO: aStartDt.toISOString(), endISO: aEndDt.toISOString(),
+            durationHours: aEndH - afternoonStart,
+          });
+        }
+
+        if (slots.length >= 6) break; // max 6 suggestions
+      }
+      if (slots.length >= 6) break;
     }
+    if (slots.length >= 6) break;
   }
   return slots;
 }
@@ -1178,6 +1231,8 @@ function CalendarPage({ calEvents, onAddEvent, onEditEvent, onDeleteEvent, demoM
 function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGenerated, demoMode }) {
   const [aiState, setAiState]= useState({}); // track -> 'idle'|'loading'|'done'
   const [aiTasks, setAiTasks]= useState({}); // track -> array of tasks
+  const [aiSlots, setAiSlots]= useState({}); // track -> {taskIndex -> slot}
+  const [pendingSlots, setPendingSlots]= useState(null); // {track, tasks, slots} awaiting confirmation
 
   const prompts = {
     records:'What do you want to move forward? How does it connect to revenue?',
@@ -1197,19 +1252,40 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGen
         setAiState(s=>({...s,[track]:'error',[track+'_err']:'No tasks returned — check browser console for details'}));
         return;
       }
+
+      // Auto-assign calendar slots to each task based on estimated hours
+      // Track used slots so tasks don't overlap
+      const bookedSlots = [];
+      const taskSlots = {};
+
+      for (let i=0; i<tasks.length; i++) {
+        const duration = tasks[i].estimatedHours || 1;
+        const fakeBooked = bookedSlots.map(s=>({
+          start:{dateTime:s.startISO}, end:{dateTime:s.endISO}, summary:'[HQ] Reserved'
+        }));
+        const available = getSmartSlots(track, [...calEvents, ...fakeBooked], duration);
+        if (available.length > 0) {
+          taskSlots[i] = available[0];
+          bookedSlots.push(available[0]);
+        }
+      }
+
       setAiTasks(t=>({...t,[track]:tasks}));
+      setAiSlots(s=>({...s,[track]:taskSlots}));
       setAiState(s=>({...s,[track]:'done'}));
     } catch(e) {
       console.error('breakdown error:', e);
-      setAiState(s=>({...s,[track]:'error',[track+'_err']:e.message}));
+      setAiState(s=>({...s,[track]:'error',[track+'_err']:e.message||String(e)}));
     }
   }
 
   function addTasksToTrack(track) {
     const tasks = aiTasks[track]||[];
-    onTasksGenerated(track, tasks);
+    const slots = aiSlots[track]||{};
+    onTasksGenerated(track, tasks, slots);
     setAiState(s=>({...s,[track]:'idle'}));
     setAiTasks(t=>({...t,[track]:[]}));
+    setAiSlots(s=>({...s,[track]:{}}));
   }
 
   const staleByTrack = {};
@@ -1282,16 +1358,41 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGen
                 {aiState[track]==='done'&&aiTasks[track]?.length>0&&(
                   <div>
                     <div className="ai-tasks">
-                      {aiTasks[track].map((task,i)=>(
-                        <div key={i} className="ai-task">
-                          <div className="ai-task-name">{task.name}</div>
-                          <div className="ai-task-meta">{task.status} · ~{task.estimatedHours}h · {task.notes}</div>
-                        </div>
-                      ))}
+                      {aiTasks[track].map((task,i)=>{
+                        const slot = aiSlots[track]?.[i];
+                        return (
+                          <div key={i} className="ai-task">
+                            <div className="ai-task-name">{task.name}</div>
+                            <div className="ai-task-meta">{task.status} · ~{task.estimatedHours}h · {task.notes}</div>
+                            {slot ? (
+                              <div style={{marginTop:'6px',display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                                <div style={{fontSize:'10px',color:'var(--accent)',background:'rgba(232,255,71,0.08)',border:'1px solid rgba(232,255,71,0.2)',padding:'3px 8px'}}>
+                                  📅 {slot.label}
+                                </div>
+                                <select style={{fontFamily:'DM Mono,monospace',fontSize:'9px',background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--text2)',padding:'3px 6px',cursor:'pointer'}}
+                                  onChange={e=>{
+                                    const idx = parseInt(e.target.value);
+                                    const allSlots = getSmartSlots(track, calEvents, task.estimatedHours||1);
+                                    if (idx >= 0 && allSlots[idx]) {
+                                      setAiSlots(s=>({...s,[track]:{...s[track],[i]:allSlots[idx]}}));
+                                    }
+                                  }}>
+                                  <option value={-1}>Change slot...</option>
+                                  {getSmartSlots(track, calEvents, task.estimatedHours||1).slice(0,5).map((s,si)=>(
+                                    <option key={si} value={si}>{s.label}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            ) : (
+                              <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'4px'}}>No available slot found this week</div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                     <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
                       <button className="btn-primary" style={{fontSize:'11px',padding:'7px 14px'}} onClick={()=>addTasksToTrack(track)}>
-                        Add {aiTasks[track].length} tasks to {t.label}
+                        Add {aiTasks[track].length} tasks + block calendar
                       </button>
                       <button className="btn-secondary" style={{fontSize:'11px',padding:'7px 14px'}} onClick={()=>setAiState(s=>({...s,[track]:'idle'}))}>
                         Dismiss
@@ -1589,30 +1690,47 @@ function App() {
     setPage('dashboard');
   }
 
-  async function handleTasksGenerated(track, tasks) {
+  async function handleTasksGenerated(track, tasks, slots={}) {
     const dateAdded = new Date().toISOString().split('T')[0];
     const newItems = [];
-    for (const task of tasks) {
-      // Use the AI-assigned type and status so card lands in the right column
+    let blockedCount = 0;
+
+    for (let i=0; i<tasks.length; i++) {
+      const task = tasks[i];
       const taskType   = task.type   || TYPES[track][0];
       const taskStatus = task.status || STATUSES[track][0];
-      const row = [task.name, taskType, taskStatus, '', '', task.notes || '', '', dateAdded];
+      const slot = slots[i];
+
+      // Write to sheet
+      const row = [task.name, taskType, taskStatus, '', slot?.label||'', task.notes||'', task.taskType||'', dateAdded];
       if (!demoMode) await appendRow(TRACKS[track].tab, row);
+
+      // Block calendar if slot assigned
+      if (slot && !demoMode) {
+        try {
+          await createCalendarEvent(task.name, slot.startISO, slot.endISO, TRACK_COLORS_HEX[track]);
+          blockedCount++;
+        } catch(e) { console.error('Calendar block failed for', task.name, e); }
+      }
+
       newItems.push({
         id: items[track].length + newItems.length,
-        name: task.name,
-        type: taskType,
-        status: taskStatus,
-        extra: '',
-        dueDate: '',
-        notes: task.notes || '',
-        dateAdded,
-        track,
+        name: task.name, type: taskType, status: taskStatus,
+        extra: '', dueDate: slot?.label||'', notes: task.notes||'',
+        dateAdded, track,
       });
     }
-    // Add all new items at once so kanban updates correctly
+
     setItems(prev => ({ ...prev, [track]: [...prev[track], ...newItems] }));
-    showToast(`✓ ${tasks.length} tasks added to ${TRACKS[track].label}`);
+
+    // Refresh calendar to show new blocks
+    if (blockedCount > 0 && !demoMode) {
+      const refreshed = await getCalendarEvents(4);
+      setCalEvents(refreshed);
+      showToast(`✓ ${tasks.length} tasks added · ${blockedCount} time blocks created`);
+    } else {
+      showToast(`✓ ${tasks.length} tasks added to ${TRACKS[track].label}`);
+    }
   }
 
   // AUTH SCREEN
