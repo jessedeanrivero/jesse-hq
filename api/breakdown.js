@@ -51,13 +51,9 @@ Each task object must have exactly these fields:
 - "estimatedHours": number between 0.5 and 4
 - "notes": string, one sentence max
 
-Return only the JSON array. Start your response with [ and end with ].`;
+Start your response with [ and end with ].`;
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-
-  if (!apiKey) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured in Vercel environment variables', tasks: [] });
-  }
+  const apiKey = process.env.ANTHROPIC_API_KEY || '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';
 
   try {
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -88,11 +84,10 @@ Return only the JSON array. Start your response with [ and end with ].`;
       return res.status(500).json({ error: 'Empty response from Anthropic', tasks: [] });
     }
 
-    // Extract JSON array even if there's surrounding text
     const match = text.match(/\[[\s\S]*\]/);
     if (!match) {
       return res.status(500).json({
-        error: `Could not find JSON array in response: ${text.slice(0, 300)}`,
+        error: `No JSON array found in: ${text.slice(0, 300)}`,
         tasks: [],
       });
     }
@@ -101,7 +96,6 @@ Return only the JSON array. Start your response with [ and end with ].`;
     try {
       tasks = JSON.parse(match[0]);
       if (!Array.isArray(tasks)) tasks = [];
-      // Ensure each task has the required fields with valid values
       tasks = tasks.map(t => ({
         name: t.name || 'Untitled task',
         type: types.includes(t.type) ? t.type : types[0],
