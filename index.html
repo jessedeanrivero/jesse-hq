@@ -1,164 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Jesse HQ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0e0e0e;
-    --surface: #161616;
-    --surface2: #1e1e1e;
-    --border: #2a2a2a;
-    --accent: #e8ff47;
-    --text: #f0f0f0;
-    --text2: #888;
-    --text3: #555;
-    --records: #ff6b35;
-    --publishing: #e8ff47;
-    --songstage: #47c9ff;
-    --freelance: #b47cff;
-    --content: #ff4d8f;
-    --success: #4dff91;
-    --warning: #ffb347;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; min-height: 100vh; overflow-x: hidden; }
-  body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; z-index:9999; opacity:0.4; }
-  .app { display:flex; min-height:100vh; }
-  .sidebar { width:220px; min-height:100vh; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:100; }
-  .logo { padding:28px 24px 20px; border-bottom:1px solid var(--border); }
-  .logo-text { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:var(--accent); letter-spacing:-0.5px; }
-  .logo-sub { font-size:10px; color:var(--text3); margin-top:2px; letter-spacing:2px; text-transform:uppercase; }
-  .nav { flex:1; padding:16px 0; }
-  .nav-section-label { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--text3); padding:12px 24px 6px; }
-  .nav-item { display:flex; align-items:center; gap:10px; padding:10px 24px; cursor:pointer; transition:all 0.15s; font-size:12px; color:var(--text2); border-left:2px solid transparent; position:relative; }
-  .nav-item:hover { color:var(--text); background:var(--surface2); }
-  .nav-item.active { color:var(--text); background:var(--surface2); }
-  .nav-item[data-track="dashboard"].active { border-left-color:var(--accent); }
-  .nav-item[data-track="records"].active { border-left-color:var(--records); }
-  .nav-item[data-track="publishing"].active { border-left-color:var(--publishing); }
-  .nav-item[data-track="songstage"].active { border-left-color:var(--songstage); }
-  .nav-item[data-track="freelance"].active { border-left-color:var(--freelance); }
-  .nav-item[data-track="content"].active { border-left-color:var(--content); }
-  .nav-item[data-track="checkin"].active { border-left-color:var(--success); }
-  .nav-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-  .nav-dot.records { background:var(--records); }
-  .nav-dot.publishing { background:var(--publishing); }
-  .nav-dot.songstage { background:var(--songstage); }
-  .nav-dot.freelance { background:var(--freelance); }
-  .nav-dot.content { background:var(--content); }
-  .nav-dot.dashboard { background:var(--accent); }
-  .nav-dot.checkin { background:var(--success); }
-  .sidebar-bottom { padding:16px 24px; border-top:1px solid var(--border); font-size:10px; color:var(--text3); }
-  .auth-status { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
-  .auth-dot { width:6px; height:6px; border-radius:50%; background:var(--text3); }
-  .auth-dot.connected { background:var(--success); }
-  .signin-btn { background:var(--accent); color:#000; border:none; padding:8px 14px; font-family:'DM Mono',monospace; font-size:11px; font-weight:500; cursor:pointer; width:100%; margin-top:8px; }
-  .main { margin-left:220px; flex:1; min-height:100vh; }
-  .topbar { height:60px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 32px; background:var(--bg); position:sticky; top:0; z-index:50; }
-  .topbar-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; }
-  .topbar-right { display:flex; align-items:center; gap:16px; font-size:11px; color:var(--text2); }
-  .week-badge { background:var(--surface2); border:1px solid var(--border); padding:4px 10px; font-size:10px; letter-spacing:1px; }
-  .page { padding:32px; }
-  .dashboard-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
-  .stat-card { background:var(--surface); border:1px solid var(--border); padding:20px; position:relative; overflow:hidden; }
-  .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
-  .stat-card.records::before { background:var(--records); }
-  .stat-card.publishing::before { background:var(--publishing); }
-  .stat-card.songstage::before { background:var(--songstage); }
-  .stat-card.freelance::before { background:var(--freelance); }
-  .stat-card.content::before { background:var(--content); }
-  .stat-card.hours::before { background:var(--accent); }
-  .stat-label { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--text3); margin-bottom:10px; }
-  .stat-number { font-family:'Syne',sans-serif; font-size:36px; font-weight:800; line-height:1; margin-bottom:4px; }
-  .stat-sub { font-size:10px; color:var(--text2); }
-  .stale-section { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--warning); padding:20px; margin-bottom:24px; }
-  .stale-title { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--warning); margin-bottom:14px; }
-  .stale-item { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:12px; }
-  .stale-item:last-child { border-bottom:none; }
-  .stale-item-left { display:flex; align-items:center; gap:10px; }
-  .stale-days { font-size:10px; color:var(--warning); background:rgba(255,179,71,0.1); padding:2px 6px; }
-  .add-to-week-btn { font-family:'DM Mono',monospace; font-size:10px; background:transparent; border:1px solid var(--border); color:var(--text2); padding:4px 10px; cursor:pointer; transition:all 0.15s; }
-  .add-to-week-btn:hover { border-color:var(--accent); color:var(--accent); }
-  .track-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
-  .track-title { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; }
-  .add-btn { background:var(--accent); color:#000; border:none; padding:10px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:8px; transition:opacity 0.15s; }
-  .add-btn:hover { opacity:0.85; }
-  .kanban { display:flex; gap:16px; overflow-x:auto; padding-bottom:16px; }
-  .kanban-col { min-width:240px; flex-shrink:0; }
-  .kanban-col-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-  .kanban-col-title { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--text2); }
-  .kanban-count { background:var(--surface2); border:1px solid var(--border); font-size:10px; padding:2px 6px; color:var(--text3); }
-  .kanban-cards { display:flex; flex-direction:column; gap:10px; }
-  .card { background:var(--surface); border:1px solid var(--border); padding:14px; position:relative; transition:border-color 0.15s,transform 0.15s; }
-  .card:hover { border-color:var(--text3); transform:translateY(-1px); }
-  .card-track-line { position:absolute; left:0; top:0; bottom:0; width:2px; }
-  .card-name { font-size:13px; font-weight:500; margin-bottom:6px; padding-left:10px; }
-  .card-meta { display:flex; flex-wrap:wrap; gap:4px; padding-left:10px; }
-  .tag { font-size:9px; letter-spacing:1px; text-transform:uppercase; padding:2px 6px; background:var(--surface2); color:var(--text3); border:1px solid var(--border); }
-  .card-actions { display:flex; gap:6px; margin-top:10px; padding-left:10px; flex-wrap:wrap; }
-  .card-btn { font-family:'DM Mono',monospace; font-size:9px; padding:3px 8px; border:1px solid var(--border); background:transparent; color:var(--text3); cursor:pointer; transition:all 0.15s; letter-spacing:1px; text-transform:uppercase; }
-  .card-btn:hover { color:var(--text); border-color:var(--text3); }
-  .card-btn.done:hover { color:var(--success); border-color:var(--success); }
-  .card-btn.delete:hover { color:#ff4444; border-color:#ff4444; }
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
-  .modal { background:var(--surface); border:1px solid var(--border); width:480px; max-width:95vw; max-height:90vh; overflow-y:auto; }
-  .modal-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
-  .modal-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; }
-  .modal-close { background:none; border:none; color:var(--text2); font-size:20px; cursor:pointer; line-height:1; }
-  .modal-body { padding:24px; }
-  .form-group { margin-bottom:18px; }
-  .form-label { display:block; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:6px; }
-  .form-input,.form-select,.form-textarea { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-family:'DM Mono',monospace; font-size:13px; padding:10px 12px; outline:none; transition:border-color 0.15s; }
-  .form-input:focus,.form-select:focus,.form-textarea:focus { border-color:var(--accent); }
-  .form-select option { background:var(--surface2); }
-  .form-textarea { resize:vertical; min-height:80px; }
-  .modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end; }
-  .btn-primary { background:var(--accent); color:#000; border:none; padding:10px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; cursor:pointer; }
-  .btn-primary:hover { opacity:0.85; }
-  .btn-secondary { background:transparent; color:var(--text2); border:1px solid var(--border); padding:10px 20px; font-family:'DM Mono',monospace; font-size:12px; cursor:pointer; }
-  .btn-secondary:hover { border-color:var(--text2); color:var(--text); }
-  .cal-question { background:var(--surface2); border:1px solid var(--border); border-left:3px solid var(--accent); padding:16px; margin-bottom:16px; }
-  .cal-question-text { font-size:13px; margin-bottom:6px; }
-  .cal-slots { display:flex; flex-direction:column; gap:8px; }
-  .cal-slot { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:var(--bg); border:1px solid var(--border); cursor:pointer; font-size:12px; transition:border-color 0.15s; }
-  .cal-slot:hover { border-color:var(--accent); }
-  .cal-slot.selected { border-color:var(--accent); background:rgba(232,255,71,0.05); }
-  .cal-slot-day { color:var(--text2); font-size:10px; }
-  .checkin-wrap { max-width:640px; }
-  .checkin-intro { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--success); padding:20px; margin-bottom:24px; }
-  .checkin-intro-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; margin-bottom:6px; }
-  .checkin-intro-sub { font-size:12px; color:var(--text2); }
-  .checkin-section { background:var(--surface); border:1px solid var(--border); padding:20px; margin-bottom:16px; position:relative; }
-  .checkin-section::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
-  .checkin-section.records::before { background:var(--records); }
-  .checkin-section.publishing::before { background:var(--publishing); }
-  .checkin-section.songstage::before { background:var(--songstage); }
-  .checkin-section.freelance::before { background:var(--freelance); }
-  .checkin-section.content::before { background:var(--content); }
-  .checkin-section-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; margin-bottom:4px; }
-  .checkin-section-sub { font-size:11px; color:var(--text2); margin-bottom:14px; }
-  .stale-prompt { background:rgba(255,179,71,0.08); border:1px solid rgba(255,179,71,0.2); padding:10px 12px; margin-bottom:12px; font-size:11px; color:var(--warning); }
-  .goal-card { background:var(--surface); border:1px solid var(--border); padding:16px; margin-bottom:12px; }
-  .goal-track-name { font-size:11px; color:var(--text2); margin-bottom:6px; }
-  .goal-text { font-size:12px; }
-  .toast { position:fixed; bottom:24px; right:24px; background:var(--surface2); border:1px solid var(--border); border-left:3px solid var(--accent); padding:14px 18px; font-size:12px; z-index:2000; animation:slideIn 0.2s ease; max-width:300px; }
-  @keyframes slideIn { from{transform:translateX(20px);opacity:0} to{transform:translateX(0);opacity:1} }
-  .auth-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:32px; }
-  .auth-card { background:var(--surface); border:1px solid var(--border); padding:48px; max-width:420px; width:100%; text-align:center; }
-  .auth-logo { font-family:'Syne',sans-serif; font-size:36px; font-weight:800; color:var(--accent); margin-bottom:8px; }
-  .auth-tagline { font-size:12px; color:var(--text2); margin-bottom:32px; }
-  .auth-features { text-align:left; margin-bottom:32px; }
-  .auth-feature { display:flex; align-items:center; gap:10px; padding:8px 0; font-size:12px; color:var(--text2); border-bottom:1px solid var(--border); }
-  .auth-feature:last-child { border-bottom:none; }
-  .auth-feature-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-  .google-btn { background:#fff; color:#333; border:none; padding:12px 24px; font-family:'DM Mono',monospace; font-size:13px; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:10px; }
-  .google-btn:hover { opacity:0.9; }
-  .demo-btn { background:transparent; color:var(--text3); border:1px solid var(--border); padding:10px 24px; font-family:'DM Mono',monospace; font-size:12px; cursor:pointer; width:100%; margin-top:10px; }
-  .demo-btn:hover { color:var(--text2); border-color:var(--text3); }
+:root {
+  --bg:#0e0e0e; --surface:#161616; --surface2:#1e1e1e; --border:#2a2a2a;
+  --accent:#e8ff47; --text:#f0f0f0; --text2:#888; --text3:#555;
+  --records:#ff6b35; --publishing:#e8ff47; --songstage:#47c9ff;
+  --freelance:#b47cff; --content:#ff4d8f; --success:#4dff91; --warning:#ffb347;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:0.4;}
+.app{display:flex;min-height:100vh;}
+.sidebar{width:220px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.logo{padding:28px 24px 20px;border-bottom:1px solid var(--border);}
+.logo-text{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);letter-spacing:-0.5px;}
+.logo-sub{font-size:10px;color:var(--text3);margin-top:2px;letter-spacing:2px;text-transform:uppercase;}
+.nav{flex:1;padding:16px 0;overflow-y:auto;}
+.nav-section-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);padding:12px 24px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 24px;cursor:pointer;transition:all 0.15s;font-size:12px;color:var(--text2);border-left:2px solid transparent;}
+.nav-item:hover{color:var(--text);background:var(--surface2);}
+.nav-item.active{color:var(--text);background:var(--surface2);}
+.nav-item[data-track="dashboard"].active{border-left-color:var(--accent);}
+.nav-item[data-track="calendar"].active{border-left-color:var(--songstage);}
+.nav-item[data-track="records"].active{border-left-color:var(--records);}
+.nav-item[data-track="publishing"].active{border-left-color:var(--publishing);}
+.nav-item[data-track="songstage"].active{border-left-color:var(--songstage);}
+.nav-item[data-track="freelance"].active{border-left-color:var(--freelance);}
+.nav-item[data-track="content"].active{border-left-color:var(--content);}
+.nav-item[data-track="checkin"].active{border-left-color:var(--success);}
+.nav-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.nav-dot.records{background:var(--records);} .nav-dot.publishing{background:var(--publishing);}
+.nav-dot.songstage{background:var(--songstage);} .nav-dot.freelance{background:var(--freelance);}
+.nav-dot.content{background:var(--content);} .nav-dot.dashboard{background:var(--accent);}
+.nav-dot.checkin{background:var(--success);} .nav-dot.calendar{background:var(--songstage);}
+.sidebar-bottom{padding:16px 24px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);}
+.auth-status{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.auth-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);}
+.auth-dot.connected{background:var(--success);}
+.signin-btn{background:var(--accent);color:#000;border:none;padding:8px 14px;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;width:100%;margin-top:8px;}
+.main{margin-left:220px;flex:1;min-height:100vh;}
+.topbar{height:60px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--bg);position:sticky;top:0;z-index:50;}
+.topbar-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.week-badge{background:var(--surface2);border:1px solid var(--border);padding:4px 10px;font-size:10px;letter-spacing:1px;}
+.page{padding:32px;}
+/* BUTTONS */
+.add-btn{background:var(--accent);color:#000;border:none;padding:10px 20px;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;cursor:pointer;transition:opacity 0.15s;}
+.add-btn:hover{opacity:0.85;}
+.btn-primary{background:var(--accent);color:#000;border:none;padding:10px 20px;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;cursor:pointer;}
+.btn-primary:hover{opacity:0.85;}
+.btn-secondary{background:transparent;color:var(--text2);border:1px solid var(--border);padding:10px 20px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;}
+.btn-secondary:hover{border-color:var(--text2);color:var(--text);}
+.btn-sm{font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s;letter-spacing:1px;}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent);}
+/* DASHBOARD */
+.dashboard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);padding:20px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.stat-card.records::before{background:var(--records);} .stat-card.publishing::before{background:var(--publishing);}
+.stat-card.songstage::before{background:var(--songstage);} .stat-card.freelance::before{background:var(--freelance);}
+.stat-card.content::before{background:var(--content);} .stat-card.hours::before{background:var(--accent);}
+.stat-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.stat-number{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;line-height:1;margin-bottom:4px;}
+.stat-sub{font-size:10px;color:var(--text2);}
+.stale-section{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--warning);padding:20px;margin-bottom:24px;}
+.stale-title{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--warning);margin-bottom:14px;}
+.stale-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.stale-item:last-child{border-bottom:none;}
+.stale-item-left{display:flex;align-items:center;gap:10px;}
+.stale-days{font-size:10px;color:var(--warning);background:rgba(255,179,71,0.1);padding:2px 6px;}
+/* TRACK */
+.track-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.track-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;}
+.kanban{display:flex;gap:16px;overflow-x:auto;padding-bottom:16px;}
+.kanban-col{min-width:240px;flex-shrink:0;}
+.kanban-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.kanban-col-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text2);}
+.kanban-count{background:var(--surface2);border:1px solid var(--border);font-size:10px;padding:2px 6px;color:var(--text3);}
+.kanban-cards{display:flex;flex-direction:column;gap:10px;}
+.card{background:var(--surface);border:1px solid var(--border);padding:14px;position:relative;transition:border-color 0.15s,transform 0.15s;}
+.card:hover{border-color:var(--text3);transform:translateY(-1px);}
+.card-track-line{position:absolute;left:0;top:0;bottom:0;width:2px;}
+.card-name{font-size:13px;font-weight:500;margin-bottom:6px;padding-left:10px;}
+.card-meta{display:flex;flex-wrap:wrap;gap:4px;padding-left:10px;}
+.tag{font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);}
+.card-actions{display:flex;gap:6px;margin-top:10px;padding-left:10px;flex-wrap:wrap;}
+.card-btn{font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all 0.15s;letter-spacing:1px;text-transform:uppercase;}
+.card-btn:hover{color:var(--text);border-color:var(--text3);}
+.card-btn.done:hover{color:var(--success);border-color:var(--success);}
+.card-btn.delete:hover{color:#ff4444;border-color:#ff4444;}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal{background:var(--surface);border:1px solid var(--border);width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;}
+.modal-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;}
+.modal-body{padding:24px;}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+.form-group{margin-bottom:18px;}
+.form-label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;transition:border-color 0.15s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);}
+.form-select option{background:var(--surface2);}
+.form-textarea{resize:vertical;min-height:80px;}
+/* CALENDAR */
+.cal-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.cal-nav{display:flex;align-items:center;gap:12px;}
+.cal-nav-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:6px 14px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all 0.15s;}
+.cal-nav-btn:hover{border-color:var(--accent);color:var(--accent);}
+.cal-month-label{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;min-width:200px;text-align:center;}
+.cal-view-toggle{display:flex;gap:0;}
+.cal-view-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:6px 14px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.15s;margin-left:-1px;}
+.cal-view-btn.active{background:var(--accent);color:#000;border-color:var(--accent);}
+/* MONTH VIEW */
+.cal-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);}
+.cal-day-header{background:var(--surface);padding:8px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);text-align:center;}
+.cal-day{background:var(--surface);min-height:90px;padding:8px;position:relative;cursor:pointer;transition:background 0.1s;}
+.cal-day:hover{background:var(--surface2);}
+.cal-day.other-month{opacity:0.35;}
+.cal-day.today{background:var(--surface2);}
+.cal-day.today .cal-day-num{color:var(--accent);font-weight:700;}
+.cal-day-num{font-size:12px;margin-bottom:4px;}
+.cal-day-add{position:absolute;top:6px;right:6px;width:18px;height:18px;background:var(--surface2);border:1px solid var(--border);color:var(--text3);font-size:14px;line-height:16px;text-align:center;cursor:pointer;display:none;transition:all 0.15s;}
+.cal-day:hover .cal-day-add{display:block;}
+.cal-day-add:hover{background:var(--accent);color:#000;border-color:var(--accent);}
+.cal-event-pill{font-size:9px;padding:2px 5px;margin-bottom:2px;border-radius:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+/* WEEK VIEW */
+.cal-week-grid{display:grid;grid-template-columns:60px repeat(7,1fr);border:1px solid var(--border);}
+.cal-week-header{background:var(--surface);padding:10px 6px;font-size:10px;text-align:center;border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+.cal-week-header.today-col{background:var(--surface2);}
+.cal-week-header-day{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.cal-week-header-date{font-size:10px;color:var(--text3);}
+.cal-hour-label{background:var(--surface);border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px 8px;font-size:9px;color:var(--text3);text-align:right;}
+.cal-week-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-height:40px;position:relative;cursor:pointer;transition:background 0.1s;}
+.cal-week-cell:hover{background:var(--surface2);}
+.cal-week-cell.today-col{background:rgba(232,255,71,0.02);}
+.cal-week-event{position:absolute;left:2px;right:2px;font-size:9px;padding:2px 4px;overflow:hidden;z-index:1;cursor:pointer;}
+/* DAY VIEW */
+.cal-day-view{display:grid;grid-template-columns:60px 1fr;border:1px solid var(--border);}
+.cal-day-view-header{grid-column:1/-1;background:var(--surface);padding:14px;border-bottom:1px solid var(--border);font-family:'Syne',sans-serif;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
+.cal-day-hour-label{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px 8px;font-size:9px;color:var(--text3);text-align:right;background:var(--surface);}
+.cal-day-hour-cell{border-bottom:1px solid var(--border);min-height:48px;position:relative;cursor:pointer;padding:2px;}
+.cal-day-hour-cell:hover{background:var(--surface2);}
+.cal-day-event{font-size:11px;padding:4px 8px;margin:1px;cursor:pointer;}
+/* BLOCK PREVIEW */
+.block-preview{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);padding:16px;margin-bottom:16px;}
+.block-preview-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;}
+.block-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.block-row:last-child{border-bottom:none;}
+.block-row-left{display:flex;align-items:center;gap:10px;}
+.block-check{width:16px;height:16px;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.block-check.checked{background:var(--accent);border-color:var(--accent);color:#000;}
+/* AI TASKS */
+.ai-thinking{display:flex;align-items:center;gap:10px;padding:16px;background:var(--surface2);border:1px solid var(--border);font-size:12px;color:var(--text2);}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.ai-tasks{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+.ai-task{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);padding:12px 14px;}
+.ai-task-name{font-size:13px;margin-bottom:4px;}
+.ai-task-meta{font-size:10px;color:var(--text3);}
+/* CHECK-IN */
+.checkin-wrap{max-width:680px;}
+.checkin-intro{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--success);padding:20px;margin-bottom:24px;}
+.checkin-intro-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:6px;}
+.checkin-intro-sub{font-size:12px;color:var(--text2);}
+.checkin-section{background:var(--surface);border:1px solid var(--border);padding:20px;margin-bottom:16px;position:relative;}
+.checkin-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.checkin-section.records::before{background:var(--records);}
+.checkin-section.publishing::before{background:var(--publishing);}
+.checkin-section.songstage::before{background:var(--songstage);}
+.checkin-section.freelance::before{background:var(--freelance);}
+.checkin-section.content::before{background:var(--content);}
+.checkin-section-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px;}
+.checkin-section-sub{font-size:11px;color:var(--text2);margin-bottom:14px;}
+.stale-prompt{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.2);padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--warning);}
+.goal-card{background:var(--surface);border:1px solid var(--border);padding:16px;margin-bottom:12px;}
+.goal-track-name{font-size:11px;margin-bottom:6px;}
+.goal-text{font-size:12px;}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);padding:14px 18px;font-size:12px;z-index:2000;animation:slideIn 0.2s ease;max-width:320px;}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+/* AUTH */
+.auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:32px;}
+.auth-card{background:var(--surface);border:1px solid var(--border);padding:48px;max-width:420px;width:100%;text-align:center;}
+.auth-logo{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;color:var(--accent);margin-bottom:8px;}
+.auth-tagline{font-size:12px;color:var(--text2);margin-bottom:32px;}
+.auth-features{text-align:left;margin-bottom:32px;}
+.auth-feature{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);}
+.auth-feature:last-child{border-bottom:none;}
+.auth-feature-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.google-btn{background:#fff;color:#333;border:none;padding:12px 24px;font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;}
+.demo-btn{background:transparent;color:var(--text3);border:1px solid var(--border);padding:10px 24px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;width:100%;margin-top:10px;}
+.demo-btn:hover{color:var(--text2);border-color:var(--text3);}
 </style>
 </head>
 <body>
@@ -167,11 +206,13 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel">
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 
-const CLIENT_ID = '84777476766-nmbmb2oj9c497qqucmlcoemgvl7j74mb.apps.googleusercontent.com';
-const SHEET_ID  = '1awdiuld1ZjawYHo_vys0kHPp0KzY4oeT1J_TsQcB5KE';
-const SCOPES    = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/calendar';
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const CLIENT_ID    = '84777476766-nmbmb2oj9c497qqucmlcoemgvl7j74mb.apps.googleusercontent.com';
+const SHEET_ID     = '1awdiuld1ZjawYHo_vys0kHPp0KzY4oeT1J_TsQcB5KE';
+const SCOPES       = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/calendar';
+const ANTHROPIC_KEY = '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';
 
 const TRACKS = {
   records:    { label:'Real Fun Records',    color:'var(--records)',   tab:'Records',    icon:'🎵' },
@@ -182,32 +223,44 @@ const TRACKS = {
 };
 
 const STATUSES = {
-  records:    ['Pre-Production','Recording','Mixing','Mastered','Released'],
-  publishing: ['Pitched','Placed','Collecting','Monetizing'],
-  songstage:  ['Backlog','In Progress','Review','Shipped'],
-  freelance:  ['Booked','In Progress','Completed'],
-  content:    ['Planned','In Progress','Published'],
+  records:   ['Pre-Production','Recording','Mixing','Mastered','Released'],
+  publishing:['Pitched','Placed','Collecting','Monetizing'],
+  songstage: ['Backlog','In Progress','Review','Shipped'],
+  freelance: ['Booked','In Progress','Completed'],
+  content:   ['Planned','In Progress','Published'],
 };
 
 const TYPES = {
-  records:    ['Song','Album','EP'],
-  publishing: ['Single','Co-write','Cover'],
-  songstage:  ['Feature','Bug','Task'],
-  freelance:  ['Session','Coaching','Production'],
-  content:    ['Short-Form','Long-Form','Substack'],
+  records:   ['Song','Album','EP'],
+  publishing:['Single','Co-write','Cover'],
+  songstage: ['Feature','Bug','Task'],
+  freelance: ['Session','Coaching','Production'],
+  content:   ['Short-Form','Long-Form','Substack'],
 };
 
 const TERMINAL = {
-  records:'Released', publishing:'Monetizing', songstage:'Shipped', freelance:'Completed', content:'Published'
+  records:'Released', publishing:'Monetizing', songstage:'Shipped',
+  freelance:'Completed', content:'Published',
 };
 
-const DAY_RULES = {
-  records:['Monday','Wednesday'], publishing:['Monday','Wednesday'],
-  songstage:['Tuesday','Friday'], freelance:['Thursday'],
-  content:['Monday','Wednesday','Thursday'],
+// Day schedule rules — all times respect 4pm hard cutoff (nothing after 4pm)
+const DAY_SCHEDULE = {
+  Monday:    [{ track:'records',    label:'Real Fun Records',    start:9,  end:16 },
+              { track:'publishing', label:'Real Fun Publishing', start:9,  end:16 }],
+  Tuesday:   [{ track:'records',    label:'Real Fun Records',    start:9,  end:15.5 },
+              { track:'publishing', label:'Real Fun Publishing', start:9,  end:15.5 },
+              { track:'songstage',  label:'Songstage',           start:16, end:17 }],
+  Wednesday: [{ track:'freelance',  label:'Freelance',           start:9,  end:16 }],
+  Thursday:  [{ track:'freelance',  label:'Freelance',           start:9,  end:16 }],
+  Friday:    [{ track:'songstage',  label:'Songstage',           start:9,  end:16 }],
 };
 
-// Google API
+const TRACK_COLORS_HEX = {
+  records:'#ff6b35', publishing:'#e8ff47', songstage:'#47c9ff',
+  freelance:'#b47cff', content:'#ff4d8f',
+};
+
+// ── GOOGLE API ────────────────────────────────────────────────────────────────
 let gapiLoaded = false, gisLoaded = false, tokenClient = null;
 
 function loadGapi() {
@@ -218,7 +271,7 @@ function loadGapi() {
     s.onload = () => gapi.load('client', async () => {
       await gapi.client.init({ discoveryDocs:[
         'https://sheets.googleapis.com/$discovery/rest?version=v4',
-        'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'
+        'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
       ]});
       gapiLoaded = true; res();
     });
@@ -252,7 +305,7 @@ async function readSheet(tab) {
 
 async function appendRow(tab, values) {
   await gapi.client.sheets.spreadsheets.values.append({
-    spreadsheetId:SHEET_ID, range:`${tab}!A1`, valueInputOption:'USER_ENTERED', resource:{ values:[values] }
+    spreadsheetId:SHEET_ID, range:`${tab}!A1`, valueInputOption:'USER_ENTERED', resource:{ values:[values] },
   });
 }
 
@@ -260,42 +313,73 @@ async function updateCell(tab, rowIndex, colIndex, value) {
   const col = String.fromCharCode(65 + colIndex);
   await gapi.client.sheets.spreadsheets.values.update({
     spreadsheetId:SHEET_ID, range:`${tab}!${col}${rowIndex+2}`,
-    valueInputOption:'USER_ENTERED', resource:{ values:[[value]] }
+    valueInputOption:'USER_ENTERED', resource:{ values:[[value]] },
   });
 }
 
 async function deleteRowFromSheet(tab, rowIndex) {
   const meta = await gapi.client.sheets.spreadsheets.get({ spreadsheetId:SHEET_ID });
-  const sheet = meta.result.sheets.find(s=>s.properties.title===tab);
+  const sheet = meta.result.sheets.find(s => s.properties.title === tab);
   if (!sheet) return;
   await gapi.client.sheets.spreadsheets.batchUpdate({
     spreadsheetId:SHEET_ID,
-    resource:{ requests:[{ deleteDimension:{ range:{ sheetId:sheet.properties.sheetId, dimension:'ROWS', startIndex:rowIndex+1, endIndex:rowIndex+2 }}}]}
+    resource:{ requests:[{ deleteDimension:{ range:{ sheetId:sheet.properties.sheetId, dimension:'ROWS', startIndex:rowIndex+1, endIndex:rowIndex+2 }}}]},
   });
 }
 
-async function getCalendarEvents() {
+async function getCalendarEvents(weeksAhead=2) {
   try {
     const now = new Date(), end = new Date(now);
-    end.setDate(end.getDate()+7);
-    const r = await gapi.client.calendar.events.list({ calendarId:'primary', timeMin:now.toISOString(), timeMax:end.toISOString(), singleEvents:true, orderBy:'startTime', maxResults:15 });
+    end.setDate(end.getDate() + weeksAhead * 7);
+    const r = await gapi.client.calendar.events.list({
+      calendarId:'primary', timeMin:now.toISOString(), timeMax:end.toISOString(),
+      singleEvents:true, orderBy:'startTime', maxResults:50,
+    });
     return r.result.items || [];
   } catch(e) { return []; }
 }
 
-async function createCalendarEvent(title, date, startHour, durationHours) {
-  const start = new Date(date); start.setHours(startHour,0,0,0);
-  const end = new Date(start); end.setHours(startHour+durationHours);
-  await gapi.client.calendar.events.insert({ calendarId:'primary', resource:{
-    summary:`[Jesse HQ] ${title}`, start:{ dateTime:start.toISOString() }, end:{ dateTime:end.toISOString() }
-  }});
+async function createCalendarEvent(title, startISO, endISO, color) {
+  const colorId = { '#ff6b35':'6', '#e8ff47':'5', '#47c9ff':'7', '#b47cff':'3', '#ff4d8f':'4' }[color] || '1';
+  await gapi.client.calendar.events.insert({
+    calendarId:'primary',
+    resource:{ summary:`[HQ] ${title}`, start:{ dateTime:startISO }, end:{ dateTime:endISO }, colorId },
+  });
 }
 
-// Utils
+// ── AI ────────────────────────────────────────────────────────────────────────
+async function breakdownGoalWithAI(track, goal, existingItems) {
+  const trackLabel = TRACKS[track].label;
+  const prompt = `You are a productivity assistant for a music entrepreneur. Break down this weekly goal into 2-4 specific, actionable tasks.
+
+Track: ${trackLabel}
+Goal: "${goal}"
+Existing items in this track: ${existingItems.map(i=>i.name).join(', ') || 'none'}
+
+Respond ONLY with a JSON array. No markdown, no explanation. Each task object must have:
+- "name": short task name (max 6 words)
+- "status": one of ${JSON.stringify(STATUSES[track])}
+- "estimatedHours": number between 0.5 and 4
+- "notes": one sentence description
+
+Example: [{"name":"Export vocal stems","status":"${STATUSES[track][0]}","estimatedHours":1,"notes":"Export all vocal takes from Logic for mixing review"}]`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-api-key':ANTHROPIC_KEY, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+    body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{ role:'user', content:prompt }] }),
+  });
+  const data = await response.json();
+  const text = data.content?.[0]?.text || '[]';
+  try { return JSON.parse(text.replace(/```json|```/g,'').trim()); }
+  catch(e) { return []; }
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
 function getWeekLabel() {
   const d = new Date(), day = d.getDay();
   const diff = d.getDate() - day + (day===0?-6:1);
-  const mon = new Date(d.setDate(diff));
+  const mon = new Date(d); mon.setDate(diff);
   return `Week of ${mon.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
 }
 
@@ -304,14 +388,67 @@ function daysSince(dateStr) {
   return Math.floor((new Date() - new Date(dateStr)) / 86400000);
 }
 
-function getAvailableSlots(track) {
-  const allowed = DAY_RULES[track] || [];
-  const slots = [], today = new Date();
+function fmtTime(date) {
+  return date.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
+}
+
+function fmtDate(date) {
+  return date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+
+function isSameDay(a, b) {
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+function getDaysInMonth(year, month) {
+  return new Date(year, month+1, 0).getDate();
+}
+
+function getFirstDayOfMonth(year, month) {
+  return new Date(year, month, 1).getDay();
+}
+
+// Get available slots for a track based on day rules, respecting 4pm cutoff
+function getSmartSlots(track, calEvents) {
+  const slots = [];
+  const today = new Date();
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
   for (let i=0; i<7; i++) {
-    const d = new Date(today); d.setDate(today.getDate()+i);
-    const dayName = d.toLocaleDateString('en-US',{weekday:'long'});
-    if (allowed.includes(dayName)) {
-      slots.push({ date:d, label:d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}), dayName, startHour:9 });
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const dayName = dayNames[d.getDay()];
+    const schedule = DAY_SCHEDULE[dayName] || [];
+    const trackSlots = schedule.filter(s => s.track === track);
+
+    for (const slot of trackSlots) {
+      // Hard cutoff at 4pm
+      const endHour = Math.min(slot.end, 16);
+      if (slot.start >= 16) continue;
+
+      // Check for conflicts with existing calendar events
+      const startDt = new Date(d);
+      startDt.setHours(slot.start, 0, 0, 0);
+      const endDt = new Date(d);
+      endDt.setHours(endHour, 0, 0, 0);
+
+      const conflict = calEvents.find(e => {
+        if (!e.start?.dateTime) return false;
+        const es = new Date(e.start.dateTime), ee = new Date(e.end?.dateTime || e.start.dateTime);
+        return es < endDt && ee > startDt;
+      });
+
+      slots.push({
+        date: d,
+        dayName,
+        label: `${fmtDate(d)} ${slot.start}:00–${endHour}:00`,
+        startHour: slot.start,
+        endHour,
+        conflict: !!conflict,
+        conflictName: conflict?.summary || '',
+        startISO: startDt.toISOString(),
+        endISO: endDt.toISOString(),
+      });
     }
   }
   return slots;
@@ -324,58 +461,48 @@ function rowToItem(track, row, index) {
 // Demo data
 const DEMO = {
   records:[
-    { id:0, name:'Still Waters', type:'Song', status:'Mixing', extra:'Chris McClarney', dueDate:'2026-04-15', notes:'Needs final vocal edits', dateAdded:'2026-03-20', track:'records' },
-    { id:1, name:'New Day EP', type:'EP', status:'Pre-Production', extra:'Worship Project', dueDate:'2026-05-01', notes:'3 songs planned', dateAdded:'2026-04-01', track:'records' },
+    {id:0,name:'Still Waters',type:'Song',status:'Mixing',extra:'Chris McClarney',dueDate:'2026-04-15',notes:'Needs final vocal edits',dateAdded:'2026-03-20',track:'records'},
+    {id:1,name:'New Day EP',type:'EP',status:'Pre-Production',extra:'Worship Project',dueDate:'2026-05-01',notes:'3 songs planned',dateAdded:'2026-04-01',track:'records'},
   ],
   publishing:[
-    { id:0, name:'Still Waters', type:'Single', status:'Pitched', extra:'LifeWay', dueDate:'2026-04-20', notes:'Follow up needed', dateAdded:'2026-03-25', track:'publishing' },
-    { id:1, name:'Overflow', type:'Single', status:'Collecting', extra:'ASCAP', dueDate:'', notes:'Collecting Q1', dateAdded:'2026-02-10', track:'publishing' },
+    {id:0,name:'Still Waters',type:'Single',status:'Pitched',extra:'LifeWay',dueDate:'2026-04-20',notes:'Follow up needed',dateAdded:'2026-03-25',track:'publishing'},
+    {id:1,name:'Overflow',type:'Single',status:'Collecting',extra:'ASCAP',dueDate:'',notes:'Q1 collecting',dateAdded:'2026-02-10',track:'publishing'},
   ],
   songstage:[
-    { id:0, name:'Song card drag-drop', type:'Feature', status:'In Progress', extra:'Dylan', dueDate:'2026-04-12', notes:'Almost done', dateAdded:'2026-04-01', track:'songstage' },
-    { id:1, name:'Onboarding flow', type:'Feature', status:'Backlog', extra:'Dylan', dueDate:'2026-04-30', notes:'Waiting on design', dateAdded:'2026-03-28', track:'songstage' },
-    { id:2, name:'Fix login redirect', type:'Bug', status:'Review', extra:'Dylan', dueDate:'2026-04-10', notes:'', dateAdded:'2026-04-06', track:'songstage' },
+    {id:0,name:'Song card drag-drop',type:'Feature',status:'In Progress',extra:'Dylan',dueDate:'2026-04-12',notes:'Almost done',dateAdded:'2026-04-01',track:'songstage'},
+    {id:1,name:'Onboarding flow',type:'Feature',status:'Backlog',extra:'Dylan',dueDate:'2026-04-30',notes:'Waiting on design',dateAdded:'2026-03-28',track:'songstage'},
   ],
   freelance:[
-    { id:0, name:'Church of the City session', type:'Session', status:'Booked', extra:'CoTC', dueDate:'2026-04-14', notes:'Guitar tracking', dateAdded:'2026-04-03', track:'freelance' },
-    { id:1, name:'Artist coaching - Sarah', type:'Coaching', status:'In Progress', extra:'Sarah K', dueDate:'', notes:'Monthly coaching', dateAdded:'2026-03-15', track:'freelance' },
+    {id:0,name:'Church of the City session',type:'Session',status:'Booked',extra:'CoTC',dueDate:'2026-04-14',notes:'Guitar tracking',dateAdded:'2026-04-03',track:'freelance'},
   ],
   content:[
-    { id:0, name:'How worship music gets licensed', type:'Long-Form', status:'In Progress', extra:'YouTube', dueDate:'2026-04-18', notes:'Script drafted', dateAdded:'2026-04-02', track:'content' },
-    { id:1, name:'3 mistakes worship leaders make', type:'Short-Form', status:'Planned', extra:'Reels', dueDate:'2026-04-11', notes:'', dateAdded:'2026-04-07', track:'content' },
-    { id:2, name:'Why I left Asana', type:'Substack', status:'Published', extra:'Substack', dueDate:'', notes:'', dateAdded:'2026-04-05', track:'content' },
+    {id:0,name:'How worship music gets licensed',type:'Long-Form',status:'In Progress',extra:'YouTube',dueDate:'2026-04-18',notes:'Script drafted',dateAdded:'2026-04-02',track:'content'},
+    {id:1,name:'3 mistakes worship leaders make',type:'Short-Form',status:'Planned',extra:'Reels',dueDate:'2026-04-11',notes:'',dateAdded:'2026-04-07',track:'content'},
   ],
 };
 
-const DEMO_GOALS = {
-  records:'Finalize Still Waters mix and send to Chris for approval',
-  publishing:'Follow up with LifeWay on Still Waters pitch',
-  songstage:'Ship drag-drop feature, review login bug fix with Dylan',
-  freelance:'Prep for CoTC session, reach out to 2 new coaching prospects',
-  content:'Publish long-form YouTube, post 2 Reels',
-};
+// ── COMPONENTS ────────────────────────────────────────────────────────────────
 
-// COMPONENTS
 function Toast({ message, onClose }) {
-  useEffect(() => { const t = setTimeout(onClose,3500); return ()=>clearTimeout(t); },[]);
+  useEffect(()=>{ const t=setTimeout(onClose,3500); return ()=>clearTimeout(t); },[]);
   return <div className="toast">{message}</div>;
 }
 
-function AddItemModal({ track, onClose, onAdd }) {
-  const [form, setForm] = useState({ name:'', type:TYPES[track][0], status:STATUSES[track][0], extra:'', dueDate:'', notes:'' });
-  const [step, setStep] = useState('form');
-  const [slots, setSlots] = useState([]);
-  const [selectedSlot, setSelectedSlot] = useState(null);
+function AddItemModal({ track, onClose, onAdd, calEvents }) {
+  const [form, setForm]= useState({name:'',type:TYPES[track][0],status:STATUSES[track][0],extra:'',dueDate:'',notes:''});
+  const [step, setStep]= useState('form');
+  const [slots, setSlots]= useState([]);
+  const [selected, setSelected]= useState(null);
   const t = TRACKS[track];
-  const extraLabel = { records:'Artist', publishing:'Partner / Outlet', songstage:'Assigned To', freelance:'Client', content:'Platform' }[track];
+  const extraLabel = {records:'Artist',publishing:'Partner',songstage:'Assigned To',freelance:'Client',content:'Platform'}[track];
 
-  function handleNext() {
+  function next() {
     if (!form.name.trim()) return;
-    setSlots(getAvailableSlots(track));
+    setSlots(getSmartSlots(track, calEvents));
     setStep('calendar');
   }
 
-  function handleSave(blockCal) { onAdd({ ...form, blockCal, slot: slots[selectedSlot] }); onClose(); }
+  function save(block) { onAdd({...form, block, slot:slots[selected]}); onClose(); }
 
   return (
     <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
@@ -386,44 +513,55 @@ function AddItemModal({ track, onClose, onAdd }) {
         </div>
         {step==='form' ? (<>
           <div className="modal-body">
-            <div className="form-group"><label className="form-label">Name *</label>
-              <input className="form-input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} autoFocus placeholder="Name..." /></div>
-            <div className="form-group"><label className="form-label">Type</label>
-              <select className="form-select" value={form.type} onChange={e=>setForm({...form,type:e.target.value})}>
-                {TYPES[track].map(t=><option key={t}>{t}</option>)}</select></div>
-            <div className="form-group"><label className="form-label">Status</label>
-              <select className="form-select" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
-                {STATUSES[track].map(s=><option key={s}>{s}</option>)}</select></div>
-            <div className="form-group"><label className="form-label">{extraLabel}</label>
-              <input className="form-input" value={form.extra} onChange={e=>setForm({...form,extra:e.target.value})} /></div>
-            <div className="form-group"><label className="form-label">Due Date</label>
-              <input className="form-input" type="date" value={form.dueDate} onChange={e=>setForm({...form,dueDate:e.target.value})} /></div>
-            <div className="form-group"><label className="form-label">Notes</label>
-              <textarea className="form-textarea form-input" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} /></div>
+            {['name','extra','dueDate','notes'].map(field => (
+              <div className="form-group" key={field}>
+                <label className="form-label">{field==='name'?'Name *':field==='extra'?extraLabel:field==='dueDate'?'Due Date':'Notes'}</label>
+                {field==='notes'
+                  ? <textarea className="form-textarea form-input" value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})}/>
+                  : <input className="form-input" type={field==='dueDate'?'date':'text'} value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})} autoFocus={field==='name'}/>}
+              </div>
+            ))}
+            {['type','status'].map(field=>(
+              <div className="form-group" key={field}>
+                <label className="form-label">{field==='type'?'Type':'Status'}</label>
+                <select className="form-select" value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})}>
+                  {(field==='type'?TYPES:STATUSES)[track].map(v=><option key={v}>{v}</option>)}
+                </select>
+              </div>
+            ))}
           </div>
           <div className="modal-footer">
             <button className="btn-secondary" onClick={onClose}>Cancel</button>
-            <button className="btn-primary" onClick={handleNext}>Next →</button>
+            <button className="btn-primary" onClick={next}>Next →</button>
           </div>
         </>) : (<>
           <div className="modal-body">
-            <div className="cal-question">
-              <div className="cal-question-text">Block time on your calendar for <strong>{form.name}</strong>?</div>
-              <div style={{fontSize:'11px',color:'var(--text2)'}}>Best slots for {t.label} days ({DAY_RULES[track].join(', ')}):</div>
-            </div>
-            {slots.length===0
-              ? <div style={{fontSize:'12px',color:'var(--text3)',padding:'12px 0'}}>No {t.label} days available this week.</div>
-              : <div className="cal-slots">{slots.map((s,i)=>(
-                  <div key={i} className={`cal-slot ${selectedSlot===i?'selected':''}`} onClick={()=>setSelectedSlot(i)}>
-                    <span>{s.label} — 9:00 AM</span>
-                    <span className="cal-slot-day">{s.dayName}</span>
+            <div className="block-preview">
+              <div className="block-preview-title">📅 Suggested Time Blocks</div>
+              <div style={{fontSize:'11px',color:'var(--text2)',marginBottom:'12px'}}>
+                Based on your schedule — {t.label} days only, nothing after 4pm
+              </div>
+              {slots.length===0
+                ? <div style={{fontSize:'12px',color:'var(--text3)'}}>No {t.label} slots available this week.</div>
+                : slots.map((s,i)=>(
+                  <div key={i} className="block-row" style={{cursor:'pointer'}} onClick={()=>setSelected(i)}>
+                    <div className="block-row-left">
+                      <div className="block-check checked" style={selected===i?{}:{background:'transparent',color:'transparent'}}>✓</div>
+                      <div>
+                        <div style={{fontSize:'12px'}}>{s.label}</div>
+                        {s.conflict&&<div style={{fontSize:'10px',color:'var(--warning)'}}>⚠ Overlaps with: {s.conflictName}</div>}
+                      </div>
+                    </div>
+                    <div style={{fontSize:'10px',color:'var(--text3)'}}>{s.dayName}</div>
                   </div>
-                ))}</div>}
+                ))}
+            </div>
           </div>
           <div className="modal-footer">
-            <button className="btn-secondary" onClick={()=>handleSave(false)}>Skip</button>
-            <button className="btn-primary" onClick={()=>handleSave(selectedSlot!==null)}>
-              {selectedSlot!==null?'Block Time + Save':'Save Without Blocking'}</button>
+            <button className="btn-secondary" onClick={()=>save(false)}>Skip</button>
+            <button className="btn-primary" onClick={()=>save(selected!==null)}>
+              {selected!==null?'Block Time + Save':'Save Without Blocking'}
+            </button>
           </div>
         </>)}
       </div>
@@ -431,18 +569,61 @@ function AddItemModal({ track, onClose, onAdd }) {
   );
 }
 
+function AddEventModal({ date, onClose, onAdd }) {
+  const [form, setForm]= useState({title:'',startTime:'09:00',endTime:'10:00',track:''});
+  function save() {
+    if (!form.title.trim()) return;
+    const start = new Date(date); const [sh,sm]=form.startTime.split(':'); start.setHours(+sh,+sm,0,0);
+    const end   = new Date(date); const [eh,em]=form.endTime.split(':');   end.setHours(+eh,+em,0,0);
+    // Enforce 4pm cutoff
+    if (start.getHours()>=16) { alert('Nothing after 4pm!'); return; }
+    if (end.getHours()>=16) end.setHours(16,0,0,0);
+    onAdd({ title:form.title, startISO:start.toISOString(), endISO:end.toISOString(), track:form.track, color: form.track?TRACK_COLORS_HEX[form.track]:'#888' });
+    onClose();
+  }
+  return (
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <div className="modal-title">Add Event — {fmtDate(date)}</div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-group"><label className="form-label">Title *</label>
+            <input className="form-input" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} autoFocus/></div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+            <div className="form-group"><label className="form-label">Start Time</label>
+              <input className="form-input" type="time" value={form.startTime} onChange={e=>setForm({...form,startTime:e.target.value})}/></div>
+            <div className="form-group"><label className="form-label">End Time (max 4pm)</label>
+              <input className="form-input" type="time" value={form.endTime} onChange={e=>setForm({...form,endTime:e.target.value})}/></div>
+          </div>
+          <div className="form-group"><label className="form-label">Track (optional)</label>
+            <select className="form-select" value={form.track} onChange={e=>setForm({...form,track:e.target.value})}>
+              <option value="">None</option>
+              {Object.entries(TRACKS).map(([k,t])=><option key={k} value={k}>{t.label}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn-primary" onClick={save}>Add to Calendar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function KanbanCard({ item, track, onStatusChange, onDelete, onMarkDone }) {
-  const color = TRACKS[track].color;
   return (
     <div className="card">
-      <div className="card-track-line" style={{background:color}} />
+      <div className="card-track-line" style={{background:TRACKS[track].color}}/>
       <div className="card-name">{item.name}</div>
       <div className="card-meta">
-        {item.type && <span className="tag">{item.type}</span>}
-        {item.extra && <span className="tag">{item.extra}</span>}
-        {item.dueDate && <span className="tag">Due {new Date(item.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>}
+        {item.type&&<span className="tag">{item.type}</span>}
+        {item.extra&&<span className="tag">{item.extra}</span>}
+        {item.dueDate&&<span className="tag">Due {new Date(item.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>}
       </div>
-      {item.notes && <div style={{fontSize:'11px',color:'var(--text2)',marginTop:'8px',paddingLeft:'10px'}}>{item.notes}</div>}
+      {item.notes&&<div style={{fontSize:'11px',color:'var(--text2)',marginTop:'8px',paddingLeft:'10px'}}>{item.notes}</div>}
       <div className="card-actions">
         <select className="card-btn" value={item.status} onChange={e=>onStatusChange(item,e.target.value)} style={{fontFamily:'DM Mono,monospace',cursor:'pointer'}}>
           {STATUSES[track].map(s=><option key={s}>{s}</option>)}
@@ -454,22 +635,21 @@ function KanbanCard({ item, track, onStatusChange, onDelete, onMarkDone }) {
   );
 }
 
-function TrackPage({ track, items, onAdd, onStatusChange, onDelete, onMarkDone, loading }) {
+function TrackPage({ track, items, onAdd, onStatusChange, onDelete, onMarkDone, loading, calEvents }) {
   const t = TRACKS[track];
   const byStatus = {};
-  STATUSES[track].forEach(s => { byStatus[s] = items.filter(i=>i.status===s); });
-
+  STATUSES[track].forEach(s=>{ byStatus[s]=items.filter(i=>i.status===s); });
   return (
     <div className="page">
       <div className="track-header">
         <div>
           <div className="track-title" style={{color:t.color}}>{t.label}</div>
-          <div style={{fontSize:'11px',color:'var(--text2)',marginTop:'4px'}}>{items.length} items · {DAY_RULES[track].join(', ')} days</div>
+          <div style={{fontSize:'11px',color:'var(--text2)',marginTop:'4px'}}>{items.length} items</div>
         </div>
         <button className="add-btn" onClick={onAdd}>+ Add Item</button>
       </div>
       {loading
-        ? <div style={{color:'var(--text3)',fontSize:'12px'}}>Loading from Google Sheets...</div>
+        ? <div style={{color:'var(--text3)',fontSize:'12px'}}>Loading...</div>
         : <div className="kanban">
             {STATUSES[track].map(status=>(
               <div key={status} className="kanban-col">
@@ -482,7 +662,7 @@ function TrackPage({ track, items, onAdd, onStatusChange, onDelete, onMarkDone, 
                     ? <div style={{fontSize:'11px',color:'var(--text3)',padding:'12px',border:'1px dashed var(--border)',textAlign:'center'}}>Empty</div>
                     : (byStatus[status]||[]).map(item=>(
                         <KanbanCard key={item.id} item={item} track={track}
-                          onStatusChange={onStatusChange} onDelete={onDelete} onMarkDone={onMarkDone} />
+                          onStatusChange={onStatusChange} onDelete={onDelete} onMarkDone={onMarkDone}/>
                       ))}
                 </div>
               </div>
@@ -492,93 +672,205 @@ function TrackPage({ track, items, onAdd, onStatusChange, onDelete, onMarkDone, 
   );
 }
 
-function DashboardPage({ items, goals, calEvents, onAddToWeek }) {
-  const allItems = Object.values(items).flat();
-  const terminalStatuses = Object.values(TERMINAL);
-  const stale = allItems.filter(i => !terminalStatuses.includes(i.status) && daysSince(i.dateAdded)>7);
-  const weekGoals = Object.entries(goals).filter(([,v])=>v);
+// ── CALENDAR PAGE ─────────────────────────────────────────────────────────────
+function CalendarPage({ calEvents, onAddEvent, demoMode }) {
+  const today = new Date();
+  const [view, setView]= useState('week');
+  const [current, setCurrent]= useState(new Date());
+  const [addEventDate, setAddEventDate]= useState(null);
 
-  return (
-    <div className="page">
-      <div style={{marginBottom:'28px'}}>
-        <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px'}}>Command Center</div>
-        <div style={{fontSize:'11px',color:'var(--text2)'}}>{getWeekLabel()} · {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
-      </div>
+  const HOURS = Array.from({length:9},(_,i)=>i+8); // 8am-4pm
 
-      <div className="dashboard-grid">
-        {Object.entries(TRACKS).map(([key,t])=>{
-          const trackItems = items[key]||[];
-          const active = trackItems.filter(i=>i.status!==TERMINAL[key]).length;
-          const done = trackItems.filter(i=>i.status===TERMINAL[key]).length;
+  function eventsForDay(d) {
+    return calEvents.filter(e=>{
+      const start = e.start?.dateTime ? new Date(e.start.dateTime) : e.start?.date ? new Date(e.start.date+'T00:00:00') : null;
+      return start && isSameDay(start, d);
+    });
+  }
+
+  function eventColor(e) {
+    if (e._track) return TRACK_COLORS_HEX[e._track] || '#888';
+    const title = e.summary||'';
+    for (const [k,t] of Object.entries(TRACKS)) {
+      if (title.toLowerCase().includes(t.label.toLowerCase().split(' ')[0].toLowerCase())) return TRACK_COLORS_HEX[k];
+    }
+    return '#444';
+  }
+
+  // MONTH VIEW
+  function MonthView() {
+    const year = current.getFullYear(), month = current.getMonth();
+    const firstDay = getFirstDayOfMonth(year,month);
+    const daysInMonth = getDaysInMonth(year,month);
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const cells = [];
+    // prev month padding
+    for (let i=0;i<firstDay;i++) {
+      const d = new Date(year,month,-(firstDay-i-1));
+      cells.push({date:d,otherMonth:true});
+    }
+    for (let i=1;i<=daysInMonth;i++) cells.push({date:new Date(year,month,i),otherMonth:false});
+    while (cells.length%7!==0) { const last=cells[cells.length-1].date; cells.push({date:new Date(last.getFullYear(),last.getMonth(),last.getDate()+1),otherMonth:true}); }
+
+    return (
+      <div className="cal-month-grid">
+        {dayNames.map(d=><div key={d} className="cal-day-header">{d}</div>)}
+        {cells.map((cell,i)=>{
+          const evs = eventsForDay(cell.date);
+          const isToday = isSameDay(cell.date,today);
           return (
-            <div key={key} className={`stat-card ${key}`}>
-              <div className="stat-label">{t.label}</div>
-              <div className="stat-number" style={{color:t.color}}>{active}</div>
-              <div className="stat-sub">active · {done} done</div>
+            <div key={i} className={`cal-day${cell.otherMonth?' other-month':''}${isToday?' today':''}`}>
+              <div className="cal-day-num">{cell.date.getDate()}</div>
+              <div className="cal-day-add" onClick={e=>{e.stopPropagation();setAddEventDate(new Date(cell.date));}}>+</div>
+              {evs.slice(0,3).map((e,j)=>(
+                <div key={j} className="cal-event-pill" style={{background:eventColor(e)+'22',color:eventColor(e),border:`1px solid ${eventColor(e)}44`}}
+                  title={e.summary}>
+                  {e.start?.dateTime?fmtTime(new Date(e.start.dateTime))+' ':''}{e.summary}
+                </div>
+              ))}
+              {evs.length>3&&<div style={{fontSize:'9px',color:'var(--text3)'}}>+{evs.length-3} more</div>}
             </div>
           );
         })}
-        <div className="stat-card hours">
-          <div className="stat-label">Weekly Time Targets</div>
-          <div style={{fontFamily:'Syne,sans-serif',fontSize:'13px',fontWeight:'700',lineHeight:'2',color:'var(--accent)'}}>
-            Real Fun: 10–15h<br/>
-            <span style={{color:'var(--songstage)'}}>Songstage: 15–20h</span><br/>
-            <span style={{color:'var(--freelance)'}}>Freelance: ~10h</span>
+      </div>
+    );
+  }
+
+  // WEEK VIEW
+  function WeekView() {
+    const startOfWeek = new Date(current);
+    const day = startOfWeek.getDay();
+    startOfWeek.setDate(startOfWeek.getDate() - day + (day===0?-6:1));
+    const days = Array.from({length:7},(_,i)=>{ const d=new Date(startOfWeek); d.setDate(startOfWeek.getDate()+i); return d; });
+
+    return (
+      <div className="cal-week-grid">
+        {/* Header row */}
+        <div className="cal-week-header" style={{borderBottom:'1px solid var(--border)'}}></div>
+        {days.map((d,i)=>(
+          <div key={i} className={`cal-week-header${isSameDay(d,today)?' today-col':''}`}>
+            <div className="cal-week-header-day">{d.toLocaleDateString('en-US',{weekday:'short'})}</div>
+            <div className="cal-week-header-date">{d.getDate()}</div>
+          </div>
+        ))}
+        {/* Hour rows */}
+        {HOURS.map(hour=>(
+          <React.Fragment key={hour}>
+            <div className="cal-hour-label">{hour===12?'12pm':hour>12?`${hour-12}pm`:`${hour}am`}</div>
+            {days.map((d,di)=>{
+              const hourEvents = calEvents.filter(e=>{
+                const start = e.start?.dateTime ? new Date(e.start.dateTime) : null;
+                return start && isSameDay(start,d) && start.getHours()===hour;
+              });
+              return (
+                <div key={di} className={`cal-week-cell${isSameDay(d,today)?' today-col':''}`}
+                  onClick={()=>{ const nd=new Date(d); nd.setHours(hour,0,0,0); setAddEventDate(nd); }}>
+                  {hourEvents.map((e,j)=>(
+                    <div key={j} className="cal-week-event" style={{background:eventColor(e)+'22',color:eventColor(e),border:`1px solid ${eventColor(e)}44`}}
+                      title={e.summary}>
+                      {fmtTime(new Date(e.start.dateTime))} {e.summary}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+
+  // DAY VIEW
+  function DayView() {
+    const dayEvents = eventsForDay(current);
+    return (
+      <div className="cal-day-view">
+        <div className="cal-day-view-header">
+          <span>{current.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</span>
+          <button className="btn-sm" onClick={()=>setAddEventDate(new Date(current))}>+ Add Event</button>
+        </div>
+        {HOURS.map(hour=>{
+          const hourEvents = dayEvents.filter(e=>{
+            const start = e.start?.dateTime ? new Date(e.start.dateTime) : null;
+            return start && start.getHours()===hour;
+          });
+          return (
+            <React.Fragment key={hour}>
+              <div className="cal-day-hour-label">{hour===12?'12pm':hour>12?`${hour-12}pm`:`${hour}am`}</div>
+              <div className="cal-day-hour-cell" onClick={()=>{ const nd=new Date(current); nd.setHours(hour,0,0,0); setAddEventDate(nd); }}>
+                {hourEvents.map((e,j)=>(
+                  <div key={j} className="cal-day-event" style={{background:eventColor(e)+'22',color:eventColor(e),border:`1px solid ${eventColor(e)}44`}}>
+                    <strong>{fmtTime(new Date(e.start.dateTime))}</strong> {e.summary}
+                    {e.end?.dateTime&&<span style={{color:'var(--text3)',marginLeft:'6px'}}>→ {fmtTime(new Date(e.end.dateTime))}</span>}
+                  </div>
+                ))}
+              </div>
+            </React.Fragment>
+          );
+        })}
+      </div>
+    );
+  }
+
+  function navigate(dir) {
+    const d = new Date(current);
+    if (view==='month') d.setMonth(d.getMonth()+dir);
+    else if (view==='week') d.setDate(d.getDate()+dir*7);
+    else d.setDate(d.getDate()+dir);
+    setCurrent(d);
+  }
+
+  function getLabel() {
+    if (view==='month') return current.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    if (view==='day') return current.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    const startOfWeek = new Date(current);
+    const day = startOfWeek.getDay();
+    startOfWeek.setDate(startOfWeek.getDate()-day+(day===0?-6:1));
+    const endOfWeek = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate()+6);
+    return `${startOfWeek.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${endOfWeek.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+  }
+
+  return (
+    <div className="page">
+      <div className="cal-toolbar">
+        <div className="cal-nav">
+          <button className="cal-nav-btn" onClick={()=>navigate(-1)}>←</button>
+          <div className="cal-month-label">{getLabel()}</div>
+          <button className="cal-nav-btn" onClick={()=>navigate(1)}>→</button>
+          <button className="cal-nav-btn" onClick={()=>setCurrent(new Date())}>Today</button>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+          <button className="btn-sm" onClick={()=>setAddEventDate(new Date())}>+ Add Event</button>
+          <div className="cal-view-toggle">
+            {['month','week','day'].map(v=>(
+              <button key={v} className={`cal-view-btn${view===v?' active':''}`} onClick={()=>setView(v)}>{v}</button>
+            ))}
           </div>
         </div>
       </div>
 
-      {stale.length>0 && (
-        <div className="stale-section">
-          <div className="stale-title">⚠ Sitting &gt; 7 Days — Needs a Decision</div>
-          {stale.slice(0,5).map((item,i)=>(
-            <div key={i} className="stale-item">
-              <div className="stale-item-left">
-                <div className="nav-dot" style={{background:TRACKS[item.track].color}} />
-                <span>{item.name}</span>
-                <span className="tag" style={{marginLeft:'6px'}}>{item.status}</span>
-                <span className="stale-days">{daysSince(item.dateAdded)}d</span>
-              </div>
-              <button className="add-to-week-btn" onClick={()=>onAddToWeek(item)}>+ Add to week</button>
-            </div>
-          ))}
+      {demoMode && (
+        <div style={{background:'rgba(255,179,71,0.08)',border:'1px solid rgba(255,179,71,0.2)',padding:'10px 14px',marginBottom:'16px',fontSize:'11px',color:'var(--warning)'}}>
+          Demo mode — connect Google to see your real calendar events
         </div>
       )}
 
-      {weekGoals.length>0 && (
-        <div>
-          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>This Week's Goals</div>
-          {weekGoals.map(([track,goal])=>(
-            <div key={track} className="goal-card">
-              <div className="goal-track-name" style={{color:TRACKS[track].color}}>{TRACKS[track].label}</div>
-              <div className="goal-text">{goal}</div>
-            </div>
-          ))}
-        </div>
-      )}
+      {view==='month'&&<MonthView/>}
+      {view==='week'&&<WeekView/>}
+      {view==='day'&&<DayView/>}
 
-      {calEvents.length>0 && (
-        <div style={{marginTop:'24px'}}>
-          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>Upcoming Calendar</div>
-          {calEvents.slice(0,5).map((e,i)=>(
-            <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 0',borderBottom:'1px solid var(--border)',fontSize:'12px'}}>
-              <div style={{color:'var(--text3)',fontSize:'10px',minWidth:'80px'}}>
-                {e.start?.dateTime ? new Date(e.start.dateTime).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : 'All day'}
-              </div>
-              <div>{e.summary}</div>
-            </div>
-          ))}
-        </div>
+      {addEventDate&&(
+        <AddEventModal date={addEventDate} onClose={()=>setAddEventDate(null)}
+          onAdd={async(ev)=>{ await onAddEvent(ev); setAddEventDate(null); }}/>
       )}
     </div>
   );
 }
 
-function CheckInPage({ items, calEvents, goals, onGoalChange, onSave }) {
-  const staleByTrack = {};
-  Object.entries(items).forEach(([track,trackItems])=>{
-    staleByTrack[track] = trackItems.filter(i=>i.status!==TERMINAL[track]&&daysSince(i.dateAdded)>5);
-  });
+// ── CHECK-IN PAGE ─────────────────────────────────────────────────────────────
+function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGenerated, demoMode }) {
+  const [aiState, setAiState]= useState({}); // track -> 'idle'|'loading'|'done'
+  const [aiTasks, setAiTasks]= useState({}); // track -> array of tasks
 
   const prompts = {
     records:'What do you want to move forward? How does it connect to revenue?',
@@ -588,21 +880,50 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave }) {
     content:'What are you publishing? (target: 2–3 short-form, 1 long-form, 1 Substack)',
   };
 
+  async function breakdown(track) {
+    const goal = goals[track];
+    if (!goal?.trim()) return;
+    setAiState(s=>({...s,[track]:'loading'}));
+    const tasks = await breakdownGoalWithAI(track, goal, items[track]||[]);
+    setAiTasks(t=>({...t,[track]:tasks}));
+    setAiState(s=>({...s,[track]:'done'}));
+  }
+
+  function addTasksToTrack(track) {
+    const tasks = aiTasks[track]||[];
+    onTasksGenerated(track, tasks);
+    setAiState(s=>({...s,[track]:'idle'}));
+    setAiTasks(t=>({...t,[track]:[]}));
+  }
+
+  const staleByTrack = {};
+  Object.entries(items).forEach(([track,trackItems])=>{
+    staleByTrack[track]=trackItems.filter(i=>i.status!==TERMINAL[track]&&daysSince(i.dateAdded)>5);
+  });
+
+  // Upcoming calendar for context
+  const thisWeekEvents = calEvents.filter(e=>{
+    const start = e.start?.dateTime?new Date(e.start.dateTime):null;
+    if (!start) return false;
+    const now=new Date(), end=new Date(); end.setDate(now.getDate()+7);
+    return start>=now&&start<=end;
+  }).slice(0,5);
+
   return (
     <div className="page">
       <div className="checkin-wrap">
         <div className="checkin-intro">
           <div className="checkin-intro-title">Monday Check-In 🗓</div>
-          <div className="checkin-intro-sub">Set your goals for the week. What matters most across each track?</div>
+          <div className="checkin-intro-sub">Set goals, break them into tasks, block your week.</div>
         </div>
 
-        {calEvents.length>0 && (
+        {thisWeekEvents.length>0&&(
           <div style={{background:'var(--surface)',border:'1px solid var(--border)',padding:'16px',marginBottom:'16px'}}>
-            <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'10px'}}>Already on your calendar</div>
-            {calEvents.slice(0,4).map((e,i)=>(
+            <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'10px'}}>Already on your calendar this week</div>
+            {thisWeekEvents.map((e,i)=>(
               <div key={i} style={{display:'flex',gap:'12px',fontSize:'12px',padding:'6px 0',borderBottom:'1px solid var(--border)'}}>
-                <div style={{color:'var(--text3)',minWidth:'80px',fontSize:'10px'}}>
-                  {e.start?.dateTime ? new Date(e.start.dateTime).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : 'All day'}
+                <div style={{color:'var(--text3)',minWidth:'100px',fontSize:'10px'}}>
+                  {e.start?.dateTime?`${fmtDate(new Date(e.start.dateTime))} ${fmtTime(new Date(e.start.dateTime))}`:'All day'}
                 </div>
                 <div>{e.summary}</div>
               </div>
@@ -614,14 +935,50 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave }) {
           <div key={track} className={`checkin-section ${track}`}>
             <div className="checkin-section-title" style={{color:t.color}}>{t.label}</div>
             <div className="checkin-section-sub">{prompts[track]}</div>
-            {staleByTrack[track]?.length>0 && (
+            {staleByTrack[track]?.length>0&&(
               <div className="stale-prompt">
-                ⚠ Sitting 5+ days: {staleByTrack[track].map(i=>i.name).join(', ')} — add to this week's goal?
+                ⚠ Sitting 5+ days: {staleByTrack[track].map(i=>i.name).join(', ')}
               </div>
             )}
-            <textarea className="form-textarea form-input"
+            <textarea className="form-textarea form-input" style={{marginBottom:'10px'}}
               placeholder={`What's the goal for ${t.label} this week?`}
-              value={goals[track]||''} onChange={e=>onGoalChange(track,e.target.value)} />
+              value={goals[track]||''} onChange={e=>onGoalChange(track,e.target.value)}/>
+
+            {/* AI breakdown */}
+            {goals[track]?.trim()&&(
+              <div>
+                {(!aiState[track]||aiState[track]==='idle')&&(
+                  <button className="btn-sm" onClick={()=>breakdown(track)}>
+                    ✦ Break into tasks with AI
+                  </button>
+                )}
+                {aiState[track]==='loading'&&(
+                  <div className="ai-thinking">
+                    <div className="ai-dot"/> Breaking down your goal...
+                  </div>
+                )}
+                {aiState[track]==='done'&&aiTasks[track]?.length>0&&(
+                  <div>
+                    <div className="ai-tasks">
+                      {aiTasks[track].map((task,i)=>(
+                        <div key={i} className="ai-task">
+                          <div className="ai-task-name">{task.name}</div>
+                          <div className="ai-task-meta">{task.status} · ~{task.estimatedHours}h · {task.notes}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
+                      <button className="btn-primary" style={{fontSize:'11px',padding:'7px 14px'}} onClick={()=>addTasksToTrack(track)}>
+                        Add {aiTasks[track].length} tasks to {t.label}
+                      </button>
+                      <button className="btn-secondary" style={{fontSize:'11px',padding:'7px 14px'}} onClick={()=>setAiState(s=>({...s,[track]:'idle'}))}>
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
 
@@ -633,17 +990,109 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave }) {
   );
 }
 
-// MAIN APP
+// ── DASHBOARD PAGE ────────────────────────────────────────────────────────────
+function DashboardPage({ items, goals, calEvents, onAddToWeek }) {
+  const allItems = Object.values(items).flat();
+  const stale = allItems.filter(i=>i.status!==TERMINAL[i.track]&&daysSince(i.dateAdded)>7);
+  const weekGoals = Object.entries(goals).filter(([,v])=>v);
+
+  const thisWeekEvents = calEvents.filter(e=>{
+    const start = e.start?.dateTime?new Date(e.start.dateTime):null;
+    if (!start) return false;
+    const now=new Date(), end=new Date(); end.setDate(now.getDate()+7);
+    return start>=now&&start<=end;
+  }).slice(0,6);
+
+  return (
+    <div className="page">
+      <div style={{marginBottom:'28px'}}>
+        <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px'}}>Command Center</div>
+        <div style={{fontSize:'11px',color:'var(--text2)'}}>{getWeekLabel()} · {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
+      </div>
+
+      <div className="dashboard-grid">
+        {Object.entries(TRACKS).map(([key,t])=>{
+          const trackItems=items[key]||[];
+          const active=trackItems.filter(i=>i.status!==TERMINAL[key]).length;
+          const done=trackItems.filter(i=>i.status===TERMINAL[key]).length;
+          return (
+            <div key={key} className={`stat-card ${key}`}>
+              <div className="stat-label">{t.label}</div>
+              <div className="stat-number" style={{color:t.color}}>{active}</div>
+              <div className="stat-sub">active · {done} done</div>
+            </div>
+          );
+        })}
+        <div className="stat-card hours">
+          <div className="stat-label">Weekly Targets</div>
+          <div style={{fontSize:'12px',lineHeight:'2'}}>
+            <span style={{color:'var(--records)'}}>Real Fun: 10–15h</span><br/>
+            <span style={{color:'var(--songstage)'}}>Songstage: 15–20h</span><br/>
+            <span style={{color:'var(--freelance)'}}>Freelance: ~10h</span>
+          </div>
+        </div>
+      </div>
+
+      {stale.length>0&&(
+        <div className="stale-section">
+          <div className="stale-title">⚠ Sitting &gt; 7 Days</div>
+          {stale.slice(0,5).map((item,i)=>(
+            <div key={i} className="stale-item">
+              <div className="stale-item-left">
+                <div className="nav-dot" style={{background:TRACKS[item.track].color}}/>
+                <span>{item.name}</span>
+                <span className="tag" style={{marginLeft:'6px'}}>{item.status}</span>
+                <span className="stale-days">{daysSince(item.dateAdded)}d</span>
+              </div>
+              <button className="btn-sm" onClick={()=>onAddToWeek(item)}>+ This week</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {weekGoals.length>0&&(
+        <div style={{marginBottom:'24px'}}>
+          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>This Week's Goals</div>
+          {weekGoals.map(([track,goal])=>(
+            <div key={track} className="goal-card">
+              <div className="goal-track-name" style={{color:TRACKS[track].color}}>{TRACKS[track].label}</div>
+              <div className="goal-text">{goal}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {thisWeekEvents.length>0&&(
+        <div>
+          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>This Week's Calendar</div>
+          {thisWeekEvents.map((e,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:'16px',padding:'10px 0',borderBottom:'1px solid var(--border)',fontSize:'12px'}}>
+              <div style={{color:'var(--text3)',fontSize:'10px',minWidth:'140px'}}>
+                {e.start?.dateTime
+                  ? `${fmtDate(new Date(e.start.dateTime))} ${fmtTime(new Date(e.start.dateTime))}`
+                  : 'All day'}
+              </div>
+              <div style={{flex:1}}>{e.summary}</div>
+              {e.end?.dateTime&&<div style={{color:'var(--text3)',fontSize:'10px'}}>→ {fmtTime(new Date(e.end.dateTime))}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
-  const [authed, setAuthed] = useState(false);
-  const [demoMode, setDemoMode] = useState(false);
-  const [page, setPage] = useState('dashboard');
-  const [items, setItems] = useState({records:[],publishing:[],songstage:[],freelance:[],content:[]});
-  const [goals, setGoals] = useState({});
-  const [calEvents, setCalEvents] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [modal, setModal] = useState(null);
-  const [toast, setToast] = useState(null);
+  const [authed, setAuthed]= useState(false);
+  const [demoMode, setDemoMode]= useState(false);
+  const [page, setPage]= useState('dashboard');
+  const [items, setItems]= useState({records:[],publishing:[],songstage:[],freelance:[],content:[]});
+  const [goals, setGoals]= useState({});
+  const [calEvents, setCalEvents]= useState([]);
+  const [loading, setLoading]= useState(false);
+  const [modal, setModal]= useState(null);
+  const [toast, setToast]= useState(null);
 
   function showToast(msg) { setToast(msg); }
 
@@ -655,59 +1104,94 @@ function App() {
     });
   },[]);
 
-  useEffect(()=>{ if (demoMode) { setItems(DEMO); setGoals(DEMO_GOALS); } },[demoMode]);
+  useEffect(()=>{ if(demoMode){setItems(DEMO);setGoals({});} },[demoMode]);
 
   async function loadAllData() {
     setLoading(true);
-    const loaded = {};
+    const loaded={};
     for (const track of Object.keys(TRACKS)) {
       const rows = await readSheet(TRACKS[track].tab);
-      loaded[track] = rows.map((r,i)=>rowToItem(track,r,i));
+      loaded[track]=rows.map((r,i)=>rowToItem(track,r,i));
     }
     setItems(loaded);
-    const goalRows = await readSheet('Weekly Goals');
-    const thisWeek = getWeekLabel();
-    const weekRow = goalRows.find(r=>r[0]===thisWeek);
-    if (weekRow) setGoals({ records:weekRow[1]||'', publishing:weekRow[2]||'', songstage:weekRow[3]||'', freelance:weekRow[4]||'', content:weekRow[5]||'' });
-    const events = await getCalendarEvents();
+    const goalRows=await readSheet('Weekly Goals');
+    const weekRow=goalRows.find(r=>r[0]===getWeekLabel());
+    if (weekRow) setGoals({records:weekRow[1]||'',publishing:weekRow[2]||'',songstage:weekRow[3]||'',freelance:weekRow[4]||'',content:weekRow[5]||''});
+    const events=await getCalendarEvents(4);
     setCalEvents(events);
     setLoading(false);
   }
 
   async function handleAdd(track, formData) {
-    const { name, type, status, extra, dueDate, notes, blockCal, slot } = formData;
-    const dateAdded = new Date().toISOString().split('T')[0];
-    if (!demoMode) await appendRow(TRACKS[track].tab, [name,type,status,extra,dueDate,notes,'',dateAdded]);
-    const newItem = { id:items[track].length, name, type, status, extra, dueDate, notes, dateAdded, track };
+    const {name,type,status,extra,dueDate,notes,block,slot}=formData;
+    const dateAdded=new Date().toISOString().split('T')[0];
+    if (!demoMode) await appendRow(TRACKS[track].tab,[name,type,status,extra,dueDate,notes,'',dateAdded]);
+    const newItem={id:items[track].length,name,type,status,extra,dueDate,notes,dateAdded,track};
     setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
-    if (blockCal && slot && !demoMode) {
-      try { await createCalendarEvent(name,slot.date,slot.startHour,1.5); showToast(`✓ "${name}" added + time blocked`); }
-      catch(e) { showToast(`✓ "${name}" added — calendar block failed`); }
+    if (block&&slot&&!demoMode) {
+      try {
+        await createCalendarEvent(name,slot.startISO,slot.endISO,TRACK_COLORS_HEX[track]);
+        const refreshed=await getCalendarEvents(4);
+        setCalEvents(refreshed);
+        showToast(`✓ "${name}" added + time blocked ${slot.label}`);
+      } catch(e) { showToast(`✓ "${name}" added — calendar block failed`); }
     } else { showToast(`✓ "${name}" added to ${TRACKS[track].label}`); }
   }
 
+  async function handleAddCalEvent(ev) {
+    if (!demoMode) {
+      try {
+        await createCalendarEvent(ev.title,ev.startISO,ev.endISO,ev.color||'#888');
+        const refreshed=await getCalendarEvents(4);
+        setCalEvents(refreshed);
+        showToast(`✓ "${ev.title}" added to calendar`);
+      } catch(e) { showToast('Failed to add calendar event'); }
+    } else {
+      // Demo: just add locally
+      setCalEvents(prev=>[...prev,{
+        summary:ev.title,
+        start:{dateTime:ev.startISO},
+        end:{dateTime:ev.endISO},
+        _track:ev.track,
+      }]);
+      showToast(`✓ "${ev.title}" added (demo)`);
+    }
+  }
+
   async function handleStatusChange(track, item, newStatus) {
-    if (!demoMode) await updateCell(TRACKS[track].tab, item.id, 2, newStatus);
+    if (!demoMode) await updateCell(TRACKS[track].tab,item.id,2,newStatus);
     setItems(prev=>({...prev,[track]:prev[track].map(i=>i.id===item.id?{...i,status:newStatus}:i)}));
     showToast(`↑ "${item.name}" → ${newStatus}`);
   }
 
   async function handleDelete(track, item) {
     if (!window.confirm(`Delete "${item.name}"?`)) return;
-    if (!demoMode) await deleteRowFromSheet(TRACKS[track].tab, item.id);
+    if (!demoMode) await deleteRowFromSheet(TRACKS[track].tab,item.id);
     setItems(prev=>({...prev,[track]:prev[track].filter(i=>i.id!==item.id)}));
     showToast(`✕ "${item.name}" removed`);
   }
 
-  async function handleMarkDone(track, item) { await handleStatusChange(track, item, TERMINAL[track]); }
+  async function handleMarkDone(track, item) { await handleStatusChange(track,item,TERMINAL[track]); }
 
   async function handleSaveGoals() {
     if (!demoMode) await appendRow('Weekly Goals',[getWeekLabel(),goals.records||'',goals.publishing||'',goals.songstage||'',goals.freelance||'',goals.content||'']);
-    showToast('✓ Goals locked in for the week');
+    showToast('✓ Goals locked in');
     setPage('dashboard');
   }
 
-  if (!authed && !demoMode) {
+  async function handleTasksGenerated(track, tasks) {
+    const dateAdded=new Date().toISOString().split('T')[0];
+    for (const task of tasks) {
+      const row=[task.name,TYPES[track][0],task.status,'',''  ,task.notes,'',dateAdded];
+      if (!demoMode) await appendRow(TRACKS[track].tab,row);
+      const newItem={id:items[track].length,name:task.name,type:TYPES[track][0],status:task.status,extra:'',dueDate:'',notes:task.notes,dateAdded,track};
+      setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
+    }
+    showToast(`✓ ${tasks.length} tasks added to ${TRACKS[track].label}`);
+  }
+
+  // AUTH SCREEN
+  if (!authed&&!demoMode) {
     return (
       <div className="auth-screen">
         <div className="auth-card">
@@ -716,8 +1200,7 @@ function App() {
           <div className="auth-features">
             {Object.entries(TRACKS).map(([key,t])=>(
               <div key={key} className="auth-feature">
-                <div className="auth-feature-dot" style={{background:t.color}} />
-                {t.label}
+                <div className="auth-feature-dot" style={{background:t.color}}/>{t.label}
               </div>
             ))}
           </div>
@@ -731,7 +1214,7 @@ function App() {
     );
   }
 
-  const trackKeys = Object.keys(TRACKS);
+  const trackKeys=Object.keys(TRACKS);
 
   return (
     <div className="app">
@@ -742,20 +1225,22 @@ function App() {
         </div>
         <nav className="nav">
           <div className="nav-section-label">Overview</div>
-          <div className={`nav-item ${page==='dashboard'?'active':''}`} data-track="dashboard" onClick={()=>setPage('dashboard')}>
-            <div className="nav-dot dashboard"/>Dashboard</div>
-          <div className={`nav-item ${page==='checkin'?'active':''}`} data-track="checkin" onClick={()=>setPage('checkin')}>
-            <div className="nav-dot checkin"/>Monday Check-In</div>
+          {[['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Monday Check-In']].map(([key,label])=>(
+            <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>setPage(key)}>
+              <div className={`nav-dot ${key}`}/>{label}
+            </div>
+          ))}
           <div className="nav-section-label" style={{marginTop:'8px'}}>Tracks</div>
           {Object.entries(TRACKS).map(([key,t])=>(
-            <div key={key} className={`nav-item ${page===key?'active':''}`} data-track={key} onClick={()=>setPage(key)}>
-              <div className={`nav-dot ${key}`}/>{t.label}</div>
+            <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>setPage(key)}>
+              <div className={`nav-dot ${key}`}/>{t.label}
+            </div>
           ))}
         </nav>
         <div className="sidebar-bottom">
           <div className="auth-status">
-            <div className={`auth-dot ${authed?'connected':''}`}/>
-            {authed?'Sheets + Calendar connected':demoMode?'Demo mode':'Not connected'}
+            <div className={`auth-dot${authed?' connected':''}`}/>
+            {authed?'Sheets + Calendar':demoMode?'Demo mode':'Not connected'}
           </div>
           {!authed&&!demoMode&&<button className="signin-btn" onClick={requestToken}>Connect Google</button>}
         </div>
@@ -765,6 +1250,7 @@ function App() {
         <div className="topbar">
           <div className="topbar-title">
             {page==='dashboard'&&'Dashboard'}
+            {page==='calendar'&&'Calendar'}
             {page==='checkin'&&'Monday Check-In'}
             {TRACKS[page]&&TRACKS[page].label}
           </div>
@@ -774,17 +1260,23 @@ function App() {
           </div>
         </div>
 
-        {page==='dashboard'&&<DashboardPage items={items} goals={goals} calEvents={calEvents} onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}} />}
-        {page==='checkin'&&<CheckInPage items={items} calEvents={calEvents} goals={goals} onGoalChange={(track,val)=>setGoals(g=>({...g,[track]:val}))} onSave={handleSaveGoals} />}
+        {page==='dashboard'&&<DashboardPage items={items} goals={goals} calEvents={calEvents} onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}}/>}
+        {page==='calendar'&&<CalendarPage calEvents={calEvents} onAddEvent={handleAddCalEvent} demoMode={demoMode}/>}
+        {page==='checkin'&&<CheckInPage items={items} calEvents={calEvents} goals={goals}
+          onGoalChange={(track,val)=>setGoals(g=>({...g,[track]:val}))}
+          onSave={handleSaveGoals}
+          onTasksGenerated={handleTasksGenerated}
+          demoMode={demoMode}/>}
         {trackKeys.includes(page)&&<TrackPage track={page} items={items[page]||[]} loading={loading}
+          calEvents={calEvents}
           onAdd={()=>setModal({track:page})}
           onStatusChange={(item,status)=>handleStatusChange(page,item,status)}
           onDelete={(item)=>handleDelete(page,item)}
-          onMarkDone={(item)=>handleMarkDone(page,item)} />}
+          onMarkDone={(item)=>handleMarkDone(page,item)}/>}
       </div>
 
-      {modal&&<AddItemModal track={modal.track} onClose={()=>setModal(null)} onAdd={formData=>handleAdd(modal.track,formData)} />}
-      {toast&&<Toast message={toast} onClose={()=>setToast(null)} />}
+      {modal&&<AddItemModal track={modal.track} calEvents={calEvents} onClose={()=>setModal(null)} onAdd={formData=>handleAdd(modal.track,formData)}/>}
+      {toast&&<Toast message={toast} onClose={()=>setToast(null)}/>}
     </div>
   );
 }
