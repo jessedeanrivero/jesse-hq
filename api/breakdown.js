@@ -53,7 +53,7 @@ Each task object must have exactly these fields:
 
 Start your response with [ and end with ].`;
 
-  const apiKey = process.env.ANTHROPIC_API_KEY || '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';
+  const apiKey = process.env.ANTHROPIC_API_KEY || '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';
 
   try {
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
