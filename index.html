@@ -212,7 +212,7 @@ const { useState, useEffect, useRef } = React;
 const CLIENT_ID    = '84777476766-nmbmb2oj9c497qqucmlcoemgvl7j74mb.apps.googleusercontent.com';
 const SHEET_ID     = '1awdiuld1ZjawYHo_vys0kHPp0KzY4oeT1J_TsQcB5KE';
 const SCOPES       = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/calendar';
-const ANTHROPIC_KEY = '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';
+// AI calls go through /api/breakdown (Vercel serverless function)
 
 const TRACKS = {
   records:    { label:'Real Fun Records',    color:'var(--records)',   tab:'Records',    icon:'🎵' },
