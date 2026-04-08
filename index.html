@@ -386,30 +386,18 @@ async function createCalendarEvent(title, startISO, endISO, color) {
 
 // ── AI ────────────────────────────────────────────────────────────────────────
 async function breakdownGoalWithAI(track, goal, existingItems) {
-  const trackLabel = TRACKS[track].label;
-  const prompt = `You are a productivity assistant for a music entrepreneur. Break down this weekly goal into 2-4 specific, actionable tasks.
-
-Track: ${trackLabel}
-Goal: "${goal}"
-Existing items in this track: ${existingItems.map(i=>i.name).join(', ') || 'none'}
-
-Respond ONLY with a JSON array. No markdown, no explanation. Each task object must have:
-- "name": short task name (max 6 words)
-- "status": one of ${JSON.stringify(STATUSES[track])}
-- "estimatedHours": number between 0.5 and 4
-- "notes": one sentence description
-
-Example: [{"name":"Export vocal stems","status":"${STATUSES[track][0]}","estimatedHours":1,"notes":"Export all vocal takes from Logic for mixing review"}]`;
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json', 'x-api-key':ANTHROPIC_KEY, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
-    body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{ role:'user', content:prompt }] }),
-  });
-  const data = await response.json();
-  const text = data.content?.[0]?.text || '[]';
-  try { return JSON.parse(text.replace(/```json|```/g,'').trim()); }
-  catch(e) { return []; }
+  try {
+    const response = await fetch('/api/breakdown', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ track, goal, existingItems }),
+    });
+    const data = await response.json();
+    return data.tasks || [];
+  } catch(e) {
+    console.error('AI breakdown failed:', e);
+    return [];
+  }
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
