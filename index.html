@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Jesse HQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #e8ff47;
+    --text: #f0f0f0;
+    --text2: #888;
+    --text3: #555;
+    --records: #ff6b35;
+    --publishing: #e8ff47;
+    --songstage: #47c9ff;
+    --freelance: #b47cff;
+    --content: #ff4d8f;
+    --success: #4dff91;
+    --warning: #ffb347;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; min-height: 100vh; overflow-x: hidden; }
+  body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; z-index:9999; opacity:0.4; }
+  .app { display:flex; min-height:100vh; }
+  .sidebar { width:220px; min-height:100vh; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:100; }
+  .logo { padding:28px 24px 20px; border-bottom:1px solid var(--border); }
+  .logo-text { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:var(--accent); letter-spacing:-0.5px; }
+  .logo-sub { font-size:10px; color:var(--text3); margin-top:2px; letter-spacing:2px; text-transform:uppercase; }
+  .nav { flex:1; padding:16px 0; }
+  .nav-section-label { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--text3); padding:12px 24px 6px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:10px 24px; cursor:pointer; transition:all 0.15s; font-size:12px; color:var(--text2); border-left:2px solid transparent; position:relative; }
+  .nav-item:hover { color:var(--text); background:var(--surface2); }
+  .nav-item.active { color:var(--text); background:var(--surface2); }
+  .nav-item[data-track="dashboard"].active { border-left-color:var(--accent); }
+  .nav-item[data-track="records"].active { border-left-color:var(--records); }
+  .nav-item[data-track="publishing"].active { border-left-color:var(--publishing); }
+  .nav-item[data-track="songstage"].active { border-left-color:var(--songstage); }
+  .nav-item[data-track="freelance"].active { border-left-color:var(--freelance); }
+  .nav-item[data-track="content"].active { border-left-color:var(--content); }
+  .nav-item[data-track="checkin"].active { border-left-color:var(--success); }
+  .nav-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .nav-dot.records { background:var(--records); }
+  .nav-dot.publishing { background:var(--publishing); }
+  .nav-dot.songstage { background:var(--songstage); }
+  .nav-dot.freelance { background:var(--freelance); }
+  .nav-dot.content { background:var(--content); }
+  .nav-dot.dashboard { background:var(--accent); }
+  .nav-dot.checkin { background:var(--success); }
+  .sidebar-bottom { padding:16px 24px; border-top:1px solid var(--border); font-size:10px; color:var(--text3); }
+  .auth-status { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+  .auth-dot { width:6px; height:6px; border-radius:50%; background:var(--text3); }
+  .auth-dot.connected { background:var(--success); }
+  .signin-btn { background:var(--accent); color:#000; border:none; padding:8px 14px; font-family:'DM Mono',monospace; font-size:11px; font-weight:500; cursor:pointer; width:100%; margin-top:8px; }
+  .main { margin-left:220px; flex:1; min-height:100vh; }
+  .topbar { height:60px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 32px; background:var(--bg); position:sticky; top:0; z-index:50; }
+  .topbar-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; }
+  .topbar-right { display:flex; align-items:center; gap:16px; font-size:11px; color:var(--text2); }
+  .week-badge { background:var(--surface2); border:1px solid var(--border); padding:4px 10px; font-size:10px; letter-spacing:1px; }
+  .page { padding:32px; }
+  .dashboard-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); padding:20px; position:relative; overflow:hidden; }
+  .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .stat-card.records::before { background:var(--records); }
+  .stat-card.publishing::before { background:var(--publishing); }
+  .stat-card.songstage::before { background:var(--songstage); }
+  .stat-card.freelance::before { background:var(--freelance); }
+  .stat-card.content::before { background:var(--content); }
+  .stat-card.hours::before { background:var(--accent); }
+  .stat-label { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--text3); margin-bottom:10px; }
+  .stat-number { font-family:'Syne',sans-serif; font-size:36px; font-weight:800; line-height:1; margin-bottom:4px; }
+  .stat-sub { font-size:10px; color:var(--text2); }
+  .stale-section { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--warning); padding:20px; margin-bottom:24px; }
+  .stale-title { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--warning); margin-bottom:14px; }
+  .stale-item { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:12px; }
+  .stale-item:last-child { border-bottom:none; }
+  .stale-item-left { display:flex; align-items:center; gap:10px; }
+  .stale-days { font-size:10px; color:var(--warning); background:rgba(255,179,71,0.1); padding:2px 6px; }
+  .add-to-week-btn { font-family:'DM Mono',monospace; font-size:10px; background:transparent; border:1px solid var(--border); color:var(--text2); padding:4px 10px; cursor:pointer; transition:all 0.15s; }
+  .add-to-week-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .track-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+  .track-title { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; }
+  .add-btn { background:var(--accent); color:#000; border:none; padding:10px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:8px; transition:opacity 0.15s; }
+  .add-btn:hover { opacity:0.85; }
+  .kanban { display:flex; gap:16px; overflow-x:auto; padding-bottom:16px; }
+  .kanban-col { min-width:240px; flex-shrink:0; }
+  .kanban-col-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .kanban-col-title { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--text2); }
+  .kanban-count { background:var(--surface2); border:1px solid var(--border); font-size:10px; padding:2px 6px; color:var(--text3); }
+  .kanban-cards { display:flex; flex-direction:column; gap:10px; }
+  .card { background:var(--surface); border:1px solid var(--border); padding:14px; position:relative; transition:border-color 0.15s,transform 0.15s; }
+  .card:hover { border-color:var(--text3); transform:translateY(-1px); }
+  .card-track-line { position:absolute; left:0; top:0; bottom:0; width:2px; }
+  .card-name { font-size:13px; font-weight:500; margin-bottom:6px; padding-left:10px; }
+  .card-meta { display:flex; flex-wrap:wrap; gap:4px; padding-left:10px; }
+  .tag { font-size:9px; letter-spacing:1px; text-transform:uppercase; padding:2px 6px; background:var(--surface2); color:var(--text3); border:1px solid var(--border); }
+  .card-actions { display:flex; gap:6px; margin-top:10px; padding-left:10px; flex-wrap:wrap; }
+  .card-btn { font-family:'DM Mono',monospace; font-size:9px; padding:3px 8px; border:1px solid var(--border); background:transparent; color:var(--text3); cursor:pointer; transition:all 0.15s; letter-spacing:1px; text-transform:uppercase; }
+  .card-btn:hover { color:var(--text); border-color:var(--text3); }
+  .card-btn.done:hover { color:var(--success); border-color:var(--success); }
+  .card-btn.delete:hover { color:#ff4444; border-color:#ff4444; }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+  .modal { background:var(--surface); border:1px solid var(--border); width:480px; max-width:95vw; max-height:90vh; overflow-y:auto; }
+  .modal-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .modal-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; }
+  .modal-close { background:none; border:none; color:var(--text2); font-size:20px; cursor:pointer; line-height:1; }
+  .modal-body { padding:24px; }
+  .form-group { margin-bottom:18px; }
+  .form-label { display:block; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-bottom:6px; }
+  .form-input,.form-select,.form-textarea { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-family:'DM Mono',monospace; font-size:13px; padding:10px 12px; outline:none; transition:border-color 0.15s; }
+  .form-input:focus,.form-select:focus,.form-textarea:focus { border-color:var(--accent); }
+  .form-select option { background:var(--surface2); }
+  .form-textarea { resize:vertical; min-height:80px; }
+  .modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end; }
+  .btn-primary { background:var(--accent); color:#000; border:none; padding:10px 20px; font-family:'DM Mono',monospace; font-size:12px; font-weight:500; cursor:pointer; }
+  .btn-primary:hover { opacity:0.85; }
+  .btn-secondary { background:transparent; color:var(--text2); border:1px solid var(--border); padding:10px 20px; font-family:'DM Mono',monospace; font-size:12px; cursor:pointer; }
+  .btn-secondary:hover { border-color:var(--text2); color:var(--text); }
+  .cal-question { background:var(--surface2); border:1px solid var(--border); border-left:3px solid var(--accent); padding:16px; margin-bottom:16px; }
+  .cal-question-text { font-size:13px; margin-bottom:6px; }
+  .cal-slots { display:flex; flex-direction:column; gap:8px; }
+  .cal-slot { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:var(--bg); border:1px solid var(--border); cursor:pointer; font-size:12px; transition:border-color 0.15s; }
+  .cal-slot:hover { border-color:var(--accent); }
+  .cal-slot.selected { border-color:var(--accent); background:rgba(232,255,71,0.05); }
+  .cal-slot-day { color:var(--text2); font-size:10px; }
+  .checkin-wrap { max-width:640px; }
+  .checkin-intro { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--success); padding:20px; margin-bottom:24px; }
+  .checkin-intro-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; margin-bottom:6px; }
+  .checkin-intro-sub { font-size:12px; color:var(--text2); }
+  .checkin-section { background:var(--surface); border:1px solid var(--border); padding:20px; margin-bottom:16px; position:relative; }
+  .checkin-section::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .checkin-section.records::before { background:var(--records); }
+  .checkin-section.publishing::before { background:var(--publishing); }
+  .checkin-section.songstage::before { background:var(--songstage); }
+  .checkin-section.freelance::before { background:var(--freelance); }
+  .checkin-section.content::before { background:var(--content); }
+  .checkin-section-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; margin-bottom:4px; }
+  .checkin-section-sub { font-size:11px; color:var(--text2); margin-bottom:14px; }
+  .stale-prompt { background:rgba(255,179,71,0.08); border:1px solid rgba(255,179,71,0.2); padding:10px 12px; margin-bottom:12px; font-size:11px; color:var(--warning); }
+  .goal-card { background:var(--surface); border:1px solid var(--border); padding:16px; margin-bottom:12px; }
+  .goal-track-name { font-size:11px; color:var(--text2); margin-bottom:6px; }
+  .goal-text { font-size:12px; }
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--surface2); border:1px solid var(--border); border-left:3px solid var(--accent); padding:14px 18px; font-size:12px; z-index:2000; animation:slideIn 0.2s ease; max-width:300px; }
+  @keyframes slideIn { from{transform:translateX(20px);opacity:0} to{transform:translateX(0);opacity:1} }
+  .auth-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:32px; }
+  .auth-card { background:var(--surface); border:1px solid var(--border); padding:48px; max-width:420px; width:100%; text-align:center; }
+  .auth-logo { font-family:'Syne',sans-serif; font-size:36px; font-weight:800; color:var(--accent); margin-bottom:8px; }
+  .auth-tagline { font-size:12px; color:var(--text2); margin-bottom:32px; }
+  .auth-features { text-align:left; margin-bottom:32px; }
+  .auth-feature { display:flex; align-items:center; gap:10px; padding:8px 0; font-size:12px; color:var(--text2); border-bottom:1px solid var(--border); }
+  .auth-feature:last-child { border-bottom:none; }
+  .auth-feature-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .google-btn { background:#fff; color:#333; border:none; padding:12px 24px; font-family:'DM Mono',monospace; font-size:13px; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:10px; }
+  .google-btn:hover { opacity:0.9; }
+  .demo-btn { background:transparent; color:var(--text3); border:1px solid var(--border); padding:10px 24px; font-family:'DM Mono',monospace; font-size:12px; cursor:pointer; width:100%; margin-top:10px; }
+  .demo-btn:hover { color:var(--text2); border-color:var(--text3); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const CLIENT_ID = '84777476766-nmbmb2oj9c497qqucmlcoemgvl7j74mb.apps.googleusercontent.com';
+const SHEET_ID  = '1awdiuld1ZjawYHo_vys0kHPp0KzY4oeT1J_TsQcB5KE';
+const SCOPES    = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/calendar';
+
+const TRACKS = {
+  records:    { label:'Real Fun Records',    color:'var(--records)',   tab:'Records',    icon:'🎵' },
+  publishing: { label:'Real Fun Publishing', color:'var(--publishing)',tab:'Publishing', icon:'📄' },
+  songstage:  { label:'Songstage',           color:'var(--songstage)', tab:'Songstage',  icon:'🎛' },
+  freelance:  { label:'Freelance',           color:'var(--freelance)', tab:'Freelance',  icon:'💼' },
+  content:    { label:'Content',             color:'var(--content)',   tab:'Content',    icon:'📹' },
+};
+
+const STATUSES = {
+  records:    ['Pre-Production','Recording','Mixing','Mastered','Released'],
+  publishing: ['Pitched','Placed','Collecting','Monetizing'],
+  songstage:  ['Backlog','In Progress','Review','Shipped'],
+  freelance:  ['Booked','In Progress','Completed'],
+  content:    ['Planned','In Progress','Published'],
+};
+
+const TYPES = {
+  records:    ['Song','Album','EP'],
+  publishing: ['Single','Co-write','Cover'],
+  songstage:  ['Feature','Bug','Task'],
+  freelance:  ['Session','Coaching','Production'],
+  content:    ['Short-Form','Long-Form','Substack'],
+};
+
+const TERMINAL = {
+  records:'Released', publishing:'Monetizing', songstage:'Shipped', freelance:'Completed', content:'Published'
+};
+
+const DAY_RULES = {
+  records:['Monday','Wednesday'], publishing:['Monday','Wednesday'],
+  songstage:['Tuesday','Friday'], freelance:['Thursday'],
+  content:['Monday','Wednesday','Thursday'],
+};
+
+// Google API
+let gapiLoaded = false, gisLoaded = false, tokenClient = null;
+
+function loadGapi() {
+  return new Promise(res => {
+    if (gapiLoaded) { res(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://apis.google.com/js/api.js';
+    s.onload = () => gapi.load('client', async () => {
+      await gapi.client.init({ discoveryDocs:[
+        'https://sheets.googleapis.com/$discovery/rest?version=v4',
+        'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'
+      ]});
+      gapiLoaded = true; res();
+    });
+    document.head.appendChild(s);
+  });
+}
+
+function loadGis() {
+  return new Promise(res => {
+    if (gisLoaded) { res(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.onload = () => { gisLoaded = true; res(); };
+    document.head.appendChild(s);
+  });
+}
+
+async function initGoogle(onToken) {
+  await Promise.all([loadGapi(), loadGis()]);
+  tokenClient = google.accounts.oauth2.initTokenClient({ client_id:CLIENT_ID, scope:SCOPES, callback:onToken });
+}
+
+function requestToken() { tokenClient && tokenClient.requestAccessToken({ prompt:'' }); }
+
+async function readSheet(tab) {
+  try {
+    const r = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId:SHEET_ID, range:`${tab}!A2:Z` });
+    return r.result.values || [];
+  } catch(e) { return []; }
+}
+
+async function appendRow(tab, values) {
+  await gapi.client.sheets.spreadsheets.values.append({
+    spreadsheetId:SHEET_ID, range:`${tab}!A1`, valueInputOption:'USER_ENTERED', resource:{ values:[values] }
+  });
+}
+
+async function updateCell(tab, rowIndex, colIndex, value) {
+  const col = String.fromCharCode(65 + colIndex);
+  await gapi.client.sheets.spreadsheets.values.update({
+    spreadsheetId:SHEET_ID, range:`${tab}!${col}${rowIndex+2}`,
+    valueInputOption:'USER_ENTERED', resource:{ values:[[value]] }
+  });
+}
+
+async function deleteRowFromSheet(tab, rowIndex) {
+  const meta = await gapi.client.sheets.spreadsheets.get({ spreadsheetId:SHEET_ID });
+  const sheet = meta.result.sheets.find(s=>s.properties.title===tab);
+  if (!sheet) return;
+  await gapi.client.sheets.spreadsheets.batchUpdate({
+    spreadsheetId:SHEET_ID,
+    resource:{ requests:[{ deleteDimension:{ range:{ sheetId:sheet.properties.sheetId, dimension:'ROWS', startIndex:rowIndex+1, endIndex:rowIndex+2 }}}]}
+  });
+}
+
+async function getCalendarEvents() {
+  try {
+    const now = new Date(), end = new Date(now);
+    end.setDate(end.getDate()+7);
+    const r = await gapi.client.calendar.events.list({ calendarId:'primary', timeMin:now.toISOString(), timeMax:end.toISOString(), singleEvents:true, orderBy:'startTime', maxResults:15 });
+    return r.result.items || [];
+  } catch(e) { return []; }
+}
+
+async function createCalendarEvent(title, date, startHour, durationHours) {
+  const start = new Date(date); start.setHours(startHour,0,0,0);
+  const end = new Date(start); end.setHours(startHour+durationHours);
+  await gapi.client.calendar.events.insert({ calendarId:'primary', resource:{
+    summary:`[Jesse HQ] ${title}`, start:{ dateTime:start.toISOString() }, end:{ dateTime:end.toISOString() }
+  }});
+}
+
+// Utils
+function getWeekLabel() {
+  const d = new Date(), day = d.getDay();
+  const diff = d.getDate() - day + (day===0?-6:1);
+  const mon = new Date(d.setDate(diff));
+  return `Week of ${mon.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+}
+
+function daysSince(dateStr) {
+  if (!dateStr) return 0;
+  return Math.floor((new Date() - new Date(dateStr)) / 86400000);
+}
+
+function getAvailableSlots(track) {
+  const allowed = DAY_RULES[track] || [];
+  const slots = [], today = new Date();
+  for (let i=0; i<7; i++) {
+    const d = new Date(today); d.setDate(today.getDate()+i);
+    const dayName = d.toLocaleDateString('en-US',{weekday:'long'});
+    if (allowed.includes(dayName)) {
+      slots.push({ date:d, label:d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}), dayName, startHour:9 });
+    }
+  }
+  return slots;
+}
+
+function rowToItem(track, row, index) {
+  return { id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'', extra:row[3]||'', dueDate:row[4]||'', notes:row[5]||'', dateAdded:row[7]||'', track };
+}
+
+// Demo data
+const DEMO = {
+  records:[
+    { id:0, name:'Still Waters', type:'Song', status:'Mixing', extra:'Chris McClarney', dueDate:'2026-04-15', notes:'Needs final vocal edits', dateAdded:'2026-03-20', track:'records' },
+    { id:1, name:'New Day EP', type:'EP', status:'Pre-Production', extra:'Worship Project', dueDate:'2026-05-01', notes:'3 songs planned', dateAdded:'2026-04-01', track:'records' },
+  ],
+  publishing:[
+    { id:0, name:'Still Waters', type:'Single', status:'Pitched', extra:'LifeWay', dueDate:'2026-04-20', notes:'Follow up needed', dateAdded:'2026-03-25', track:'publishing' },
+    { id:1, name:'Overflow', type:'Single', status:'Collecting', extra:'ASCAP', dueDate:'', notes:'Collecting Q1', dateAdded:'2026-02-10', track:'publishing' },
+  ],
+  songstage:[
+    { id:0, name:'Song card drag-drop', type:'Feature', status:'In Progress', extra:'Dylan', dueDate:'2026-04-12', notes:'Almost done', dateAdded:'2026-04-01', track:'songstage' },
+    { id:1, name:'Onboarding flow', type:'Feature', status:'Backlog', extra:'Dylan', dueDate:'2026-04-30', notes:'Waiting on design', dateAdded:'2026-03-28', track:'songstage' },
+    { id:2, name:'Fix login redirect', type:'Bug', status:'Review', extra:'Dylan', dueDate:'2026-04-10', notes:'', dateAdded:'2026-04-06', track:'songstage' },
+  ],
+  freelance:[
+    { id:0, name:'Church of the City session', type:'Session', status:'Booked', extra:'CoTC', dueDate:'2026-04-14', notes:'Guitar tracking', dateAdded:'2026-04-03', track:'freelance' },
+    { id:1, name:'Artist coaching - Sarah', type:'Coaching', status:'In Progress', extra:'Sarah K', dueDate:'', notes:'Monthly coaching', dateAdded:'2026-03-15', track:'freelance' },
+  ],
+  content:[
+    { id:0, name:'How worship music gets licensed', type:'Long-Form', status:'In Progress', extra:'YouTube', dueDate:'2026-04-18', notes:'Script drafted', dateAdded:'2026-04-02', track:'content' },
+    { id:1, name:'3 mistakes worship leaders make', type:'Short-Form', status:'Planned', extra:'Reels', dueDate:'2026-04-11', notes:'', dateAdded:'2026-04-07', track:'content' },
+    { id:2, name:'Why I left Asana', type:'Substack', status:'Published', extra:'Substack', dueDate:'', notes:'', dateAdded:'2026-04-05', track:'content' },
+  ],
+};
+
+const DEMO_GOALS = {
+  records:'Finalize Still Waters mix and send to Chris for approval',
+  publishing:'Follow up with LifeWay on Still Waters pitch',
+  songstage:'Ship drag-drop feature, review login bug fix with Dylan',
+  freelance:'Prep for CoTC session, reach out to 2 new coaching prospects',
+  content:'Publish long-form YouTube, post 2 Reels',
+};
+
+// COMPONENTS
+function Toast({ message, onClose }) {
+  useEffect(() => { const t = setTimeout(onClose,3500); return ()=>clearTimeout(t); },[]);
+  return <div className="toast">{message}</div>;
+}
+
+function AddItemModal({ track, onClose, onAdd }) {
+  const [form, setForm] = useState({ name:'', type:TYPES[track][0], status:STATUSES[track][0], extra:'', dueDate:'', notes:'' });
+  const [step, setStep] = useState('form');
+  const [slots, setSlots] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const t = TRACKS[track];
+  const extraLabel = { records:'Artist', publishing:'Partner / Outlet', songstage:'Assigned To', freelance:'Client', content:'Platform' }[track];
+
+  function handleNext() {
+    if (!form.name.trim()) return;
+    setSlots(getAvailableSlots(track));
+    setStep('calendar');
+  }
+
+  function handleSave(blockCal) { onAdd({ ...form, blockCal, slot: slots[selectedSlot] }); onClose(); }
+
+  return (
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <div className="modal-title">Add to {t.label}</div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        {step==='form' ? (<>
+          <div className="modal-body">
+            <div className="form-group"><label className="form-label">Name *</label>
+              <input className="form-input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} autoFocus placeholder="Name..." /></div>
+            <div className="form-group"><label className="form-label">Type</label>
+              <select className="form-select" value={form.type} onChange={e=>setForm({...form,type:e.target.value})}>
+                {TYPES[track].map(t=><option key={t}>{t}</option>)}</select></div>
+            <div className="form-group"><label className="form-label">Status</label>
+              <select className="form-select" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
+                {STATUSES[track].map(s=><option key={s}>{s}</option>)}</select></div>
+            <div className="form-group"><label className="form-label">{extraLabel}</label>
+              <input className="form-input" value={form.extra} onChange={e=>setForm({...form,extra:e.target.value})} /></div>
+            <div className="form-group"><label className="form-label">Due Date</label>
+              <input className="form-input" type="date" value={form.dueDate} onChange={e=>setForm({...form,dueDate:e.target.value})} /></div>
+            <div className="form-group"><label className="form-label">Notes</label>
+              <textarea className="form-textarea form-input" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} /></div>
+          </div>
+          <div className="modal-footer">
+            <button className="btn-secondary" onClick={onClose}>Cancel</button>
+            <button className="btn-primary" onClick={handleNext}>Next →</button>
+          </div>
+        </>) : (<>
+          <div className="modal-body">
+            <div className="cal-question">
+              <div className="cal-question-text">Block time on your calendar for <strong>{form.name}</strong>?</div>
+              <div style={{fontSize:'11px',color:'var(--text2)'}}>Best slots for {t.label} days ({DAY_RULES[track].join(', ')}):</div>
+            </div>
+            {slots.length===0
+              ? <div style={{fontSize:'12px',color:'var(--text3)',padding:'12px 0'}}>No {t.label} days available this week.</div>
+              : <div className="cal-slots">{slots.map((s,i)=>(
+                  <div key={i} className={`cal-slot ${selectedSlot===i?'selected':''}`} onClick={()=>setSelectedSlot(i)}>
+                    <span>{s.label} — 9:00 AM</span>
+                    <span className="cal-slot-day">{s.dayName}</span>
+                  </div>
+                ))}</div>}
+          </div>
+          <div className="modal-footer">
+            <button className="btn-secondary" onClick={()=>handleSave(false)}>Skip</button>
+            <button className="btn-primary" onClick={()=>handleSave(selectedSlot!==null)}>
+              {selectedSlot!==null?'Block Time + Save':'Save Without Blocking'}</button>
+          </div>
+        </>)}
+      </div>
+    </div>
+  );
+}
+
+function KanbanCard({ item, track, onStatusChange, onDelete, onMarkDone }) {
+  const color = TRACKS[track].color;
+  return (
+    <div className="card">
+      <div className="card-track-line" style={{background:color}} />
+      <div className="card-name">{item.name}</div>
+      <div className="card-meta">
+        {item.type && <span className="tag">{item.type}</span>}
+        {item.extra && <span className="tag">{item.extra}</span>}
+        {item.dueDate && <span className="tag">Due {new Date(item.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>}
+      </div>
+      {item.notes && <div style={{fontSize:'11px',color:'var(--text2)',marginTop:'8px',paddingLeft:'10px'}}>{item.notes}</div>}
+      <div className="card-actions">
+        <select className="card-btn" value={item.status} onChange={e=>onStatusChange(item,e.target.value)} style={{fontFamily:'DM Mono,monospace',cursor:'pointer'}}>
+          {STATUSES[track].map(s=><option key={s}>{s}</option>)}
+        </select>
+        <button className="card-btn done" onClick={()=>onMarkDone(item)}>✓ Done</button>
+        <button className="card-btn delete" onClick={()=>onDelete(item)}>✕</button>
+      </div>
+    </div>
+  );
+}
+
+function TrackPage({ track, items, onAdd, onStatusChange, onDelete, onMarkDone, loading }) {
+  const t = TRACKS[track];
+  const byStatus = {};
+  STATUSES[track].forEach(s => { byStatus[s] = items.filter(i=>i.status===s); });
+
+  return (
+    <div className="page">
+      <div className="track-header">
+        <div>
+          <div className="track-title" style={{color:t.color}}>{t.label}</div>
+          <div style={{fontSize:'11px',color:'var(--text2)',marginTop:'4px'}}>{items.length} items · {DAY_RULES[track].join(', ')} days</div>
+        </div>
+        <button className="add-btn" onClick={onAdd}>+ Add Item</button>
+      </div>
+      {loading
+        ? <div style={{color:'var(--text3)',fontSize:'12px'}}>Loading from Google Sheets...</div>
+        : <div className="kanban">
+            {STATUSES[track].map(status=>(
+              <div key={status} className="kanban-col">
+                <div className="kanban-col-header">
+                  <div className="kanban-col-title">{status}</div>
+                  <div className="kanban-count">{(byStatus[status]||[]).length}</div>
+                </div>
+                <div className="kanban-cards">
+                  {(byStatus[status]||[]).length===0
+                    ? <div style={{fontSize:'11px',color:'var(--text3)',padding:'12px',border:'1px dashed var(--border)',textAlign:'center'}}>Empty</div>
+                    : (byStatus[status]||[]).map(item=>(
+                        <KanbanCard key={item.id} item={item} track={track}
+                          onStatusChange={onStatusChange} onDelete={onDelete} onMarkDone={onMarkDone} />
+                      ))}
+                </div>
+              </div>
+            ))}
+          </div>}
+    </div>
+  );
+}
+
+function DashboardPage({ items, goals, calEvents, onAddToWeek }) {
+  const allItems = Object.values(items).flat();
+  const terminalStatuses = Object.values(TERMINAL);
+  const stale = allItems.filter(i => !terminalStatuses.includes(i.status) && daysSince(i.dateAdded)>7);
+  const weekGoals = Object.entries(goals).filter(([,v])=>v);
+
+  return (
+    <div className="page">
+      <div style={{marginBottom:'28px'}}>
+        <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px'}}>Command Center</div>
+        <div style={{fontSize:'11px',color:'var(--text2)'}}>{getWeekLabel()} · {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
+      </div>
+
+      <div className="dashboard-grid">
+        {Object.entries(TRACKS).map(([key,t])=>{
+          const trackItems = items[key]||[];
+          const active = trackItems.filter(i=>i.status!==TERMINAL[key]).length;
+          const done = trackItems.filter(i=>i.status===TERMINAL[key]).length;
+          return (
+            <div key={key} className={`stat-card ${key}`}>
+              <div className="stat-label">{t.label}</div>
+              <div className="stat-number" style={{color:t.color}}>{active}</div>
+              <div className="stat-sub">active · {done} done</div>
+            </div>
+          );
+        })}
+        <div className="stat-card hours">
+          <div className="stat-label">Weekly Time Targets</div>
+          <div style={{fontFamily:'Syne,sans-serif',fontSize:'13px',fontWeight:'700',lineHeight:'2',color:'var(--accent)'}}>
+            Real Fun: 10–15h<br/>
+            <span style={{color:'var(--songstage)'}}>Songstage: 15–20h</span><br/>
+            <span style={{color:'var(--freelance)'}}>Freelance: ~10h</span>
+          </div>
+        </div>
+      </div>
+
+      {stale.length>0 && (
+        <div className="stale-section">
+          <div className="stale-title">⚠ Sitting &gt; 7 Days — Needs a Decision</div>
+          {stale.slice(0,5).map((item,i)=>(
+            <div key={i} className="stale-item">
+              <div className="stale-item-left">
+                <div className="nav-dot" style={{background:TRACKS[item.track].color}} />
+                <span>{item.name}</span>
+                <span className="tag" style={{marginLeft:'6px'}}>{item.status}</span>
+                <span className="stale-days">{daysSince(item.dateAdded)}d</span>
+              </div>
+              <button className="add-to-week-btn" onClick={()=>onAddToWeek(item)}>+ Add to week</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {weekGoals.length>0 && (
+        <div>
+          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>This Week's Goals</div>
+          {weekGoals.map(([track,goal])=>(
+            <div key={track} className="goal-card">
+              <div className="goal-track-name" style={{color:TRACKS[track].color}}>{TRACKS[track].label}</div>
+              <div className="goal-text">{goal}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {calEvents.length>0 && (
+        <div style={{marginTop:'24px'}}>
+          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>Upcoming Calendar</div>
+          {calEvents.slice(0,5).map((e,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 0',borderBottom:'1px solid var(--border)',fontSize:'12px'}}>
+              <div style={{color:'var(--text3)',fontSize:'10px',minWidth:'80px'}}>
+                {e.start?.dateTime ? new Date(e.start.dateTime).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : 'All day'}
+              </div>
+              <div>{e.summary}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CheckInPage({ items, calEvents, goals, onGoalChange, onSave }) {
+  const staleByTrack = {};
+  Object.entries(items).forEach(([track,trackItems])=>{
+    staleByTrack[track] = trackItems.filter(i=>i.status!==TERMINAL[track]&&daysSince(i.dateAdded)>5);
+  });
+
+  const prompts = {
+    records:'What do you want to move forward? How does it connect to revenue?',
+    publishing:"What's the publishing priority this week?",
+    songstage:"Where does the product stand? What's the win this week?",
+    freelance:"What's booked? Who do you need to reach out to?",
+    content:'What are you publishing? (target: 2–3 short-form, 1 long-form, 1 Substack)',
+  };
+
+  return (
+    <div className="page">
+      <div className="checkin-wrap">
+        <div className="checkin-intro">
+          <div className="checkin-intro-title">Monday Check-In 🗓</div>
+          <div className="checkin-intro-sub">Set your goals for the week. What matters most across each track?</div>
+        </div>
+
+        {calEvents.length>0 && (
+          <div style={{background:'var(--surface)',border:'1px solid var(--border)',padding:'16px',marginBottom:'16px'}}>
+            <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'10px'}}>Already on your calendar</div>
+            {calEvents.slice(0,4).map((e,i)=>(
+              <div key={i} style={{display:'flex',gap:'12px',fontSize:'12px',padding:'6px 0',borderBottom:'1px solid var(--border)'}}>
+                <div style={{color:'var(--text3)',minWidth:'80px',fontSize:'10px'}}>
+                  {e.start?.dateTime ? new Date(e.start.dateTime).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) : 'All day'}
+                </div>
+                <div>{e.summary}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {Object.entries(TRACKS).map(([track,t])=>(
+          <div key={track} className={`checkin-section ${track}`}>
+            <div className="checkin-section-title" style={{color:t.color}}>{t.label}</div>
+            <div className="checkin-section-sub">{prompts[track]}</div>
+            {staleByTrack[track]?.length>0 && (
+              <div className="stale-prompt">
+                ⚠ Sitting 5+ days: {staleByTrack[track].map(i=>i.name).join(', ')} — add to this week's goal?
+              </div>
+            )}
+            <textarea className="form-textarea form-input"
+              placeholder={`What's the goal for ${t.label} this week?`}
+              value={goals[track]||''} onChange={e=>onGoalChange(track,e.target.value)} />
+          </div>
+        ))}
+
+        <button className="btn-primary" style={{width:'100%',marginTop:'8px',padding:'14px'}} onClick={onSave}>
+          Lock In This Week →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// MAIN APP
+function App() {
+  const [authed, setAuthed] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
+  const [page, setPage] = useState('dashboard');
+  const [items, setItems] = useState({records:[],publishing:[],songstage:[],freelance:[],content:[]});
+  const [goals, setGoals] = useState({});
+  const [calEvents, setCalEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  function showToast(msg) { setToast(msg); }
+
+  useEffect(()=>{
+    initGoogle(async resp=>{
+      if (resp.error) return;
+      setAuthed(true);
+      await loadAllData();
+    });
+  },[]);
+
+  useEffect(()=>{ if (demoMode) { setItems(DEMO); setGoals(DEMO_GOALS); } },[demoMode]);
+
+  async function loadAllData() {
+    setLoading(true);
+    const loaded = {};
+    for (const track of Object.keys(TRACKS)) {
+      const rows = await readSheet(TRACKS[track].tab);
+      loaded[track] = rows.map((r,i)=>rowToItem(track,r,i));
+    }
+    setItems(loaded);
+    const goalRows = await readSheet('Weekly Goals');
+    const thisWeek = getWeekLabel();
+    const weekRow = goalRows.find(r=>r[0]===thisWeek);
+    if (weekRow) setGoals({ records:weekRow[1]||'', publishing:weekRow[2]||'', songstage:weekRow[3]||'', freelance:weekRow[4]||'', content:weekRow[5]||'' });
+    const events = await getCalendarEvents();
+    setCalEvents(events);
+    setLoading(false);
+  }
+
+  async function handleAdd(track, formData) {
+    const { name, type, status, extra, dueDate, notes, blockCal, slot } = formData;
+    const dateAdded = new Date().toISOString().split('T')[0];
+    if (!demoMode) await appendRow(TRACKS[track].tab, [name,type,status,extra,dueDate,notes,'',dateAdded]);
+    const newItem = { id:items[track].length, name, type, status, extra, dueDate, notes, dateAdded, track };
+    setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
+    if (blockCal && slot && !demoMode) {
+      try { await createCalendarEvent(name,slot.date,slot.startHour,1.5); showToast(`✓ "${name}" added + time blocked`); }
+      catch(e) { showToast(`✓ "${name}" added — calendar block failed`); }
+    } else { showToast(`✓ "${name}" added to ${TRACKS[track].label}`); }
+  }
+
+  async function handleStatusChange(track, item, newStatus) {
+    if (!demoMode) await updateCell(TRACKS[track].tab, item.id, 2, newStatus);
+    setItems(prev=>({...prev,[track]:prev[track].map(i=>i.id===item.id?{...i,status:newStatus}:i)}));
+    showToast(`↑ "${item.name}" → ${newStatus}`);
+  }
+
+  async function handleDelete(track, item) {
+    if (!window.confirm(`Delete "${item.name}"?`)) return;
+    if (!demoMode) await deleteRowFromSheet(TRACKS[track].tab, item.id);
+    setItems(prev=>({...prev,[track]:prev[track].filter(i=>i.id!==item.id)}));
+    showToast(`✕ "${item.name}" removed`);
+  }
+
+  async function handleMarkDone(track, item) { await handleStatusChange(track, item, TERMINAL[track]); }
+
+  async function handleSaveGoals() {
+    if (!demoMode) await appendRow('Weekly Goals',[getWeekLabel(),goals.records||'',goals.publishing||'',goals.songstage||'',goals.freelance||'',goals.content||'']);
+    showToast('✓ Goals locked in for the week');
+    setPage('dashboard');
+  }
+
+  if (!authed && !demoMode) {
+    return (
+      <div className="auth-screen">
+        <div className="auth-card">
+          <div className="auth-logo">Jesse HQ</div>
+          <div className="auth-tagline">Your command center across all five tracks</div>
+          <div className="auth-features">
+            {Object.entries(TRACKS).map(([key,t])=>(
+              <div key={key} className="auth-feature">
+                <div className="auth-feature-dot" style={{background:t.color}} />
+                {t.label}
+              </div>
+            ))}
+          </div>
+          <button className="google-btn" onClick={requestToken}>
+            <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+            Sign in with Google
+          </button>
+          <button className="demo-btn" onClick={()=>setDemoMode(true)}>Try Demo Mode</button>
+        </div>
+      </div>
+    );
+  }
+
+  const trackKeys = Object.keys(TRACKS);
+
+  return (
+    <div className="app">
+      <div className="sidebar">
+        <div className="logo">
+          <div className="logo-text">Jesse HQ</div>
+          <div className="logo-sub">{demoMode?'Demo Mode':'Connected'}</div>
+        </div>
+        <nav className="nav">
+          <div className="nav-section-label">Overview</div>
+          <div className={`nav-item ${page==='dashboard'?'active':''}`} data-track="dashboard" onClick={()=>setPage('dashboard')}>
+            <div className="nav-dot dashboard"/>Dashboard</div>
+          <div className={`nav-item ${page==='checkin'?'active':''}`} data-track="checkin" onClick={()=>setPage('checkin')}>
+            <div className="nav-dot checkin"/>Monday Check-In</div>
+          <div className="nav-section-label" style={{marginTop:'8px'}}>Tracks</div>
+          {Object.entries(TRACKS).map(([key,t])=>(
+            <div key={key} className={`nav-item ${page===key?'active':''}`} data-track={key} onClick={()=>setPage(key)}>
+              <div className={`nav-dot ${key}`}/>{t.label}</div>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="auth-status">
+            <div className={`auth-dot ${authed?'connected':''}`}/>
+            {authed?'Sheets + Calendar connected':demoMode?'Demo mode':'Not connected'}
+          </div>
+          {!authed&&!demoMode&&<button className="signin-btn" onClick={requestToken}>Connect Google</button>}
+        </div>
+      </div>
+
+      <div className="main">
+        <div className="topbar">
+          <div className="topbar-title">
+            {page==='dashboard'&&'Dashboard'}
+            {page==='checkin'&&'Monday Check-In'}
+            {TRACKS[page]&&TRACKS[page].label}
+          </div>
+          <div className="topbar-right">
+            <span className="week-badge">{getWeekLabel()}</span>
+            {trackKeys.includes(page)&&<button className="add-btn" onClick={()=>setModal({track:page})}>+ Add Item</button>}
+          </div>
+        </div>
+
+        {page==='dashboard'&&<DashboardPage items={items} goals={goals} calEvents={calEvents} onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}} />}
+        {page==='checkin'&&<CheckInPage items={items} calEvents={calEvents} goals={goals} onGoalChange={(track,val)=>setGoals(g=>({...g,[track]:val}))} onSave={handleSaveGoals} />}
+        {trackKeys.includes(page)&&<TrackPage track={page} items={items[page]||[]} loading={loading}
+          onAdd={()=>setModal({track:page})}
+          onStatusChange={(item,status)=>handleStatusChange(page,item,status)}
+          onDelete={(item)=>handleDelete(page,item)}
+          onMarkDone={(item)=>handleMarkDone(page,item)} />}
+      </div>
+
+      {modal&&<AddItemModal track={modal.track} onClose={()=>setModal(null)} onAdd={formData=>handleAdd(modal.track,formData)} />}
+      {toast&&<Toast message={toast} onClose={()=>setToast(null)} />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
