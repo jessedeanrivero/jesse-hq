@@ -223,16 +223,16 @@ const TRACKS = {
 };
 
 const STATUSES = {
-  records:   ['Pre-Production','Recording','Mixing','Mastered','Released'],
-  publishing:['Pitched','Placed','Collecting','Monetizing'],
+  records:   ['General','Pre-Production','Recording','Mixing','Mastered','Released'],
+  publishing:['General','Pitched','Placed','Collecting','Monetizing'],
   songstage: ['Backlog','In Progress','Review','Shipped'],
   freelance: ['Booked','In Progress','Completed'],
   content:   ['Planned','In Progress','Published'],
 };
 
 const TYPES = {
-  records:   ['Song','Album','EP'],
-  publishing:['Single','Co-write','Cover'],
+  records:   ['Song','Album','EP','Org Task'],
+  publishing:['Single','Co-write','Cover','Org Task'],
   songstage: ['Feature','Bug','Task'],
   freelance: ['Session','Coaching','Production'],
   content:   ['Short-Form','Long-Form','Substack'],
@@ -242,6 +242,8 @@ const TERMINAL = {
   records:'Released', publishing:'Monetizing', songstage:'Shipped',
   freelance:'Completed', content:'Published',
 };
+// Org task done status
+const ORG_DONE = 'General';
 
 // Day schedule rules — all times respect 4pm hard cutoff (nothing after 4pm)
 const DAY_SCHEDULE = {
@@ -479,7 +481,14 @@ function getSmartSlots(track, calEvents) {
 }
 
 function rowToItem(track, row, index) {
-  return { id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'', extra:row[3]||'', dueDate:row[4]||'', notes:row[5]||'', dateAdded:row[7]||'', track };
+  return {
+    id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'',
+    extra:row[3]||'', dueDate:row[4]||'', notes:row[5]||'',
+    taskType:row[6]||'', dateAdded:row[7]||'',
+    // Extended columns (vary by track)
+    col8:row[8]||'', col9:row[9]||'', col10:row[10]||'', col11:row[11]||'', col12:row[12]||'',
+    track,
+  };
 }
 
 // Demo data
@@ -513,11 +522,23 @@ function Toast({ message, onClose }) {
 }
 
 function AddItemModal({ track, onClose, onAdd, calEvents }) {
-  const [form, setForm]= useState({name:'',type:TYPES[track][0],status:STATUSES[track][0],extra:'',dueDate:'',notes:''});
+  const isOrgTrack = track === 'records' || track === 'publishing';
+  const [form, setForm]= useState({
+    name:'', type:TYPES[track][0], status:STATUSES[track][0],
+    extra:'', dueDate:'', notes:'',
+    // Records extra fields
+    coWriters:'', releaseDate:'', distributor:'', revenueStatus:'',
+    // Publishing extra fields
+    writers:'', publisherSplit:'', pro:'', licenseType:'', revenueCollected:'',
+    // Shared
+    taskType: isOrgTrack ? 'Song/Project' : '',
+    priority:'',
+  });
   const [step, setStep]= useState('form');
   const [slots, setSlots]= useState([]);
   const [selected, setSelected]= useState(null);
   const t = TRACKS[track];
+  const isOrgTask = form.taskType === 'Org Task';
   const extraLabel = {records:'Artist',publishing:'Partner',songstage:'Assigned To',freelance:'Client',content:'Platform'}[track];
 
   function next() {
@@ -537,22 +558,150 @@ function AddItemModal({ track, onClose, onAdd, calEvents }) {
         </div>
         {step==='form' ? (<>
           <div className="modal-body">
-            {['name','extra','dueDate','notes'].map(field => (
-              <div className="form-group" key={field}>
-                <label className="form-label">{field==='name'?'Name *':field==='extra'?extraLabel:field==='dueDate'?'Due Date':'Notes'}</label>
-                {field==='notes'
-                  ? <textarea className="form-textarea form-input" value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})}/>
-                  : <input className="form-input" type={field==='dueDate'?'date':'text'} value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})} autoFocus={field==='name'}/>}
+            {/* Task Type toggle for Records and Publishing */}
+            {isOrgTrack && (
+              <div className="form-group">
+                <label className="form-label">Task Type</label>
+                <div style={{display:'flex',gap:'0'}}>
+                  {['Song/Project','Org Task'].map(opt=>(
+                    <button key={opt} onClick={()=>setForm({...form,taskType:opt,status:opt==='Org Task'?'General':STATUSES[track][1]})}
+                      style={{flex:1,padding:'8px',fontFamily:'DM Mono,monospace',fontSize:'11px',cursor:'pointer',
+                        background:form.taskType===opt?'var(--accent)':'var(--surface2)',
+                        color:form.taskType===opt?'#000':'var(--text2)',
+                        border:'1px solid var(--border)',marginLeft:opt==='Org Task'?'-1px':'0'}}>
+                      {opt}
+                    </button>
+                  ))}
+                </div>
               </div>
-            ))}
-            {['type','status'].map(field=>(
-              <div className="form-group" key={field}>
-                <label className="form-label">{field==='type'?'Type':'Status'}</label>
-                <select className="form-select" value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})}>
-                  {(field==='type'?TYPES:STATUSES)[track].map(v=><option key={v}>{v}</option>)}
-                </select>
+            )}
+
+            <div className="form-group">
+              <label className="form-label">Name *</label>
+              <input className="form-input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} autoFocus
+                placeholder={isOrgTask?'e.g. Review split sheets with Jen':'e.g. Still Waters'}/>
+            </div>
+
+            {/* Only show Artist/Partner field for Song/Project tasks */}
+            {!isOrgTask && (
+              <div className="form-group">
+                <label className="form-label">{extraLabel}</label>
+                <input className="form-input" value={form.extra} onChange={e=>setForm({...form,extra:e.target.value})}/>
               </div>
-            ))}
+            )}
+
+            <div className="form-group">
+              <label className="form-label">Type</label>
+              <select className="form-select" value={form.type} onChange={e=>setForm({...form,type:e.target.value})}>
+                {TYPES[track].map(v=><option key={v}>{v}</option>)}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Status</label>
+              <select className="form-select" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
+                {STATUSES[track].filter(s => isOrgTask ? s==='General' : s!=='General' || true).map(v=><option key={v}>{v}</option>)}
+              </select>
+            </div>
+
+            {/* Records extra fields */}
+            {track==='records' && !isOrgTask && (<>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                <div className="form-group">
+                  <label className="form-label">Co-writers</label>
+                  <input className="form-input" value={form.coWriters} onChange={e=>setForm({...form,coWriters:e.target.value})} placeholder="Names..."/>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Release Date</label>
+                  <input className="form-input" type="date" value={form.releaseDate} onChange={e=>setForm({...form,releaseDate:e.target.value})}/>
+                </div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                <div className="form-group">
+                  <label className="form-label">Distributor</label>
+                  <input className="form-input" value={form.distributor} onChange={e=>setForm({...form,distributor:e.target.value})} placeholder="DistroKid, etc."/>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Revenue Status</label>
+                  <select className="form-select" value={form.revenueStatus} onChange={e=>setForm({...form,revenueStatus:e.target.value})}>
+                    <option value="">Not yet</option>
+                    <option>Collecting</option>
+                    <option>Paid out</option>
+                  </select>
+                </div>
+              </div>
+            </>)}
+
+            {/* Publishing extra fields */}
+            {track==='publishing' && !isOrgTask && (<>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                <div className="form-group">
+                  <label className="form-label">Writers</label>
+                  <input className="form-input" value={form.writers} onChange={e=>setForm({...form,writers:e.target.value})}/>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Publisher Split %</label>
+                  <input className="form-input" value={form.publisherSplit} onChange={e=>setForm({...form,publisherSplit:e.target.value})} placeholder="e.g. 50"/>
+                </div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                <div className="form-group">
+                  <label className="form-label">PRO</label>
+                  <select className="form-select" value={form.pro} onChange={e=>setForm({...form,pro:e.target.value})}>
+                    <option value="">Select...</option>
+                    <option>ASCAP</option><option>BMI</option><option>SESAC</option><option>SOCAN</option><option>Other</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">License Type</label>
+                  <select className="form-select" value={form.licenseType} onChange={e=>setForm({...form,licenseType:e.target.value})}>
+                    <option value="">Select...</option>
+                    <option>Sync</option><option>Print</option><option>Master</option><option>Mechanical</option><option>Admin</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Revenue Collected</label>
+                <input className="form-input" value={form.revenueCollected} onChange={e=>setForm({...form,revenueCollected:e.target.value})} placeholder="$0.00"/>
+              </div>
+            </>)}
+
+            {/* Freelance extra fields */}
+            {track==='freelance' && (<>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                <div className="form-group">
+                  <label className="form-label">Client</label>
+                  <input className="form-input" value={form.extra} onChange={e=>setForm({...form,extra:e.target.value})}/>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Rate</label>
+                  <input className="form-input" value={form.rate||''} onChange={e=>setForm({...form,rate:e.target.value})} placeholder="$0"/>
+                </div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                <div className="form-group">
+                  <label className="form-label">Invoice Status</label>
+                  <select className="form-select" value={form.invoiceStatus||''} onChange={e=>setForm({...form,invoiceStatus:e.target.value})}>
+                    <option value="">None yet</option>
+                    <option>Not sent</option><option>Sent</option><option>Paid</option><option>Overdue</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Hours Worked</label>
+                  <input className="form-input" value={form.hoursWorked||''} onChange={e=>setForm({...form,hoursWorked:e.target.value})} placeholder="0"/>
+                </div>
+              </div>
+            </>)}
+
+            <div className="form-group">
+              <label className="form-label">Due Date</label>
+              <input className="form-input" type="date" value={form.dueDate} onChange={e=>setForm({...form,dueDate:e.target.value})}/>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Notes</label>
+              <textarea className="form-textarea form-input" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/>
+            </div>
           </div>
           <div className="modal-footer">
             <button className="btn-secondary" onClick={onClose}>Cancel</button>
@@ -638,12 +787,14 @@ function AddEventModal({ date, onClose, onAdd }) {
 }
 
 function KanbanCard({ item, track, onStatusChange, onDelete, onMarkDone }) {
+  const isOrgTask = item.taskType === 'Org Task' || item.type === 'Org Task';
   return (
     <div className="card">
       <div className="card-track-line" style={{background:TRACKS[track].color}}/>
       <div className="card-name">{item.name}</div>
       <div className="card-meta">
-        {item.type&&<span className="tag">{item.type}</span>}
+        {isOrgTask && <span className="tag" style={{color:'var(--accent)',borderColor:'var(--accent)33'}}>Org Task</span>}
+        {item.type && item.type !== 'Org Task' && <span className="tag">{item.type}</span>}
         {item.extra&&<span className="tag">{item.extra}</span>}
         {item.dueDate&&<span className="tag">Due {new Date(item.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>}
       </div>
@@ -1162,10 +1313,12 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGen
 }
 
 // ── DASHBOARD PAGE ────────────────────────────────────────────────────────────
-function DashboardPage({ items, goals, calEvents, onAddToWeek }) {
+function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWeek }) {
   const allItems = Object.values(items).flat();
   const stale = allItems.filter(i=>i.status!==TERMINAL[i.track]&&daysSince(i.dateAdded)>7);
   const weekGoals = Object.entries(goals).filter(([,v])=>v);
+  const today = new Date();
+  const isMonday = today.getDay() === 1;
 
   const thisWeekEvents = calEvents.filter(e=>{
     const start = e.start?.dateTime?new Date(e.start.dateTime):null;
@@ -1180,6 +1333,32 @@ function DashboardPage({ items, goals, calEvents, onAddToWeek }) {
         <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px'}}>Command Center</div>
         <div style={{fontSize:'11px',color:'var(--text2)'}}>{getWeekLabel()} · {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
       </div>
+
+      {/* New week banner — shows when no goals set for this week */}
+      {(newWeek || (isMonday && weekGoals.length === 0)) && (
+        <div style={{
+          background:'rgba(232,255,71,0.06)',
+          border:'1px solid rgba(232,255,71,0.3)',
+          borderLeft:'3px solid var(--accent)',
+          padding:'16px 20px',
+          marginBottom:'24px',
+          display:'flex',
+          alignItems:'center',
+          justifyContent:'space-between',
+        }}>
+          <div>
+            <div style={{fontFamily:'Syne,sans-serif',fontSize:'15px',fontWeight:'700',color:'var(--accent)',marginBottom:'3px'}}>
+              {isMonday ? '🗓 New week — time to check in' : '🗓 No goals set for this week yet'}
+            </div>
+            <div style={{fontSize:'11px',color:'var(--text2)'}}>
+              Set your goals, review what's stale, and block your time for the week.
+            </div>
+          </div>
+          <button className="add-btn" onClick={onCheckIn} style={{flexShrink:0,marginLeft:'16px'}}>
+            Start Check-In →
+          </button>
+        </div>
+      )}
 
       <div className="dashboard-grid">
         {Object.entries(TRACKS).map(([key,t])=>{
@@ -1264,6 +1443,7 @@ function App() {
   const [loading, setLoading]= useState(false);
   const [modal, setModal]= useState(null);
   const [toast, setToast]= useState(null);
+  const [newWeek, setNewWeek]= useState(false);
 
   function showToast(msg) { setToast(msg); }
 
@@ -1275,7 +1455,7 @@ function App() {
     });
   },[]);
 
-  useEffect(()=>{ if(demoMode){setItems(DEMO);setGoals({});} },[demoMode]);
+  useEffect(()=>{ if(demoMode){setItems(DEMO);setGoals({});setNewWeek(true);} },[demoMode]);
 
   async function loadAllData() {
     setLoading(true);
@@ -1285,19 +1465,44 @@ function App() {
       loaded[track]=rows.map((r,i)=>rowToItem(track,r,i));
     }
     setItems(loaded);
-    const goalRows=await readSheet('Weekly Goals');
-    const weekRow=goalRows.find(r=>r[0]===getWeekLabel());
-    if (weekRow) setGoals({records:weekRow[1]||'',publishing:weekRow[2]||'',songstage:weekRow[3]||'',freelance:weekRow[4]||'',content:weekRow[5]||''});
+
+    const thisWeek = getWeekLabel();
+    const goalRows = await readSheet('Weekly Goals');
+    const weekRow = goalRows.find(r=>r[0]===thisWeek);
+    if (weekRow) {
+      // Goals exist for this week — load them
+      setGoals({records:weekRow[1]||'',publishing:weekRow[2]||'',songstage:weekRow[3]||'',freelance:weekRow[4]||'',content:weekRow[5]||''});
+      setNewWeek(false);
+    } else {
+      // No goals for this week — it's a new week, clear goals and flag it
+      setGoals({});
+      setNewWeek(true);
+    }
+
     const events=await getCalendarEvents(4);
     setCalEvents(events);
     setLoading(false);
   }
 
   async function handleAdd(track, formData) {
-    const {name,type,status,extra,dueDate,notes,block,slot}=formData;
+    const {name,type,status,extra,dueDate,notes,block,slot,
+      taskType,coWriters,releaseDate,distributor,revenueStatus,
+      writers,publisherSplit,pro,licenseType,revenueCollected,
+      rate,invoiceStatus,hoursWorked}=formData;
     const dateAdded=new Date().toISOString().split('T')[0];
-    if (!demoMode) await appendRow(TRACKS[track].tab,[name,type,status,extra,dueDate,notes,'',dateAdded]);
-    const newItem={id:items[track].length,name,type,status,extra,dueDate,notes,dateAdded,track};
+    // Build row based on track — extended columns
+    let row;
+    if (track==='records') {
+      row=[name,type,status,extra,dueDate,notes,taskType||'Song/Project',dateAdded,coWriters||'',releaseDate||'',distributor||'',revenueStatus||''];
+    } else if (track==='publishing') {
+      row=[name,type,status,extra,dueDate,notes,taskType||'Song/Project',dateAdded,writers||'',publisherSplit||'',pro||'',licenseType||'',revenueCollected||''];
+    } else if (track==='freelance') {
+      row=[name,type,status,extra,dueDate,notes,'',dateAdded,rate||'',invoiceStatus||'',hoursWorked||''];
+    } else {
+      row=[name,type,status,extra,dueDate,notes,'',dateAdded];
+    }
+    if (!demoMode) await appendRow(TRACKS[track].tab, row);
+    const newItem={id:items[track].length,name,type,status,extra,dueDate,notes,taskType:taskType||'',dateAdded,track};
     setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
     if (block&&slot&&!demoMode) {
       try {
@@ -1379,7 +1584,8 @@ function App() {
 
   async function handleSaveGoals() {
     if (!demoMode) await appendRow('Weekly Goals',[getWeekLabel(),goals.records||'',goals.publishing||'',goals.songstage||'',goals.freelance||'',goals.content||'']);
-    showToast('✓ Goals locked in');
+    setNewWeek(false);
+    showToast('✓ Goals locked in for the week');
     setPage('dashboard');
   }
 
@@ -1479,7 +1685,7 @@ function App() {
           </div>
         </div>
 
-        {page==='dashboard'&&<DashboardPage items={items} goals={goals} calEvents={calEvents} onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}}/>}
+        {page==='dashboard'&&<DashboardPage items={items} goals={goals} calEvents={calEvents} newWeek={newWeek} onCheckIn={()=>setPage('checkin')} onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}}/>}
         {page==='calendar'&&<CalendarPage calEvents={calEvents} onAddEvent={handleAddCalEvent} onEditEvent={handleEditCalEvent} onDeleteEvent={handleDeleteCalEvent} demoMode={demoMode}/>}
         {page==='checkin'&&<CheckInPage items={items} calEvents={calEvents} goals={goals}
           onGoalChange={(track,val)=>setGoals(g=>({...g,[track]:val}))}
