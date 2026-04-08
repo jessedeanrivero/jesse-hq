@@ -4,9 +4,13 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-  if (req.method !== 'POST')    { res.status(405).json({ error: 'Method not allowed' }); return; }
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed', tasks: [] }); return; }
 
-  const { track, goal, existingItems } = req.body;
+  const { track, goal, existingItems } = req.body || {};
+
+  if (!track || !goal) {
+    return res.status(400).json({ error: 'Missing track or goal', tasks: [] });
+  }
 
   const STATUSES = {
     records:   ['Pre-Production','Recording','Mixing','Mastered','Released'],
@@ -16,47 +20,105 @@ export default async function handler(req, res) {
     content:   ['Planned','In Progress','Published'],
   };
 
+  const TYPES = {
+    records:   ['Song','Album','EP'],
+    publishing:['Single','Co-write','Cover'],
+    songstage: ['Feature','Bug','Task'],
+    freelance: ['Session','Coaching','Production'],
+    content:   ['Short-Form','Long-Form','Substack'],
+  };
+
   const TRACK_LABELS = {
     records:'Real Fun Records', publishing:'Real Fun Publishing',
     songstage:'Songstage', freelance:'Freelance', content:'Content',
   };
 
-  const prompt = `You are a productivity assistant for a music entrepreneur. Break down this weekly goal into 2-4 specific, actionable tasks.
+  const statuses = STATUSES[track] || ['In Progress'];
+  const types = TYPES[track] || [];
+  const trackLabel = TRACK_LABELS[track] || track;
+  const existing = (existingItems || []).map(i => i.name).join(', ') || 'none';
 
-Track: ${TRACK_LABELS[track] || track}
-Goal: "${goal}"
-Existing items: ${(existingItems||[]).map(i=>i.name).join(', ') || 'none'}
+  const prompt = `Break this weekly goal into 2-4 actionable tasks. Return ONLY a valid JSON array, no markdown, no explanation.
 
-Respond ONLY with a JSON array. No markdown, no explanation, no backticks. Each object must have:
-- "name": short task name (max 6 words)
-- "status": one of ${JSON.stringify(STATUSES[track] || ['In Progress'])}
+Track: ${trackLabel}
+Goal: ${goal}
+Already in this track: ${existing}
+
+Each task object must have exactly these fields:
+- "name": string, max 6 words
+- "type": one of ${JSON.stringify(types)}
+- "status": one of ${JSON.stringify(statuses)} — use the FIRST status for new tasks
 - "estimatedHours": number between 0.5 and 4
-- "notes": one sentence description`;
+- "notes": string, one sentence max
+
+Return only the JSON array. Start your response with [ and end with ].`;
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured in Vercel environment variables', tasks: [] });
+  }
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 800,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
 
-    const data = await response.json();
-    const text = data.content?.[0]?.text || '[]';
+    const anthropicData = await anthropicRes.json();
+
+    if (!anthropicRes.ok) {
+      return res.status(500).json({
+        error: `Anthropic API error ${anthropicRes.status}: ${JSON.stringify(anthropicData)}`,
+        tasks: [],
+      });
+    }
+
+    const text = anthropicData.content?.[0]?.text || '';
+    if (!text) {
+      return res.status(500).json({ error: 'Empty response from Anthropic', tasks: [] });
+    }
+
+    // Extract JSON array even if there's surrounding text
+    const match = text.match(/\[[\s\S]*\]/);
+    if (!match) {
+      return res.status(500).json({
+        error: `Could not find JSON array in response: ${text.slice(0, 300)}`,
+        tasks: [],
+      });
+    }
 
     let tasks = [];
-    try { tasks = JSON.parse(text.replace(/```json|```/g, '').trim()); }
-    catch(e) { tasks = []; }
+    try {
+      tasks = JSON.parse(match[0]);
+      if (!Array.isArray(tasks)) tasks = [];
+      // Ensure each task has the required fields with valid values
+      tasks = tasks.map(t => ({
+        name: t.name || 'Untitled task',
+        type: types.includes(t.type) ? t.type : types[0],
+        status: statuses.includes(t.status) ? t.status : statuses[0],
+        estimatedHours: typeof t.estimatedHours === 'number' ? t.estimatedHours : 1,
+        notes: t.notes || '',
+      }));
+    } catch (e) {
+      return res.status(500).json({
+        error: `JSON parse failed: ${match[0].slice(0, 300)}`,
+        tasks: [],
+      });
+    }
 
-    res.status(200).json({ tasks });
+    return res.status(200).json({ tasks });
+
   } catch (e) {
-    res.status(500).json({ error: e.message, tasks: [] });
+    return res.status(500).json({ error: `Request failed: ${e.message}`, tasks: [] });
   }
 }
