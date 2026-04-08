@@ -327,15 +327,51 @@ async function deleteRowFromSheet(tab, rowIndex) {
   });
 }
 
+async function getAllCalendars() {
+  try {
+    const r = await gapi.client.calendar.calendarList.list({ minAccessRole:'reader' });
+    return r.result.items || [];
+  } catch(e) { return []; }
+}
+
 async function getCalendarEvents(weeksAhead=2) {
   try {
     const now = new Date(), end = new Date(now);
     end.setDate(end.getDate() + weeksAhead * 7);
-    const r = await gapi.client.calendar.events.list({
-      calendarId:'primary', timeMin:now.toISOString(), timeMax:end.toISOString(),
-      singleEvents:true, orderBy:'startTime', maxResults:50,
+
+    // Fetch all calendars first
+    const calendars = await getAllCalendars();
+    const calIds = calendars.map(c => c.id);
+    if (calIds.length === 0) calIds.push('primary');
+
+    // Fetch events from all calendars in parallel
+    const results = await Promise.all(calIds.map(async calId => {
+      try {
+        const r = await gapi.client.calendar.events.list({
+          calendarId: calId,
+          timeMin: now.toISOString(),
+          timeMax: end.toISOString(),
+          singleEvents: true,
+          orderBy: 'startTime',
+          maxResults: 50,
+        });
+        const cal = calendars.find(c => c.id === calId);
+        return (r.result.items || []).map(e => ({
+          ...e,
+          _calendarName: cal?.summary || calId,
+          _calendarColor: cal?.backgroundColor || '#888',
+        }));
+      } catch(e) { return []; }
+    }));
+
+    // Merge and sort by start time
+    const all = results.flat();
+    all.sort((a, b) => {
+      const aTime = a.start?.dateTime || a.start?.date || '';
+      const bTime = b.start?.dateTime || b.start?.date || '';
+      return aTime.localeCompare(bTime);
     });
-    return r.result.items || [];
+    return all;
   } catch(e) { return []; }
 }
 
@@ -694,7 +730,7 @@ function CalendarPage({ calEvents, onAddEvent, demoMode }) {
     for (const [k,t] of Object.entries(TRACKS)) {
       if (title.toLowerCase().includes(t.label.toLowerCase().split(' ')[0].toLowerCase())) return TRACK_COLORS_HEX[k];
     }
-    return '#444';
+    return e._calendarColor || '#555';
   }
 
   // MONTH VIEW
@@ -724,7 +760,7 @@ function CalendarPage({ calEvents, onAddEvent, demoMode }) {
               <div className="cal-day-add" onClick={e=>{e.stopPropagation();setAddEventDate(new Date(cell.date));}}>+</div>
               {evs.slice(0,3).map((e,j)=>(
                 <div key={j} className="cal-event-pill" style={{background:eventColor(e)+'22',color:eventColor(e),border:`1px solid ${eventColor(e)}44`}}
-                  title={e.summary}>
+                  title={`${e.summary}${e._calendarName?' ('+e._calendarName+')':''}`}>
                   {e.start?.dateTime?fmtTime(new Date(e.start.dateTime))+' ':''}{e.summary}
                 </div>
               ))}
@@ -802,6 +838,7 @@ function CalendarPage({ calEvents, onAddEvent, demoMode }) {
                   <div key={j} className="cal-day-event" style={{background:eventColor(e)+'22',color:eventColor(e),border:`1px solid ${eventColor(e)}44`}}>
                     <strong>{fmtTime(new Date(e.start.dateTime))}</strong> {e.summary}
                     {e.end?.dateTime&&<span style={{color:'var(--text3)',marginLeft:'6px'}}>→ {fmtTime(new Date(e.end.dateTime))}</span>}
+                    {e._calendarName&&<span style={{fontSize:'9px',color:'var(--text3)',marginLeft:'6px',opacity:0.7}}>{e._calendarName}</span>}
                   </div>
                 ))}
               </div>
