@@ -360,6 +360,7 @@ async function getCalendarEvents(weeksAhead=2) {
           ...e,
           _calendarName: cal?.summary || calId,
           _calendarColor: cal?.backgroundColor || '#888',
+          _calendarId: calId,
         }));
       } catch(e) { return []; }
     }));
@@ -708,63 +709,135 @@ function TrackPage({ track, items, onAdd, onStatusChange, onDelete, onMarkDone, 
   );
 }
 
-// ── CALENDAR PAGE ─────────────────────────────────────────────────────────────
-function CalendarPage({ calEvents, onAddEvent, demoMode }) {
-  const today = new Date();
-  const [view, setView]= useState('week');
-  const [current, setCurrent]= useState(new Date());
-  const [addEventDate, setAddEventDate]= useState(null);
 
-  const HOURS = Array.from({length:9},(_,i)=>i+8); // 8am-4pm
+// ── EDIT EVENT MODAL ─────────────────────────────────────────────────────────
+function EditEventModal({ event, onClose, onSave, onDelete }) {
+  const start = event.start?.dateTime ? new Date(event.start.dateTime) : new Date();
+  const end   = event.end?.dateTime   ? new Date(event.end.dateTime)   : new Date(start.getTime()+3600000);
+  const toTimeStr = d => `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  const [form, setForm] = useState({
+    title: event.summary||'',
+    startTime: toTimeStr(start),
+    endTime:   toTimeStr(end),
+    date: start.toISOString().split('T')[0],
+  });
+  function save() {
+    const sd=new Date(form.date+'T'+form.startTime);
+    const ed=new Date(form.date+'T'+form.endTime);
+    onSave({...event, summary:form.title, start:{dateTime:sd.toISOString()}, end:{dateTime:ed.toISOString()}});
+    onClose();
+  }
+  return (
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <div className="modal-title">Edit Event</div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-group"><label className="form-label">Title</label>
+            <input className="form-input" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} autoFocus/></div>
+          <div className="form-group"><label className="form-label">Date</label>
+            <input className="form-input" type="date" value={form.date} onChange={e=>setForm({...form,date:e.target.value})}/></div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+            <div className="form-group"><label className="form-label">Start Time</label>
+              <input className="form-input" type="time" value={form.startTime} onChange={e=>setForm({...form,startTime:e.target.value})}/></div>
+            <div className="form-group"><label className="form-label">End Time</label>
+              <input className="form-input" type="time" value={form.endTime} onChange={e=>setForm({...form,endTime:e.target.value})}/></div>
+          </div>
+          {event._calendarName&&<div style={{fontSize:'11px',color:'var(--text3)',marginTop:'4px'}}>Calendar: {event._calendarName}</div>}
+        </div>
+        <div className="modal-footer">
+          <button className="btn-secondary" style={{color:'#ff4444',borderColor:'#ff444433'}} onClick={()=>{onDelete(event);onClose();}}>Delete</button>
+          <button className="btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn-primary" onClick={save}>Save Changes</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── CALENDAR PAGE ─────────────────────────────────────────────────────────────
+function CalendarPage({ calEvents, onAddEvent, onEditEvent, onDeleteEvent, demoMode }) {
+  const today = new Date();
+  const [view, setView]      = useState('week');
+  const [current, setCurrent]= useState(new Date());
+  const [addEventDate, setAddEventDate] = useState(null);
+  const [editEvent, setEditEvent]       = useState(null);
+
+  const HOURS = Array.from({length:24},(_,i)=>i);
 
   function eventsForDay(d) {
     return calEvents.filter(e=>{
       const start = e.start?.dateTime ? new Date(e.start.dateTime) : e.start?.date ? new Date(e.start.date+'T00:00:00') : null;
-      return start && isSameDay(start, d);
+      return start && isSameDay(start,d);
     });
   }
 
   function eventColor(e) {
-    if (e._track) return TRACK_COLORS_HEX[e._track] || '#888';
-    const title = e.summary||'';
-    for (const [k,t] of Object.entries(TRACKS)) {
-      if (title.toLowerCase().includes(t.label.toLowerCase().split(' ')[0].toLowerCase())) return TRACK_COLORS_HEX[k];
+    if (e._track) return TRACK_COLORS_HEX[e._track]||'#888';
+    const title=e.summary||'';
+    for(const [k,t] of Object.entries(TRACKS)){
+      if(title.toLowerCase().includes(t.label.toLowerCase().split(' ')[0].toLowerCase())) return TRACK_COLORS_HEX[k];
     }
-    return e._calendarColor || '#555';
+    return e._calendarColor||'#555';
+  }
+
+  function fmtHour(h) {
+    if(h===0) return '12am'; if(h===12) return '12pm';
+    return h>12?`${h-12}pm`:`${h}am`;
+  }
+
+  // Overlap layout — returns col index per event and total cols
+  function layoutEvents(events) {
+    const sorted=[...events].sort((a,b)=>{
+      const at=a.start?.dateTime?new Date(a.start.dateTime).getTime():0;
+      const bt=b.start?.dateTime?new Date(b.start.dateTime).getTime():0;
+      return at-bt;
+    });
+    const cols=[], result=new Map();
+    for(const ev of sorted){
+      const es=ev.start?.dateTime?new Date(ev.start.dateTime).getTime():0;
+      const ee=ev.end?.dateTime?new Date(ev.end.dateTime).getTime():es+3600000;
+      let placed=false;
+      for(let ci=0;ci<cols.length;ci++){
+        const last=cols[ci][cols[ci].length-1];
+        const ls=last.start?.dateTime?new Date(last.start.dateTime).getTime():0;
+        const le=last.end?.dateTime?new Date(last.end.dateTime).getTime():ls+3600000;
+        if(es>=le){cols[ci].push(ev);result.set(ev,ci);placed=true;break;}
+      }
+      if(!placed){cols.push([ev]);result.set(ev,cols.length-1);}
+    }
+    return {layout:result,totalCols:Math.max(cols.length,1)};
   }
 
   // MONTH VIEW
   function MonthView() {
-    const year = current.getFullYear(), month = current.getMonth();
-    const firstDay = getFirstDayOfMonth(year,month);
-    const daysInMonth = getDaysInMonth(year,month);
-    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    const cells = [];
-    // prev month padding
-    for (let i=0;i<firstDay;i++) {
-      const d = new Date(year,month,-(firstDay-i-1));
-      cells.push({date:d,otherMonth:true});
-    }
-    for (let i=1;i<=daysInMonth;i++) cells.push({date:new Date(year,month,i),otherMonth:false});
-    while (cells.length%7!==0) { const last=cells[cells.length-1].date; cells.push({date:new Date(last.getFullYear(),last.getMonth(),last.getDate()+1),otherMonth:true}); }
-
+    const year=current.getFullYear(),month=current.getMonth();
+    const firstDay=getFirstDayOfMonth(year,month),daysInMonth=getDaysInMonth(year,month);
+    const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const cells=[];
+    for(let i=0;i<firstDay;i++){const d=new Date(year,month,-(firstDay-i-1));cells.push({date:d,otherMonth:true});}
+    for(let i=1;i<=daysInMonth;i++) cells.push({date:new Date(year,month,i),otherMonth:false});
+    while(cells.length%7!==0){const last=cells[cells.length-1].date;cells.push({date:new Date(last.getFullYear(),last.getMonth(),last.getDate()+1),otherMonth:true});}
     return (
       <div className="cal-month-grid">
         {dayNames.map(d=><div key={d} className="cal-day-header">{d}</div>)}
         {cells.map((cell,i)=>{
-          const evs = eventsForDay(cell.date);
-          const isToday = isSameDay(cell.date,today);
+          const evs=eventsForDay(cell.date),isToday=isSameDay(cell.date,today);
           return (
             <div key={i} className={`cal-day${cell.otherMonth?' other-month':''}${isToday?' today':''}`}>
               <div className="cal-day-num">{cell.date.getDate()}</div>
               <div className="cal-day-add" onClick={e=>{e.stopPropagation();setAddEventDate(new Date(cell.date));}}>+</div>
               {evs.slice(0,3).map((e,j)=>(
-                <div key={j} className="cal-event-pill" style={{background:eventColor(e)+'22',color:eventColor(e),border:`1px solid ${eventColor(e)}44`}}
+                <div key={j} className="cal-event-pill" onClick={ev=>{ev.stopPropagation();setEditEvent(e);}}
+                  style={{background:eventColor(e)+'22',color:eventColor(e),border:`1px solid ${eventColor(e)}44`,cursor:'pointer'}}
                   title={`${e.summary}${e._calendarName?' ('+e._calendarName+')':''}`}>
                   {e.start?.dateTime?fmtTime(new Date(e.start.dateTime))+' ':''}{e.summary}
                 </div>
               ))}
-              {evs.length>3&&<div style={{fontSize:'9px',color:'var(--text3)'}}>+{evs.length-3} more</div>}
+              {evs.length>3&&<div style={{fontSize:'9px',color:'var(--text3)',cursor:'pointer'}}
+                onClick={()=>{setCurrent(new Date(cell.date));setView('day');}}>+{evs.length-3} more</div>}
             </div>
           );
         })}
@@ -772,103 +845,161 @@ function CalendarPage({ calEvents, onAddEvent, demoMode }) {
     );
   }
 
-  // WEEK VIEW
+  // WEEK VIEW — absolute positioned events with overlap stagger
   function WeekView() {
-    const startOfWeek = new Date(current);
-    const day = startOfWeek.getDay();
-    startOfWeek.setDate(startOfWeek.getDate() - day + (day===0?-6:1));
-    const days = Array.from({length:7},(_,i)=>{ const d=new Date(startOfWeek); d.setDate(startOfWeek.getDate()+i); return d; });
-
+    const startOfWeek=new Date(current),day=startOfWeek.getDay();
+    startOfWeek.setDate(startOfWeek.getDate()-day+(day===0?-6:1));
+    const days=Array.from({length:7},(_,i)=>{const d=new Date(startOfWeek);d.setDate(startOfWeek.getDate()+i);return d;});
+    const CELL_H=48;
     return (
-      <div className="cal-week-grid">
-        {/* Header row */}
-        <div className="cal-week-header" style={{borderBottom:'1px solid var(--border)'}}></div>
-        {days.map((d,i)=>(
-          <div key={i} className={`cal-week-header${isSameDay(d,today)?' today-col':''}`}>
-            <div className="cal-week-header-day">{d.toLocaleDateString('en-US',{weekday:'short'})}</div>
-            <div className="cal-week-header-date">{d.getDate()}</div>
+      <div style={{overflowX:'auto',overflowY:'auto',maxHeight:'80vh'}}>
+        <div style={{position:'relative',minWidth:'700px'}}>
+          {/* Sticky header */}
+          <div style={{display:'grid',gridTemplateColumns:'52px repeat(7,1fr)',position:'sticky',top:0,zIndex:20,background:'var(--bg)'}}>
+            <div style={{background:'var(--surface)',borderBottom:'1px solid var(--border)',borderRight:'1px solid var(--border)',height:'48px'}}></div>
+            {days.map((d,i)=>(
+              <div key={i} className={`cal-week-header${isSameDay(d,today)?' today-col':''}`} style={{borderRight:'1px solid var(--border)'}}>
+                <div className="cal-week-header-day">{d.toLocaleDateString('en-US',{weekday:'short'})}</div>
+                <div className="cal-week-header-date" style={{color:isSameDay(d,today)?'var(--accent)':'var(--text3)'}}>{d.getDate()}</div>
+              </div>
+            ))}
           </div>
-        ))}
-        {/* Hour rows */}
-        {HOURS.map(hour=>(
-          <React.Fragment key={hour}>
-            <div className="cal-hour-label">{hour===12?'12pm':hour>12?`${hour-12}pm`:`${hour}am`}</div>
+          {/* Hour grid */}
+          <div style={{display:'grid',gridTemplateColumns:'52px repeat(7,1fr)',minWidth:'700px'}}>
+            {HOURS.map(hour=>(
+              <React.Fragment key={hour}>
+                <div className="cal-hour-label" style={{height:`${CELL_H}px`,display:'flex',alignItems:'flex-start',paddingTop:'4px',justifyContent:'flex-end',paddingRight:'8px',fontSize:'9px',color:'var(--text3)'}}>{fmtHour(hour)}</div>
+                {days.map((d,di)=>(
+                  <div key={di} className={`cal-week-cell${isSameDay(d,today)?' today-col':''}`}
+                    style={{height:`${CELL_H}px`}}
+                    onClick={()=>{const nd=new Date(d);nd.setHours(hour,0,0,0);setAddEventDate(nd);}}>
+                  </div>
+                ))}
+              </React.Fragment>
+            ))}
+          </div>
+          {/* Overlay events */}
+          <div style={{display:'grid',gridTemplateColumns:'52px repeat(7,1fr)',minWidth:'700px',position:'absolute',top:'48px',left:0,right:0,height:`${CELL_H*24}px`,pointerEvents:'none'}}>
+            <div></div>
             {days.map((d,di)=>{
-              const hourEvents = calEvents.filter(e=>{
-                const start = e.start?.dateTime ? new Date(e.start.dateTime) : null;
-                return start && isSameDay(start,d) && start.getHours()===hour;
-              });
+              const dayEvs=eventsForDay(d).filter(e=>e.start?.dateTime);
+              const {layout,totalCols}=layoutEvents(dayEvs);
               return (
-                <div key={di} className={`cal-week-cell${isSameDay(d,today)?' today-col':''}`}
-                  onClick={()=>{ const nd=new Date(d); nd.setHours(hour,0,0,0); setAddEventDate(nd); }}>
-                  {hourEvents.map((e,j)=>(
-                    <div key={j} className="cal-week-event" style={{background:eventColor(e)+'22',color:eventColor(e),border:`1px solid ${eventColor(e)}44`}}
-                      title={e.summary}>
-                      {fmtTime(new Date(e.start.dateTime))} {e.summary}
-                    </div>
-                  ))}
+                <div key={di} style={{position:'relative',height:`${CELL_H*24}px`,pointerEvents:'auto'}}>
+                  {dayEvs.map((e,j)=>{
+                    const es=new Date(e.start.dateTime);
+                    const ee=e.end?.dateTime?new Date(e.end.dateTime):new Date(es.getTime()+3600000);
+                    const top=(es.getHours()+es.getMinutes()/60)*CELL_H;
+                    const height=Math.max(((ee-es)/3600000)*CELL_H,18);
+                    const col=layout.get(e)||0;
+                    const w=totalCols>1?`${88/totalCols}%`:'90%';
+                    const left=totalCols>1?`${col*(88/totalCols)+2}%`:'4%';
+                    const color=eventColor(e);
+                    return (
+                      <div key={j} onClick={()=>setEditEvent(e)}
+                        style={{position:'absolute',top:`${top}px`,height:`${height}px`,left,width:w,
+                          background:color+'33',color,border:`1px solid ${color}66`,
+                          fontSize:'9px',padding:'2px 4px',overflow:'hidden',cursor:'pointer',
+                          zIndex:10+col,boxSizing:'border-box',transition:'opacity 0.1s'}}
+                        title={`${e.summary} (${fmtTime(es)}–${fmtTime(ee)})${e._calendarName?' · '+e._calendarName:''}`}
+                        onMouseEnter={ev=>ev.currentTarget.style.opacity='0.75'}
+                        onMouseLeave={ev=>ev.currentTarget.style.opacity='1'}>
+                        <div style={{fontWeight:'600',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{e.summary}</div>
+                        <div style={{opacity:0.8}}>{fmtTime(es)}</div>
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}
-          </React.Fragment>
-        ))}
+          </div>
+        </div>
       </div>
     );
   }
 
-  // DAY VIEW
+  // DAY VIEW — absolute positioned with overlap stagger
   function DayView() {
-    const dayEvents = eventsForDay(current);
+    const dayEvs=eventsForDay(current);
+    const timedEvs=dayEvs.filter(e=>e.start?.dateTime);
+    const allDayEvs=dayEvs.filter(e=>!e.start?.dateTime&&e.start?.date);
+    const {layout,totalCols}=layoutEvents(timedEvs);
+    const CELL_H=56;
     return (
-      <div className="cal-day-view">
-        <div className="cal-day-view-header">
-          <span>{current.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</span>
+      <div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 0 16px',borderBottom:'1px solid var(--border)',marginBottom:'8px'}}>
+          <span style={{fontFamily:'Syne,sans-serif',fontSize:'18px',fontWeight:'700'}}>
+            {current.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+          </span>
           <button className="btn-sm" onClick={()=>setAddEventDate(new Date(current))}>+ Add Event</button>
         </div>
-        {HOURS.map(hour=>{
-          const hourEvents = dayEvents.filter(e=>{
-            const start = e.start?.dateTime ? new Date(e.start.dateTime) : null;
-            return start && start.getHours()===hour;
-          });
-          return (
-            <React.Fragment key={hour}>
-              <div className="cal-day-hour-label">{hour===12?'12pm':hour>12?`${hour-12}pm`:`${hour}am`}</div>
-              <div className="cal-day-hour-cell" onClick={()=>{ const nd=new Date(current); nd.setHours(hour,0,0,0); setAddEventDate(nd); }}>
-                {hourEvents.map((e,j)=>(
-                  <div key={j} className="cal-day-event" style={{background:eventColor(e)+'22',color:eventColor(e),border:`1px solid ${eventColor(e)}44`}}>
-                    <strong>{fmtTime(new Date(e.start.dateTime))}</strong> {e.summary}
-                    {e.end?.dateTime&&<span style={{color:'var(--text3)',marginLeft:'6px'}}>→ {fmtTime(new Date(e.end.dateTime))}</span>}
-                    {e._calendarName&&<span style={{fontSize:'9px',color:'var(--text3)',marginLeft:'6px',opacity:0.7}}>{e._calendarName}</span>}
-                  </div>
-                ))}
+        {allDayEvs.length>0&&(
+          <div style={{marginBottom:'12px'}}>
+            <div style={{fontSize:'10px',color:'var(--text3)',letterSpacing:'2px',textTransform:'uppercase',marginBottom:'6px'}}>All Day</div>
+            {allDayEvs.map((e,i)=>(
+              <div key={i} onClick={()=>setEditEvent(e)} style={{background:eventColor(e)+'22',color:eventColor(e),border:`1px solid ${eventColor(e)}44`,padding:'6px 10px',marginBottom:'4px',fontSize:'12px',cursor:'pointer'}}>
+                {e.summary}
               </div>
-            </React.Fragment>
-          );
-        })}
+            ))}
+          </div>
+        )}
+        <div style={{position:'relative',overflowY:'auto',maxHeight:'75vh'}}>
+          {HOURS.map(h=>(
+            <div key={h} style={{display:'grid',gridTemplateColumns:'52px 1fr',height:`${CELL_H}px`,borderBottom:'1px solid var(--border)'}}>
+              <div style={{fontSize:'9px',color:'var(--text3)',textAlign:'right',paddingRight:'8px',paddingTop:'4px',background:'var(--surface)',borderRight:'1px solid var(--border)'}}>{fmtHour(h)}</div>
+              <div style={{cursor:'pointer',position:'relative'}} onClick={()=>{const nd=new Date(current);nd.setHours(h,0,0,0);setAddEventDate(nd);}}></div>
+            </div>
+          ))}
+          {/* Overlay */}
+          <div style={{position:'absolute',top:0,left:'52px',right:0,bottom:0,pointerEvents:'none'}}>
+            {timedEvs.map((e,j)=>{
+              const es=new Date(e.start.dateTime);
+              const ee=e.end?.dateTime?new Date(e.end.dateTime):new Date(es.getTime()+3600000);
+              const top=(es.getHours()+es.getMinutes()/60)*CELL_H;
+              const height=Math.max(((ee-es)/3600000)*CELL_H,24);
+              const col=layout.get(e)||0;
+              const w=totalCols>1?`${94/totalCols}%`:'96%';
+              const left=totalCols>1?`${col*(94/totalCols)+1}%`:'1%';
+              const color=eventColor(e);
+              return (
+                <div key={j} onClick={()=>setEditEvent(e)}
+                  style={{position:'absolute',top:`${top}px`,height:`${height}px`,left,width:w,
+                    background:color+'33',color,border:`1px solid ${color}77`,
+                    padding:'4px 8px',fontSize:'11px',cursor:'pointer',overflow:'hidden',
+                    pointerEvents:'auto',zIndex:10+col,boxSizing:'border-box',transition:'opacity 0.1s'}}
+                  onMouseEnter={ev=>ev.currentTarget.style.opacity='0.75'}
+                  onMouseLeave={ev=>ev.currentTarget.style.opacity='1'}>
+                  <div style={{fontWeight:'600'}}>{e.summary}</div>
+                  <div style={{fontSize:'10px',opacity:0.8}}>{fmtTime(es)} → {fmtTime(ee)}</div>
+                  {e._calendarName&&<div style={{fontSize:'9px',opacity:0.6}}>{e._calendarName}</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     );
   }
 
   function navigate(dir) {
-    const d = new Date(current);
-    if (view==='month') d.setMonth(d.getMonth()+dir);
-    else if (view==='week') d.setDate(d.getDate()+dir*7);
+    const d=new Date(current);
+    if(view==='month') d.setMonth(d.getMonth()+dir);
+    else if(view==='week') d.setDate(d.getDate()+dir*7);
     else d.setDate(d.getDate()+dir);
     setCurrent(d);
   }
 
   function getLabel() {
-    if (view==='month') return current.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-    if (view==='day') return current.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-    const startOfWeek = new Date(current);
-    const day = startOfWeek.getDay();
-    startOfWeek.setDate(startOfWeek.getDate()-day+(day===0?-6:1));
-    const endOfWeek = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate()+6);
-    return `${startOfWeek.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${endOfWeek.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+    if(view==='month') return current.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    if(view==='day') return current.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    const s=new Date(current),day=s.getDay();
+    s.setDate(s.getDate()-day+(day===0?-6:1));
+    const e=new Date(s);e.setDate(s.getDate()+6);
+    return `${s.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${e.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
   }
 
   return (
-    <div className="page">
+    <div className="page" style={{paddingBottom:'60px'}}>
       <div className="cal-toolbar">
         <div className="cal-nav">
           <button className="cal-nav-btn" onClick={()=>navigate(-1)}>←</button>
@@ -885,25 +1016,26 @@ function CalendarPage({ calEvents, onAddEvent, demoMode }) {
           </div>
         </div>
       </div>
-
-      {demoMode && (
+      {demoMode&&(
         <div style={{background:'rgba(255,179,71,0.08)',border:'1px solid rgba(255,179,71,0.2)',padding:'10px 14px',marginBottom:'16px',fontSize:'11px',color:'var(--warning)'}}>
           Demo mode — connect Google to see your real calendar events
         </div>
       )}
-
       {view==='month'&&<MonthView/>}
       {view==='week'&&<WeekView/>}
       {view==='day'&&<DayView/>}
-
       {addEventDate&&(
         <AddEventModal date={addEventDate} onClose={()=>setAddEventDate(null)}
-          onAdd={async(ev)=>{ await onAddEvent(ev); setAddEventDate(null); }}/>
+          onAdd={async ev=>{await onAddEvent(ev);setAddEventDate(null);}}/>
+      )}
+      {editEvent&&(
+        <EditEventModal event={editEvent} onClose={()=>setEditEvent(null)}
+          onSave={async ev=>{await onEditEvent(ev);setEditEvent(null);}}
+          onDelete={async ev=>{await onDeleteEvent(ev);setEditEvent(null);}}/>
       )}
     </div>
   );
 }
-
 // ── CHECK-IN PAGE ─────────────────────────────────────────────────────────────
 function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGenerated, demoMode }) {
   const [aiState, setAiState]= useState({}); // track -> 'idle'|'loading'|'done'
@@ -1175,6 +1307,39 @@ function App() {
     } else { showToast(`✓ "${name}" added to ${TRACKS[track].label}`); }
   }
 
+  async function handleEditCalEvent(ev) {
+    if (!demoMode) {
+      try {
+        await gapi.client.calendar.events.update({
+          calendarId: ev._calendarId || 'primary',
+          eventId: ev.id,
+          resource: { summary: ev.summary, start: ev.start, end: ev.end },
+        });
+        const refreshed = await getCalendarEvents(4);
+        setCalEvents(refreshed);
+        showToast(`✓ "${ev.summary}" updated`);
+      } catch(e) { showToast('Failed to update event'); }
+    } else {
+      setCalEvents(prev=>prev.map(e=>e===ev||e.summary===ev.summary?ev:e));
+      showToast(`✓ "${ev.summary}" updated (demo)`);
+    }
+  }
+
+  async function handleDeleteCalEvent(ev) {
+    if (!window.confirm(`Delete "${ev.summary}"?`)) return;
+    if (!demoMode) {
+      try {
+        await gapi.client.calendar.events.delete({ calendarId: ev._calendarId || 'primary', eventId: ev.id });
+        const refreshed = await getCalendarEvents(4);
+        setCalEvents(refreshed);
+        showToast(`✕ "${ev.summary}" deleted`);
+      } catch(e) { showToast('Failed to delete event'); }
+    } else {
+      setCalEvents(prev=>prev.filter(e=>e!==ev));
+      showToast(`✕ "${ev.summary}" deleted (demo)`);
+    }
+  }
+
   async function handleAddCalEvent(ev) {
     if (!demoMode) {
       try {
@@ -1298,7 +1463,7 @@ function App() {
         </div>
 
         {page==='dashboard'&&<DashboardPage items={items} goals={goals} calEvents={calEvents} onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}}/>}
-        {page==='calendar'&&<CalendarPage calEvents={calEvents} onAddEvent={handleAddCalEvent} demoMode={demoMode}/>}
+        {page==='calendar'&&<CalendarPage calEvents={calEvents} onAddEvent={handleAddCalEvent} onEditEvent={handleEditCalEvent} onDeleteEvent={handleDeleteCalEvent} demoMode={demoMode}/>}
         {page==='checkin'&&<CheckInPage items={items} calEvents={calEvents} goals={goals}
           onGoalChange={(track,val)=>setGoals(g=>({...g,[track]:val}))}
           onSave={handleSaveGoals}
