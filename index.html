@@ -1401,13 +1401,28 @@ function App() {
   }
 
   async function handleTasksGenerated(track, tasks) {
-    const dateAdded=new Date().toISOString().split('T')[0];
+    const dateAdded = new Date().toISOString().split('T')[0];
+    const newItems = [];
     for (const task of tasks) {
-      const row=[task.name,TYPES[track][0],task.status,'',''  ,task.notes,'',dateAdded];
-      if (!demoMode) await appendRow(TRACKS[track].tab,row);
-      const newItem={id:items[track].length,name:task.name,type:TYPES[track][0],status:task.status,extra:'',dueDate:'',notes:task.notes,dateAdded,track};
-      setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
+      // Use the AI-assigned type and status so card lands in the right column
+      const taskType   = task.type   || TYPES[track][0];
+      const taskStatus = task.status || STATUSES[track][0];
+      const row = [task.name, taskType, taskStatus, '', '', task.notes || '', '', dateAdded];
+      if (!demoMode) await appendRow(TRACKS[track].tab, row);
+      newItems.push({
+        id: items[track].length + newItems.length,
+        name: task.name,
+        type: taskType,
+        status: taskStatus,
+        extra: '',
+        dueDate: '',
+        notes: task.notes || '',
+        dateAdded,
+        track,
+      });
     }
+    // Add all new items at once so kanban updates correctly
+    setItems(prev => ({ ...prev, [track]: [...prev[track], ...newItems] }));
     showToast(`✓ ${tasks.length} tasks added to ${TRACKS[track].label}`);
   }
 
