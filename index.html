@@ -1041,9 +1041,34 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGen
     const goal = goals[track];
     if (!goal?.trim()) return;
     setAiState(s=>({...s,[track]:'loading'}));
-    const tasks = await breakdownGoalWithAI(track, goal, items[track]||[]);
-    setAiTasks(t=>({...t,[track]:tasks}));
-    setAiState(s=>({...s,[track]:'done'}));
+    try {
+      const res = await fetch('/api/breakdown', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ track, goal, existingItems: items[track]||[] }),
+      });
+      const text = await res.text();
+      console.log('API response:', res.status, text.slice(0,300));
+      if (!res.ok) {
+        setAiState(s=>({...s,[track]:'error',[track+'_err']:`Server error ${res.status}: ${text.slice(0,200)}`}));
+        return;
+      }
+      let data;
+      try { data = JSON.parse(text); } catch(e) {
+        setAiState(s=>({...s,[track]:'error',[track+'_err']:'Bad JSON: '+text.slice(0,200)}));
+        return;
+      }
+      const tasks = data.tasks || [];
+      if (tasks.length === 0) {
+        setAiState(s=>({...s,[track]:'error',[track+'_err']:'No tasks returned. Raw: '+text.slice(0,200)}));
+        return;
+      }
+      setAiTasks(t=>({...t,[track]:tasks}));
+      setAiState(s=>({...s,[track]:'done'}));
+    } catch(e) {
+      console.error('breakdown error:', e);
+      setAiState(s=>({...s,[track]:'error',[track+'_err']:e.message}));
+    }
   }
 
   function addTasksToTrack(track) {
@@ -1112,6 +1137,12 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGen
                 {aiState[track]==='loading'&&(
                   <div className="ai-thinking">
                     <div className="ai-dot"/> Breaking down your goal...
+                  </div>
+                )}
+                {aiState[track]==='error'&&(
+                  <div style={{background:'rgba(255,68,68,0.08)',border:'1px solid rgba(255,68,68,0.3)',padding:'10px 12px',fontSize:'11px',color:'#ff6666',marginBottom:'8px'}}>
+                    ⚠ AI failed: {aiState[track+'_err'] || 'Unknown error'}
+                    <button className="btn-sm" style={{marginLeft:'10px',fontSize:'10px'}} onClick={()=>setAiState(s=>({...s,[track]:'idle'}))}>Retry</button>
                   </div>
                 )}
                 {aiState[track]==='done'&&aiTasks[track]?.length>0&&(
