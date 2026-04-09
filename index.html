@@ -449,10 +449,10 @@ async function getCalendarEvents(weeksAhead=2) {
   } catch(e) { return []; }
 }
 
-async function createCalendarEvent(title, startISO, endISO, color) {
+async function createCalendarEvent(title, startISO, endISO, color, calendarId='primary') {
   const colorId = { '#ff6b35':'6', '#e8ff47':'5', '#47c9ff':'7', '#b47cff':'3', '#ff4d8f':'4' }[color] || '1';
   await gapi.client.calendar.events.insert({
-    calendarId:'primary',
+    calendarId,
     resource:{ summary:`[HQ] ${title}`, start:{ dateTime:startISO }, end:{ dateTime:endISO }, colorId },
   });
 }
@@ -642,7 +642,7 @@ function UndoToast({ message, onUndo, onClose }) {
   );
 }
 
-function AddItemModal({ track, onClose, onAdd, calEvents }) {
+function AddItemModal({ track, onClose, onAdd, calEvents, calendarList=[] }) {
   const [form, setForm]= useState({name:'',type:TYPES[track][0],status:STATUSES[track][0],extra:'',dueDate:'',notes:'',owner:''});
   const [step, setStep]= useState('form');
   const [slots, setSlots]= useState([]);
@@ -656,7 +656,15 @@ function AddItemModal({ track, onClose, onAdd, calEvents }) {
     setStep('calendar');
   }
 
-  function save(block) { onAdd({...form, block, slot:slots[selected]}); onClose(); }
+  function save(block) {
+    const defaultCal = calendarList.find(c=>
+      c.summary?.toLowerCase().includes('k&j') ||
+      c.summary?.toLowerCase().includes('joint') ||
+      c.summary?.toLowerCase().includes('k & j')
+    )?.id || 'primary';
+    onAdd({...form, block, slot:slots[selected], calendarId:defaultCal});
+    onClose();
+  }
 
   return (
     <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
@@ -748,26 +756,34 @@ function AddItemModal({ track, onClose, onAdd, calEvents }) {
   );
 }
 
-function AddEventModal({ date, onClose, onAdd }) {
-  // Pre-fill date and time from the clicked cell
+function AddEventModal({ date, onClose, onAdd, calendarList=[] }) {
   const initDate = date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
   const initHour = date ? date.getHours() : 9;
   const initStart = `${String(initHour).padStart(2,'0')}:00`;
   const initEnd   = `${String(Math.min(initHour+1,16)).padStart(2,'0')}:00`;
 
+  // Default to K&J Joint Calendar if it exists, otherwise primary
+  const defaultCal = calendarList.find(c =>
+    c.summary?.toLowerCase().includes('k&j') ||
+    c.summary?.toLowerCase().includes('joint') ||
+    c.summary?.toLowerCase().includes('k & j')
+  )?.id || 'primary';
+
   const [form, setForm] = useState({
-    title:'', date:initDate, startTime:initStart, endTime:initEnd, track:'', allDay:false
+    title:'', date:initDate, startTime:initStart, endTime:initEnd,
+    track:'', allDay:false, calendarId:defaultCal
   });
 
   function save() {
     if (!form.title.trim()) return;
+    const base = { title:form.title, track:form.track, color:form.track?TRACK_COLORS_HEX[form.track]:'#888', calendarId:form.calendarId };
     if (form.allDay) {
-      onAdd({ title:form.title, startISO:new Date(form.date+'T00:00:00').toISOString(), endISO:new Date(form.date+'T23:59:00').toISOString(), track:form.track, color:form.track?TRACK_COLORS_HEX[form.track]:'#888', allDay:true });
+      onAdd({ ...base, startISO:new Date(form.date+'T00:00:00').toISOString(), endISO:new Date(form.date+'T23:59:00').toISOString(), allDay:true });
     } else {
       const start = new Date(form.date+'T'+form.startTime);
       const end   = new Date(form.date+'T'+form.endTime);
-      if (end <= start) { end.setTime(start.getTime() + 3600000); }
-      onAdd({ title:form.title, startISO:start.toISOString(), endISO:end.toISOString(), track:form.track, color:form.track?TRACK_COLORS_HEX[form.track]:'#888' });
+      if (end <= start) end.setTime(start.getTime() + 3600000);
+      onAdd({ ...base, startISO:start.toISOString(), endISO:end.toISOString() });
     }
     onClose();
   }
@@ -807,6 +823,16 @@ function AddEventModal({ date, onClose, onAdd }) {
               </div>
             </div>
           )}
+          <div className="form-group">
+            <label className="form-label">Add to Calendar</label>
+            <select className="form-select" value={form.calendarId} onChange={e=>setForm({...form,calendarId:e.target.value})}>
+              {calendarList.length > 0
+                ? calendarList.filter(c=>c.accessRole==='owner'||c.accessRole==='writer').map(c=>(
+                    <option key={c.id} value={c.id}>{c.summary}</option>
+                  ))
+                : <option value="primary">Primary Calendar</option>}
+            </select>
+          </div>
           <div className="form-group">
             <label className="form-label">Track (optional)</label>
             <select className="form-select" value={form.track} onChange={e=>setForm({...form,track:e.target.value})}>
@@ -1063,7 +1089,7 @@ function EditEventModal({ event, onClose, onSave, onDelete }) {
 }
 
 // ── CALENDAR PAGE ─────────────────────────────────────────────────────────────
-function CalendarPage({ calEvents, onAddEvent, onEditEvent, onDeleteEvent, demoMode }) {
+function CalendarPage({ calEvents, calendarList, onAddEvent, onEditEvent, onDeleteEvent, demoMode }) {
   const today = new Date();
   const [view, setView]      = useState('week');
   const [current, setCurrent]= useState(new Date());
@@ -1330,7 +1356,7 @@ function CalendarPage({ calEvents, onAddEvent, onEditEvent, onDeleteEvent, demoM
       {view==='week'&&<WeekView/>}
       {view==='day'&&<DayView/>}
       {addEventDate&&(
-        <AddEventModal date={addEventDate} onClose={()=>setAddEventDate(null)}
+        <AddEventModal date={addEventDate} calendarList={calendarList} onClose={()=>setAddEventDate(null)}
           onAdd={async ev=>{await onAddEvent(ev);setAddEventDate(null);}}/>
       )}
       {editEvent&&(
@@ -1891,6 +1917,7 @@ function App() {
   const [items, setItems]= useState({records:[],publishing:[],songstage:[],freelance:[],content:[]});
   const [goals, setGoals]= useState({});
   const [calEvents, setCalEvents]= useState([]);
+  const [calendarList, setCalendarList]= useState([]); // all user's calendars
   const [loading, setLoading]= useState(false);
   const [modal, setModal]= useState(null);
   const [toast, setToast]= useState(null);
@@ -1935,8 +1962,9 @@ function App() {
       setNewWeek(true);
       localStorage.setItem('hq_last_week', thisWeek);
     }
-    const events=await getCalendarEvents(4);
+    const [events, cals] = await Promise.all([getCalendarEvents(4), getAllCalendars()]);
     setCalEvents(events);
+    setCalendarList(cals);
     setLoading(false);
   }
 
@@ -1959,7 +1987,7 @@ function App() {
     setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
     if (block&&slot&&!demoMode) {
       try {
-        await createCalendarEvent(name,slot.startISO,slot.endISO,TRACK_COLORS_HEX[track]);
+        await createCalendarEvent(name,slot.startISO,slot.endISO,TRACK_COLORS_HEX[track],formData.calendarId||'primary');
         const refreshed=await getCalendarEvents(4);
         setCalEvents(refreshed);
         showToast(`✓ "${name}" added + time blocked ${slot.label}`);
@@ -2001,15 +2029,16 @@ function App() {
   }
 
   async function handleAddCalEvent(ev) {
+    const targetCalId = ev.calendarId || 'primary';
     if (!demoMode) {
       try {
-        await createCalendarEvent(ev.title,ev.startISO,ev.endISO,ev.color||'#888');
+        await createCalendarEvent(ev.title, ev.startISO, ev.endISO, ev.color||'#888', targetCalId);
         const refreshed=await getCalendarEvents(4);
         setCalEvents(refreshed);
-        showToast(`✓ "${ev.title}" added to calendar`);
-      } catch(e) { showToast('Failed to add calendar event'); }
+        const calName = calendarList.find(c=>c.id===targetCalId)?.summary || targetCalId;
+        showToast(`✓ "${ev.title}" added to ${calName}`);
+      } catch(e) { showToast(`Failed to add event: ${e.message}`); }
     } else {
-      // Demo: just add locally
       setCalEvents(prev=>[...prev,{
         summary:ev.title,
         start:{dateTime:ev.startISO},
@@ -2127,7 +2156,12 @@ function App() {
 
       if (slot && !demoMode) {
         try {
-          await createCalendarEvent(task.name, slot.startISO, slot.endISO, TRACK_COLORS_HEX[track]);
+          const kjCal = calendarList.find(c=>
+          c.summary?.toLowerCase().includes('k&j')||
+          c.summary?.toLowerCase().includes('joint')||
+          c.summary?.toLowerCase().includes('k & j')
+        )?.id || 'primary';
+        await createCalendarEvent(task.name, slot.startISO, slot.endISO, TRACK_COLORS_HEX[track], kjCal);
           blockedCount++;
         } catch(e) { console.error('Calendar block failed:', task.name, e); }
       }
@@ -2230,7 +2264,7 @@ function App() {
           onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}}
           onMarkDone={(track,item)=>handleMarkDone(track,item)}
           onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}/>}
-        {page==='calendar'&&<CalendarPage calEvents={calEvents} onAddEvent={handleAddCalEvent} onEditEvent={handleEditCalEvent} onDeleteEvent={handleDeleteCalEvent} demoMode={demoMode}/>}
+        {page==='calendar'&&<CalendarPage calEvents={calEvents} calendarList={calendarList} onAddEvent={handleAddCalEvent} onEditEvent={handleEditCalEvent} onDeleteEvent={handleDeleteCalEvent} demoMode={demoMode}/>}
         {page==='checkin'&&<CheckInPage items={items} calEvents={calEvents} goals={goals}
           onGoalChange={(track,val)=>setGoals(g=>({...g,[track]:val}))}
           onGoalBlur={handleGoalBlur}
@@ -2246,7 +2280,7 @@ function App() {
           onEdit={(oldItem,newItem)=>handleEditItem(page,oldItem,newItem)}/>}
       </div>
 
-      {modal&&<AddItemModal track={modal.track} calEvents={calEvents} onClose={()=>setModal(null)} onAdd={formData=>handleAdd(modal.track,formData)}/>}
+      {modal&&<AddItemModal track={modal.track} calEvents={calEvents} calendarList={calendarList} onClose={()=>setModal(null)} onAdd={formData=>handleAdd(modal.track,formData)}/>}
       {toast&&<Toast message={toast} onClose={()=>setToast(null)}/>}
       {undoToast&&<div style={{position:'fixed',bottom:'80px',right:'24px',zIndex:'2001'}}><UndoToast message={undoToast.message} onUndo={undoToast.onUndo} onClose={()=>setUndoToast(null)}/></div>}
     </div>
