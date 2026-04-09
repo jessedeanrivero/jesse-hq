@@ -1062,6 +1062,7 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onGoalBlur, onSave
   const [aiSlots, setAiSlots]   = useState({});
   const [savedState, setSavedState] = useState({});
   const [savingTrack, setSavingTrack] = useState(null);
+  const [selectedTasks, setSelectedTasks] = useState({}); // track -> Set of selected indices
 
   const prompts = {
     records:   'What do you want to move forward? How does it connect to revenue?',
@@ -1113,16 +1114,31 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onGoalBlur, onSave
       setAiTasks(t=>({...t,[track]:tasks}));
       setAiSlots(s=>({...s,[track]:taskSlots}));
       setAiState(s=>({...s,[track]:'done'}));
+      // Select all tasks by default
+      setSelectedTasks(st=>({...st,[track]:new Set(tasks.map((_,i)=>i))}));
     } catch(e) {
       setAiState(s=>({...s,[track]:'error',[track+'_err']:e.message||String(e)}));
     }
   }
 
   function addTasksToTrack(track) {
-    onTasksGenerated(track, aiTasks[track]||[], aiSlots[track]||{});
+    const allTasks = aiTasks[track]||[];
+    const allSlots = aiSlots[track]||{};
+    const selected = selectedTasks[track] || new Set(allTasks.map((_,i)=>i));
+    // Filter to only selected tasks, remap slots to new indices
+    const filteredTasks = [], filteredSlots = {};
+    allTasks.forEach((task, i) => {
+      if (selected.has(i)) {
+        const newIdx = filteredTasks.length;
+        filteredTasks.push(task);
+        if (allSlots[i]) filteredSlots[newIdx] = allSlots[i];
+      }
+    });
+    onTasksGenerated(track, filteredTasks, filteredSlots);
     setAiState(s=>({...s,[track]:'idle'}));
     setAiTasks(t=>({...t,[track]:[]}));
     setAiSlots(s=>({...s,[track]:{}}));
+    setSelectedTasks(st=>({...st,[track]:new Set()}));
   }
 
   const staleByTrack = {};
@@ -1225,45 +1241,103 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onGoalBlur, onSave
                   )}
                   {aiState[track]==='done'&&aiTasks[track]?.length>0&&(
                     <div>
+                      {/* Select all toggle */}
+                      {(() => {
+                        const sel = selectedTasks[track] || new Set(aiTasks[track].map((_,i)=>i));
+                        const allSelected = aiTasks[track].every((_,i)=>sel.has(i));
+                        const selCount = sel.size;
+                        return (
+                          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px',paddingBottom:'8px',borderBottom:'1px solid var(--border)'}}>
+                            <div style={{fontSize:'10px',color:'var(--text2)'}}>
+                              {selCount} of {aiTasks[track].length} selected
+                            </div>
+                            <button className="btn-sm" onClick={()=>{
+                              if (allSelected) {
+                                setSelectedTasks(st=>({...st,[track]:new Set()}));
+                              } else {
+                                setSelectedTasks(st=>({...st,[track]:new Set(aiTasks[track].map((_,i)=>i))}));
+                              }
+                            }}>
+                              {allSelected ? 'Deselect all' : 'Select all'}
+                            </button>
+                          </div>
+                        );
+                      })()}
+
                       <div className="ai-tasks">
                         {aiTasks[track].map((task,i)=>{
-                          const slot=aiSlots[track]?.[i];
+                          const slot = aiSlots[track]?.[i];
+                          const sel = selectedTasks[track] || new Set(aiTasks[track].map((_,i)=>i));
+                          const isSelected = sel.has(i);
                           return (
-                            <div key={i} className="ai-task">
-                              <div className="ai-task-name">{task.name}</div>
-                              <div className="ai-task-meta">{task.status} · ~{task.estimatedHours}h · {task.notes}</div>
-                              {slot?(
-                                <div style={{marginTop:'6px',display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
-                                  <div style={{fontSize:'10px',color:'var(--accent)',background:'rgba(232,255,71,0.08)',border:'1px solid rgba(232,255,71,0.2)',padding:'3px 8px'}}>
-                                    {slot.label}
-                                  </div>
-                                  <select style={{fontFamily:'DM Mono,monospace',fontSize:'9px',background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--text2)',padding:'3px 6px',cursor:'pointer'}}
-                                    onChange={ev=>{
-                                      const idx=parseInt(ev.target.value);
-                                      const allSlots=getSmartSlots(track,calEvents,task.estimatedHours||1);
-                                      if(idx>=0&&allSlots[idx]) setAiSlots(s=>({...s,[track]:{...s[track],[i]:allSlots[idx]}}));
-                                    }}>
-                                    <option value={-1}>Change slot...</option>
-                                    {getSmartSlots(track,calEvents,task.estimatedHours||1).slice(0,5).map((s,si)=>(
-                                      <option key={si} value={si}>{s.label}</option>
-                                    ))}
-                                  </select>
+                            <div key={i} className="ai-task" style={{opacity: isSelected?1:0.45, transition:'opacity 0.15s'}}>
+                              {/* Checkbox + name row */}
+                              <div style={{display:'flex',alignItems:'flex-start',gap:'10px'}}>
+                                <div
+                                  onClick={()=>{
+                                    setSelectedTasks(st=>{
+                                      const current = new Set(st[track] || aiTasks[track].map((_,i)=>i));
+                                      if (current.has(i)) current.delete(i); else current.add(i);
+                                      return {...st,[track]:new Set(current)};
+                                    });
+                                  }}
+                                  style={{
+                                    width:'16px',height:'16px',flexShrink:0,marginTop:'2px',
+                                    border:`1px solid ${isSelected?'var(--accent)':'var(--border)'}`,
+                                    background: isSelected?'var(--accent)':'transparent',
+                                    cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',
+                                    fontSize:'10px',color:'#000',transition:'all 0.15s',
+                                  }}>
+                                  {isSelected&&'✓'}
                                 </div>
-                              ):(
-                                <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'4px'}}>No available slot found</div>
-                              )}
+                                <div style={{flex:1}}>
+                                  <div className="ai-task-name">{task.name}</div>
+                                  <div className="ai-task-meta">{task.status} · ~{task.estimatedHours}h · {task.notes}</div>
+                                  {isSelected&&(slot?(
+                                    <div style={{marginTop:'6px',display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                                      <div style={{fontSize:'10px',color:'var(--accent)',background:'rgba(232,255,71,0.08)',border:'1px solid rgba(232,255,71,0.2)',padding:'3px 8px'}}>
+                                        {slot.label}
+                                      </div>
+                                      <select style={{fontFamily:'DM Mono,monospace',fontSize:'9px',background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--text2)',padding:'3px 6px',cursor:'pointer'}}
+                                        onChange={ev=>{
+                                          const idx=parseInt(ev.target.value);
+                                          const allSlots=getSmartSlots(track,calEvents,task.estimatedHours||1);
+                                          if(idx>=0&&allSlots[idx]) setAiSlots(s=>({...s,[track]:{...s[track],[i]:allSlots[idx]}}));
+                                        }}>
+                                        <option value={-1}>Change slot...</option>
+                                        {getSmartSlots(track,calEvents,task.estimatedHours||1).slice(0,5).map((s,si)=>(
+                                          <option key={si} value={si}>{s.label}</option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  ):(
+                                    <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'4px'}}>No available slot found</div>
+                                  ))}
+                                </div>
+                              </div>
                             </div>
                           );
                         })}
                       </div>
-                      <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
-                        <button className="btn-primary" style={{fontSize:'11px',padding:'7px 14px'}} onClick={()=>addTasksToTrack(track)}>
-                          Add {aiTasks[track].length} tasks + block calendar
-                        </button>
-                        <button className="btn-secondary" style={{fontSize:'11px',padding:'7px 14px'}} onClick={()=>setAiState(s=>({...s,[track]:'idle'}))}>
-                          Dismiss
-                        </button>
-                      </div>
+
+                      {/* Action buttons */}
+                      {(() => {
+                        const sel = selectedTasks[track] || new Set(aiTasks[track].map((_,i)=>i));
+                        const selCount = sel.size;
+                        return (
+                          <div style={{display:'flex',gap:'8px',marginTop:'12px',flexWrap:'wrap'}}>
+                            <button className="btn-primary" style={{fontSize:'11px',padding:'7px 14px'}}
+                              onClick={()=>addTasksToTrack(track)}
+                              disabled={selCount===0}>
+                              Add {selCount} task{selCount!==1?'s':''}{selCount>0?' + block calendar':''}
+                            </button>
+                            <button className="btn-secondary" style={{fontSize:'11px',padding:'7px 14px'}}
+                              onClick={()=>{setAiState(s=>({...s,[track]:'idle'}));setSelectedTasks(st=>({...st,[track]:new Set()}));}}>
+                              Dismiss
+                            </button>
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
