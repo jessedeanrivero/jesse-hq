@@ -198,6 +198,125 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .google-btn{background:#fff;color:#333;border:none;padding:12px 24px;font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;}
 .demo-btn{background:transparent;color:var(--text3);border:1px solid var(--border);padding:10px 24px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;width:100%;margin-top:10px;}
 .demo-btn:hover{color:var(--text2);border-color:var(--text3);}
+
+/* ── MOBILE ─────────────────────────────────────────────────────────────────── */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 99;
+  backdrop-filter: blur(2px);
+}
+
+@media (max-width: 768px) {
+  .hamburger { display: block; }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 200;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay.open {
+    display: block;
+  }
+
+  .main {
+    margin-left: 0 !important;
+  }
+
+  .topbar {
+    padding: 0 16px;
+  }
+
+  .page {
+    padding: 16px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .kanban {
+    flex-direction: column;
+  }
+
+  .kanban-col {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .cal-month-grid {
+    font-size: 10px;
+  }
+
+  .cal-day {
+    min-height: 60px;
+    padding: 4px;
+  }
+
+  .cal-event-pill {
+    font-size: 8px;
+    padding: 1px 3px;
+  }
+
+  .modal {
+    width: 95vw;
+    max-height: 95vh;
+  }
+
+  .checkin-wrap {
+    max-width: 100%;
+  }
+
+  .track-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .topbar-right .week-badge {
+    display: none;
+  }
+
+  .cal-toolbar {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .cal-month-label {
+    font-size: 16px;
+    min-width: unset;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-number {
+    font-size: 28px;
+  }
+}
 </style>
 </head>
 <body>
@@ -226,7 +345,7 @@ const STATUSES = {
   records:   ['General','Pre-Production','Recording','Mixing','Mastered','Released'],
   publishing:['General','Pitched','Placed','Collecting','Monetizing'],
   songstage: ['Backlog','In Progress','Review','Shipped'],
-  freelance: ['Booked','In Progress','Completed'],
+  freelance: ['General','Booked','In Progress','Completed'],
   content:   ['Planned','In Progress','Published'],
 };
 
@@ -367,14 +486,21 @@ async function getCalendarEvents(weeksAhead=2) {
       } catch(e) { return []; }
     }));
 
-    // Merge and sort by start time
+    // Merge, deduplicate by title+start, and sort by start time
     const all = results.flat();
-    all.sort((a, b) => {
+    const seen = new Set();
+    const deduped = all.filter(e => {
+      const key = `${e.summary||''}|${e.start?.dateTime||e.start?.date||''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    deduped.sort((a, b) => {
       const aTime = a.start?.dateTime || a.start?.date || '';
       const bTime = b.start?.dateTime || b.start?.date || '';
       return aTime.localeCompare(bTime);
     });
-    return all;
+    return deduped;
   } catch(e) { return []; }
 }
 
@@ -437,9 +563,16 @@ function getFirstDayOfMonth(year, month) {
 // Find open time slots for a task on the right days, checking real calendar
 function getSmartSlots(track, calEvents, durationHours=1.5) {
   const slots = [];
-  const today = new Date();
+  const now = new Date();
+  const today = new Date(now);
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const HARD_CUTOFF = 16; // 4pm
+
+  // Validate track has defined schedule days
+  const trackHasDays = Object.values(DAY_SCHEDULE).some(daySlots =>
+    daySlots.some(s => s.track === track)
+  );
+  if (!trackHasDays) return [];
 
   for (let i=0; i<14; i++) { // look 2 weeks ahead
     const d = new Date(today);
@@ -453,6 +586,13 @@ function getSmartSlots(track, calEvents, durationHours=1.5) {
       const dayEnd   = Math.min(slot.end, HARD_CUTOFF); // never after 4pm
       if (dayStart >= dayEnd) continue;
 
+      // Only suggest future times — if today, start from current time
+      const isToday = isSameDay(d, now);
+      const minStart = isToday
+        ? Math.max(dayStart, now.getHours() + now.getMinutes()/60 + 0.25) // 15min buffer
+        : dayStart;
+      if (minStart + durationHours > dayEnd) continue; // not enough time left today
+
       // Get all calendar events for this day
       const dayEvents = calEvents.filter(e => {
         const es = e.start?.dateTime ? new Date(e.start.dateTime) : null;
@@ -465,7 +605,7 @@ function getSmartSlots(track, calEvents, durationHours=1.5) {
 
       // Find open windows of at least durationHours within the slot
       const windows = [];
-      let cursor = dayStart;
+      let cursor = minStart; // start from now if today, else start of day slot
 
       for (const ev of dayEvents) {
         if (ev.start > cursor && ev.start - cursor >= durationHours) {
@@ -1545,6 +1685,7 @@ function App() {
   const [modal, setModal]= useState(null);
   const [toast, setToast]= useState(null);
   const [newWeek, setNewWeek]= useState(false);
+  const [sidebarOpen, setSidebarOpen]= useState(false);
 
   function showToast(msg) { setToast(msg); }
 
@@ -1761,7 +1902,8 @@ function App() {
 
   return (
     <div className="app">
-      <div className="sidebar">
+      <div className={`sidebar-overlay${sidebarOpen?' open':''}`} onClick={()=>setSidebarOpen(false)}/>
+      <div className={`sidebar${sidebarOpen?' open':''}`}>
         <div className="logo">
           <div className="logo-text">Jesse HQ</div>
           <div className="logo-sub">{demoMode?'Demo Mode':'Connected'}</div>
@@ -1769,13 +1911,13 @@ function App() {
         <nav className="nav">
           <div className="nav-section-label">Overview</div>
           {[['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Monday Check-In']].map(([key,label])=>(
-            <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>setPage(key)}>
+            <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
               <div className={`nav-dot ${key}`}/>{label}
             </div>
           ))}
           <div className="nav-section-label" style={{marginTop:'8px'}}>Tracks</div>
           {Object.entries(TRACKS).map(([key,t])=>(
-            <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>setPage(key)}>
+            <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
               <div className={`nav-dot ${key}`}/>{t.label}
             </div>
           ))}
@@ -1791,11 +1933,14 @@ function App() {
 
       <div className="main">
         <div className="topbar">
-          <div className="topbar-title">
-            {page==='dashboard'&&'Dashboard'}
-            {page==='calendar'&&'Calendar'}
-            {page==='checkin'&&'Monday Check-In'}
-            {TRACKS[page]&&TRACKS[page].label}
+          <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+            <button className="hamburger" onClick={()=>setSidebarOpen(o=>!o)}>☰</button>
+            <div className="topbar-title">
+              {page==='dashboard'&&'Dashboard'}
+              {page==='calendar'&&'Calendar'}
+              {page==='checkin'&&'Monday Check-In'}
+              {TRACKS[page]&&TRACKS[page].label}
+            </div>
           </div>
           <div className="topbar-right">
             <span className="week-badge">{getWeekLabel()}</span>
