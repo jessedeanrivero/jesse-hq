@@ -107,7 +107,8 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .form-label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
 .form-input,.form-select,.form-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 12px;outline:none;transition:border-color 0.15s;}
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);}
-.form-select option{background:var(--surface2);}
+.form-select option{background:#1e1e1e;color:#f0f0f0;}
+select option{background:#1e1e1e;color:#f0f0f0;}
 .form-textarea{resize:vertical;min-height:80px;}
 /* CALENDAR */
 .cal-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
@@ -258,11 +259,22 @@ const STATUSES = {
 };
 
 const TYPES = {
-  records:   ['Song','Album','EP'],
-  publishing:['Single','Co-write','Cover'],
+  records:   ['Org Task','Song','Album','EP'],
+  publishing:['Org Task','Single','Co-write','Cover'],
   songstage: ['Feature','Bug','Task'],
-  freelance: ['Session','Coaching','Production'],
+  freelance: ['General Task','Session','Coaching','Production'],
   content:   ['Short-Form','Long-Form','Substack'],
+};
+
+const TYPE_DEFAULT_STATUS = {
+  'Org Task':     'General',
+  'General Task': 'General',
+  'Song':         'Pre-Production',
+  'Album':        'Pre-Production',
+  'EP':           'Pre-Production',
+  'Single':       'Pitched',
+  'Co-write':     'Pitched',
+  'Cover':        'Pitched',
 };
 
 const TERMINAL = {
@@ -511,7 +523,12 @@ function getSmartSlots(track, calEvents) {
 }
 
 function rowToItem(track, row, index) {
-  return { id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'', extra:row[3]||'', dueDate:row[4]||'', notes:row[5]||'', dateAdded:row[7]||'', track };
+  return {
+    id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'',
+    extra:row[3]||'', dueDate:row[4]||'', notes:row[5]||'',
+    owner:row[6]||'', dateAdded:row[7]||'',
+    track,
+  };
 }
 
 // Demo data
@@ -545,7 +562,7 @@ function Toast({ message, onClose }) {
 }
 
 function AddItemModal({ track, onClose, onAdd, calEvents }) {
-  const [form, setForm]= useState({name:'',type:TYPES[track][0],status:STATUSES[track][0],extra:'',dueDate:'',notes:''});
+  const [form, setForm]= useState({name:'',type:TYPES[track][0],status:STATUSES[track][0],extra:'',dueDate:'',notes:'',owner:''});
   const [step, setStep]= useState('form');
   const [slots, setSlots]= useState([]);
   const [selected, setSelected]= useState(null);
@@ -569,22 +586,47 @@ function AddItemModal({ track, onClose, onAdd, calEvents }) {
         </div>
         {step==='form' ? (<>
           <div className="modal-body">
-            {['name','extra','dueDate','notes'].map(field => (
-              <div className="form-group" key={field}>
-                <label className="form-label">{field==='name'?'Name *':field==='extra'?extraLabel:field==='dueDate'?'Due Date':'Notes'}</label>
-                {field==='notes'
-                  ? <textarea className="form-textarea form-input" value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})}/>
-                  : <input className="form-input" type={field==='dueDate'?'date':'text'} value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})} autoFocus={field==='name'}/>}
-              </div>
-            ))}
-            {['type','status'].map(field=>(
-              <div className="form-group" key={field}>
-                <label className="form-label">{field==='type'?'Type':'Status'}</label>
-                <select className="form-select" value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})}>
-                  {(field==='type'?TYPES:STATUSES)[track].map(v=><option key={v}>{v}</option>)}
+            <div className="form-group">
+              <label className="form-label">Name *</label>
+              <input className="form-input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} autoFocus/>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+              <div className="form-group">
+                <label className="form-label">Type</label>
+                <select className="form-select" value={form.type} onChange={e=>{
+                  const newType=e.target.value;
+                  const ds=TYPE_DEFAULT_STATUS[newType];
+                  const vs=ds&&STATUSES[track].includes(ds)?ds:STATUSES[track][0];
+                  setForm({...form,type:newType,status:vs});
+                }}>
+                  {TYPES[track].map(v=><option key={v}>{v}</option>)}
                 </select>
               </div>
-            ))}
+              <div className="form-group">
+                <label className="form-label">Status</label>
+                <select className="form-select" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
+                  {STATUSES[track].map(v=><option key={v}>{v}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+              <div className="form-group">
+                <label className="form-label">{extraLabel}</label>
+                <input className="form-input" value={form.extra} onChange={e=>setForm({...form,extra:e.target.value})}/>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Owner</label>
+                <input className="form-input" value={form.owner} onChange={e=>setForm({...form,owner:e.target.value})} placeholder="Jesse, Jen, Chris..."/>
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Due Date</label>
+              <input className="form-input" type="date" value={form.dueDate} onChange={e=>setForm({...form,dueDate:e.target.value})}/>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Notes</label>
+              <textarea className="form-textarea form-input" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/>
+            </div>
           </div>
           <div className="modal-footer">
             <button className="btn-secondary" onClick={onClose}>Cancel</button>
@@ -669,29 +711,132 @@ function AddEventModal({ date, onClose, onAdd }) {
   );
 }
 
-function KanbanCard({ item, track, onStatusChange, onDelete, onMarkDone }) {
+
+// ── EDIT CARD MODAL ──────────────────────────────────────────────────────────
+function EditCardModal({ item, track, onClose, onSave, onDelete }) {
+  const [form, setForm] = useState({
+    name:    item.name    || '',
+    type:    item.type    || TYPES[track][0],
+    status:  item.status  || STATUSES[track][0],
+    extra:   item.extra   || '',
+    dueDate: item.dueDate || '',
+    notes:   item.notes   || '',
+    owner:   item.owner   || '',
+  });
+
+  const extraLabel = {records:'Artist',publishing:'Partner',songstage:'Assigned To',freelance:'Client',content:'Platform'}[track];
+
+  function save() {
+    onSave({ ...item, ...form });
+    onClose();
+  }
+
   return (
-    <div className="card">
-      <div className="card-track-line" style={{background:TRACKS[track].color}}/>
-      <div className="card-name">{item.name}</div>
-      <div className="card-meta">
-        {item.type&&<span className="tag">{item.type}</span>}
-        {item.extra&&<span className="tag">{item.extra}</span>}
-        {item.dueDate&&<span className="tag">Due {new Date(item.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>}
-      </div>
-      {item.notes&&<div style={{fontSize:'11px',color:'var(--text2)',marginTop:'8px',paddingLeft:'10px'}}>{item.notes}</div>}
-      <div className="card-actions">
-        <select className="card-btn" value={item.status} onChange={e=>onStatusChange(item,e.target.value)} style={{fontFamily:'DM Mono,monospace',cursor:'pointer'}}>
-          {STATUSES[track].map(s=><option key={s}>{s}</option>)}
-        </select>
-        <button className="card-btn done" onClick={()=>onMarkDone(item)}>✓ Done</button>
-        <button className="card-btn delete" onClick={()=>onDelete(item)}>✕</button>
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <div className="modal-title">Edit Item</div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-group">
+            <label className="form-label">Name</label>
+            <input className="form-input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} autoFocus/>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+            <div className="form-group">
+              <label className="form-label">Type</label>
+              <select className="form-select" value={form.type} onChange={e=>{
+                const newType = e.target.value;
+                const defaultStatus = TYPE_DEFAULT_STATUS[newType] || STATUSES[track][0];
+                const validStatus = STATUSES[track].includes(defaultStatus) ? defaultStatus : STATUSES[track][0];
+                setForm({...form, type:newType, status:validStatus});
+              }}>
+                {TYPES[track].map(t=><option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Status</label>
+              <select className="form-select" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
+                {STATUSES[track].map(s=><option key={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+            <div className="form-group">
+              <label className="form-label">{extraLabel}</label>
+              <input className="form-input" value={form.extra} onChange={e=>setForm({...form,extra:e.target.value})}/>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Owner</label>
+              <input className="form-input" value={form.owner} onChange={e=>setForm({...form,owner:e.target.value})} placeholder="Jesse, Jen, Chris..."/>
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Due Date</label>
+            <input className="form-input" type="date" value={form.dueDate} onChange={e=>setForm({...form,dueDate:e.target.value})}/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Notes</label>
+            <textarea className="form-textarea form-input" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn-secondary" style={{color:'#ff4444',borderColor:'#ff444433'}} onClick={()=>{onDelete(item);onClose();}}>Delete</button>
+          <button className="btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn-primary" onClick={save}>Save Changes</button>
+        </div>
       </div>
     </div>
   );
 }
 
-function TrackPage({ track, items, onAdd, onStatusChange, onDelete, onMarkDone, loading, calEvents }) {
+function KanbanCard({ item, track, onStatusChange, onDelete, onMarkDone, onEdit }) {
+  const [showEdit, setShowEdit] = useState(false);
+  const isOrgTask = item.type === 'Org Task' || item.type === 'General Task';
+  const dueDate = item.dueDate ? new Date(item.dueDate + 'T12:00:00') : null;
+  const isValidDate = dueDate && !isNaN(dueDate.getTime());
+  const isOverdue = isValidDate && dueDate < new Date();
+  const isDueSoon = isValidDate && !isOverdue && (dueDate - new Date()) < 3 * 86400000;
+  return (
+    <>
+      <div className="card">
+        <div className="card-track-line" style={{background:TRACKS[track].color}}/>
+        <div className="card-name" style={{cursor:'pointer'}} onClick={()=>setShowEdit(true)}>{item.name}</div>
+        <div className="card-meta">
+          {isOrgTask
+            ? <span className="tag" style={{color:'var(--accent)',borderColor:'rgba(232,255,71,0.3)'}}>Org Task</span>
+            : item.type && <span className="tag">{item.type}</span>}
+          {item.extra && <span className="tag">{item.extra}</span>}
+          {item.owner && <span className="tag" style={{color:'var(--freelance)',borderColor:'rgba(180,124,255,0.3)'}}>👤 {item.owner}</span>}
+          {isValidDate && (
+            <span className="tag" style={{
+              color: isOverdue?'#ff4444': isDueSoon?'var(--warning)':'var(--text3)',
+              borderColor: isOverdue?'rgba(255,68,68,0.3)': isDueSoon?'rgba(255,179,71,0.3)':'var(--border)',
+            }}>
+              {isOverdue?'⚠ Overdue ': isDueSoon?'⏰ ':''}{dueDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+            </span>
+          )}
+        </div>
+        {item.notes && <div style={{fontSize:'11px',color:'var(--text2)',marginTop:'8px',paddingLeft:'10px'}}>{item.notes}</div>}
+        <div className="card-actions">
+          <select className="card-btn" value={item.status} onChange={e=>onStatusChange(item,e.target.value)} style={{fontFamily:'DM Mono,monospace',cursor:'pointer'}}>
+            {STATUSES[track].map(s=><option key={s}>{s}</option>)}
+          </select>
+          <button className="card-btn" onClick={()=>setShowEdit(true)}>✎ Edit</button>
+          <button className="card-btn done" onClick={()=>onMarkDone(item)}>✓ Done</button>
+          <button className="card-btn delete" onClick={()=>onDelete(item)}>✕</button>
+        </div>
+      </div>
+      {showEdit && (
+        <EditCardModal item={item} track={track} onClose={()=>setShowEdit(false)}
+          onSave={ev=>{onEdit(item,ev);setShowEdit(false);}} onDelete={ev=>{onDelete(ev);setShowEdit(false);}}/>
+      )}
+    </>
+  );
+}
+
+function TrackPage({ track, items, onAdd, onStatusChange, onDelete, onMarkDone, onEdit, loading, calEvents }) {
   const t = TRACKS[track];
   const byStatus = {};
   STATUSES[track].forEach(s=>{ byStatus[s]=items.filter(i=>i.status===s); });
@@ -718,7 +863,7 @@ function TrackPage({ track, items, onAdd, onStatusChange, onDelete, onMarkDone, 
                     ? <div style={{fontSize:'11px',color:'var(--text3)',padding:'12px',border:'1px dashed var(--border)',textAlign:'center'}}>Empty</div>
                     : (byStatus[status]||[]).map(item=>(
                         <KanbanCard key={item.id} item={item} track={track}
-                          onStatusChange={onStatusChange} onDelete={onDelete} onMarkDone={onMarkDone}/>
+                          onStatusChange={onStatusChange} onDelete={onDelete} onMarkDone={onMarkDone} onEdit={onEdit}/>
                       ))}
                 </div>
               </div>
@@ -1369,6 +1514,15 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
   const stale = allItems.filter(i=>i.status!==TERMINAL[i.track]&&daysSince(i.dateAdded)>7);
   const weekGoals = Object.entries(goals).filter(([,v])=>v);
 
+  // Due soon — items with due dates in the next 14 days, not yet done
+  const now = new Date();
+  const twoWeeks = new Date(now); twoWeeks.setDate(now.getDate()+14);
+  const dueSoon = allItems.filter(i => {
+    if (!i.dueDate || i.status === TERMINAL[i.track]) return false;
+    const d = new Date(i.dueDate + 'T12:00:00');
+    return !isNaN(d.getTime()) && d <= twoWeeks;
+  }).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+
   const thisWeekEvents = calEvents.filter(e=>{
     const start = e.start?.dateTime?new Date(e.start.dateTime):null;
     if (!start) return false;
@@ -1382,6 +1536,42 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
         <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px'}}>Command Center</div>
         <div style={{fontSize:'11px',color:'var(--text2)'}}>{getWeekLabel()} · {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
       </div>
+
+      {dueSoon.length>0&&(
+        <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderLeft:'3px solid var(--warning)',padding:'20px',marginBottom:'24px'}}>
+          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--warning)',marginBottom:'14px'}}>
+            ⏰ Due in the next 14 days
+          </div>
+          {dueSoon.map((item,i)=>{
+            const d = new Date(item.dueDate+'T12:00:00');
+            const isOverdue = d < now;
+            const daysLeft = Math.ceil((d-now)/86400000);
+            return (
+              <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--border)',fontSize:'12px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'10px',flex:1}}>
+                  <div className="nav-dot" style={{background:TRACKS[item.track]?.color||'var(--text3)',flexShrink:0}}/>
+                  <div>
+                    <div>{item.name}</div>
+                    <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'2px'}}>{TRACKS[item.track]?.label} · {item.status}</div>
+                  </div>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:'12px',flexShrink:0}}>
+                  {item.owner&&<span style={{fontSize:'10px',color:'var(--freelance)'}}>👤 {item.owner}</span>}
+                  <span style={{
+                    fontSize:'10px',fontFamily:'DM Mono,monospace',
+                    color: isOverdue?'#ff4444': daysLeft<=3?'var(--warning)':'var(--text2)',
+                  }}>
+                    {isOverdue?`${Math.abs(daysLeft)}d overdue`: daysLeft===0?'Today': daysLeft===1?'Tomorrow':`${daysLeft}d`}
+                  </span>
+                  <span style={{fontSize:'10px',color:'var(--text3)'}}>
+                    {d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {(newWeek||(isMonday&&weekGoals.length===0))&&(
         <div style={{background:'rgba(232,255,71,0.06)',border:'1px solid rgba(232,255,71,0.3)',borderLeft:'3px solid var(--accent)',padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
@@ -1520,10 +1710,10 @@ function App() {
   }
 
   async function handleAdd(track, formData) {
-    const {name,type,status,extra,dueDate,notes,block,slot}=formData;
+    const {name,type,status,extra,dueDate,notes,block,slot,owner}=formData;
     const dateAdded=new Date().toISOString().split('T')[0];
-    if (!demoMode) await appendRow(TRACKS[track].tab,[name,type,status,extra,dueDate,notes,'',dateAdded]);
-    const newItem={id:items[track].length,name,type,status,extra,dueDate,notes,dateAdded,track};
+    if (!demoMode) await appendRow(TRACKS[track].tab,[name,type,status,extra,dueDate,notes,owner||'',dateAdded]);
+    const newItem={id:items[track].length,name,type,status,extra,dueDate,notes,owner:owner||'',dateAdded,track};
     setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
     if (block&&slot&&!demoMode) {
       try {
@@ -1592,6 +1782,27 @@ function App() {
     if (!demoMode) await updateCell(TRACKS[track].tab,item.id,2,newStatus);
     setItems(prev=>({...prev,[track]:prev[track].map(i=>i.id===item.id?{...i,status:newStatus}:i)}));
     showToast(`↑ "${item.name}" → ${newStatus}`);
+  }
+
+  async function handleEditItem(track, oldItem, newItem) {
+    // Update in sheet — update each changed field
+    if (!demoMode) {
+      try {
+        const tab = TRACKS[track].tab;
+        await updateCell(tab, oldItem.id, 0, newItem.name);
+        await updateCell(tab, oldItem.id, 1, newItem.type);
+        await updateCell(tab, oldItem.id, 2, newItem.status);
+        await updateCell(tab, oldItem.id, 3, newItem.extra);
+        await updateCell(tab, oldItem.id, 4, newItem.dueDate);
+        await updateCell(tab, oldItem.id, 5, newItem.notes);
+        await updateCell(tab, oldItem.id, 6, newItem.owner || '');
+      } catch(e) { console.error('Edit save failed:', e); }
+    }
+    setItems(prev => ({
+      ...prev,
+      [track]: prev[track].map(i => i.id === oldItem.id ? {...i, ...newItem} : i)
+    }));
+    showToast(`✓ "${newItem.name}" updated`);
   }
 
   async function handleDelete(track, item) {
@@ -1759,7 +1970,8 @@ function App() {
           onAdd={()=>setModal({track:page})}
           onStatusChange={(item,status)=>handleStatusChange(page,item,status)}
           onDelete={(item)=>handleDelete(page,item)}
-          onMarkDone={(item)=>handleMarkDone(page,item)}/>}
+          onMarkDone={(item)=>handleMarkDone(page,item)}
+          onEdit={(oldItem,newItem)=>handleEditItem(page,oldItem,newItem)}/>}
       </div>
 
       {modal&&<AddItemModal track={modal.track} calEvents={calEvents} onClose={()=>setModal(null)} onAdd={formData=>handleAdd(modal.track,formData)}/>}
