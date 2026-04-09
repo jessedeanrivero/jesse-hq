@@ -253,33 +253,40 @@ const TRACKS = {
 const STATUSES = {
   records:   ['General','Pre-Production','Recording','Mixing','Mastered','Released','Done'],
   publishing:['General','Pitched','Placed','Collecting','Monetizing','Done'],
-  songstage: ['Backlog','In Progress','Review','Shipped'],
+  songstage: ['Backlog','In Progress','Review','Shipped','Done'],
   freelance: ['General','Booked','In Progress','Invoiced','Completed'],
-  content:   ['Planned','In Progress','Scheduled','Published'],
+  content:   ['Planned','In Progress','Scheduled','Published','Done'],
 };
 
 // Which statuses count as "completed" for stats
 const DONE_STATUSES = {
   records:   ['Released','Done'],
   publishing:['Monetizing','Done'],
-  songstage: ['Shipped'],
+  songstage: ['Shipped','Done'],
   freelance: ['Completed'],
-  content:   ['Published'],
+  content:   ['Published','Done'],
 };
 
 // Hidden by default — these columns collapse unless toggled
 const HIDDEN_STATUSES = {
   records:   ['Done'],
   publishing:['Done'],
-  songstage: [],
+  songstage: ['Done'],
   freelance: [],
-  content:   [],
+  content:   ['Done'],
 };
 
 // Smart done: Org Tasks go to 'Done', songs/projects go to terminal
 function getSmartDoneStatus(track, item) {
   const isOrgTask = item.type === 'Org Task' || item.type === 'General Task';
   if (isOrgTask && ['records','publishing'].includes(track)) return 'Done';
+  // Songstage and content: tasks go to Done, big milestones go to terminal
+  if (track === 'songstage') return 'Done';
+  if (track === 'content') {
+    // Long-form and Substack are bigger milestones — go to Published
+    if (['Long-Form','Substack'].includes(item.type)) return 'Published';
+    return 'Done';
+  }
   return TERMINAL[track];
 }
 
@@ -742,34 +749,66 @@ function AddItemModal({ track, onClose, onAdd, calEvents }) {
 }
 
 function AddEventModal({ date, onClose, onAdd }) {
-  const [form, setForm]= useState({title:'',startTime:'09:00',endTime:'10:00',track:''});
+  // Pre-fill date and time from the clicked cell
+  const initDate = date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+  const initHour = date ? date.getHours() : 9;
+  const initStart = `${String(initHour).padStart(2,'0')}:00`;
+  const initEnd   = `${String(Math.min(initHour+1,16)).padStart(2,'0')}:00`;
+
+  const [form, setForm] = useState({
+    title:'', date:initDate, startTime:initStart, endTime:initEnd, track:'', allDay:false
+  });
+
   function save() {
     if (!form.title.trim()) return;
-    const start = new Date(date); const [sh,sm]=form.startTime.split(':'); start.setHours(+sh,+sm,0,0);
-    const end   = new Date(date); const [eh,em]=form.endTime.split(':');   end.setHours(+eh,+em,0,0);
-    // Enforce 4pm cutoff
-    if (start.getHours()>=16) { alert('Nothing after 4pm!'); return; }
-    if (end.getHours()>=16) end.setHours(16,0,0,0);
-    onAdd({ title:form.title, startISO:start.toISOString(), endISO:end.toISOString(), track:form.track, color: form.track?TRACK_COLORS_HEX[form.track]:'#888' });
+    if (form.allDay) {
+      onAdd({ title:form.title, startISO:new Date(form.date+'T00:00:00').toISOString(), endISO:new Date(form.date+'T23:59:00').toISOString(), track:form.track, color:form.track?TRACK_COLORS_HEX[form.track]:'#888', allDay:true });
+    } else {
+      const start = new Date(form.date+'T'+form.startTime);
+      const end   = new Date(form.date+'T'+form.endTime);
+      if (end <= start) { end.setTime(start.getTime() + 3600000); }
+      onAdd({ title:form.title, startISO:start.toISOString(), endISO:end.toISOString(), track:form.track, color:form.track?TRACK_COLORS_HEX[form.track]:'#888' });
+    }
     onClose();
   }
+
   return (
     <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="modal">
         <div className="modal-header">
-          <div className="modal-title">Add Event — {fmtDate(date)}</div>
+          <div className="modal-title">Add Event</div>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <div className="modal-body">
-          <div className="form-group"><label className="form-label">Title *</label>
-            <input className="form-input" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} autoFocus/></div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-            <div className="form-group"><label className="form-label">Start Time</label>
-              <input className="form-input" type="time" value={form.startTime} onChange={e=>setForm({...form,startTime:e.target.value})}/></div>
-            <div className="form-group"><label className="form-label">End Time (max 4pm)</label>
-              <input className="form-input" type="time" value={form.endTime} onChange={e=>setForm({...form,endTime:e.target.value})}/></div>
+          <div className="form-group">
+            <label className="form-label">Title *</label>
+            <input className="form-input" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} autoFocus/>
           </div>
-          <div className="form-group"><label className="form-label">Track (optional)</label>
+          <div className="form-group">
+            <label className="form-label">Date</label>
+            <input className="form-input" type="date" value={form.date} onChange={e=>setForm({...form,date:e.target.value})}/>
+          </div>
+          <div className="form-group">
+            <label className="form-label" style={{display:'flex',alignItems:'center',gap:'8px',cursor:'pointer'}}>
+              <input type="checkbox" checked={form.allDay} onChange={e=>setForm({...form,allDay:e.target.checked})}
+                style={{width:'14px',height:'14px',cursor:'pointer'}}/>
+              All day event
+            </label>
+          </div>
+          {!form.allDay && (
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+              <div className="form-group">
+                <label className="form-label">Start Time</label>
+                <input className="form-input" type="time" value={form.startTime} onChange={e=>setForm({...form,startTime:e.target.value})}/>
+              </div>
+              <div className="form-group">
+                <label className="form-label">End Time</label>
+                <input className="form-input" type="time" value={form.endTime} onChange={e=>setForm({...form,endTime:e.target.value})}/>
+              </div>
+            </div>
+          )}
+          <div className="form-group">
+            <label className="form-label">Track (optional)</label>
             <select className="form-select" value={form.track} onChange={e=>setForm({...form,track:e.target.value})}>
               <option value="">None</option>
               {Object.entries(TRACKS).map(([k,t])=><option key={k} value={k}>{t.label}</option>)}
