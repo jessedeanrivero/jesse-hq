@@ -523,6 +523,34 @@ function getSmartSlots(track, calEvents) {
 }
 
 function rowToItem(track, row, index) {
+  // Each track has slightly different column layout
+  if (track === 'songstage') {
+    // Feature/Task | Type | Status | Assigned To | Due Date | Sprint | Notes | Date Added | Priority | Link
+    return {
+      id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'',
+      extra:row[3]||'',   // Assigned To
+      dueDate:row[4]||'',
+      notes:row[6]||'',   // Notes (col 6, Sprint is col 5)
+      owner:row[3]||'',   // Assigned To doubles as owner for Songstage
+      sprint:row[5]||'',
+      dateAdded:row[7]||'',
+      priority:row[8]||'',
+      track,
+    };
+  }
+  if (track === 'content') {
+    // Title | Type | Status | Platform | Publish Date | Notes | Date Added
+    return {
+      id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'',
+      extra:row[3]||'',   // Platform
+      dueDate:row[4]||'', // Publish Date
+      notes:row[5]||'',
+      owner:'Jesse',      // Content is always Jesse
+      dateAdded:row[6]||'',
+      track,
+    };
+  }
+  // Records, Publishing, Freelance: Name | Type | Status | Extra | Due Date | Notes | Owner | Date Added
   return {
     id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'',
     extra:row[3]||'', dueDate:row[4]||'', notes:row[5]||'',
@@ -1712,7 +1740,18 @@ function App() {
   async function handleAdd(track, formData) {
     const {name,type,status,extra,dueDate,notes,block,slot,owner}=formData;
     const dateAdded=new Date().toISOString().split('T')[0];
-    if (!demoMode) await appendRow(TRACKS[track].tab,[name,type,status,extra,dueDate,notes,owner||'',dateAdded]);
+    let row;
+    if (track==='songstage') {
+      // Feature/Task | Type | Status | Assigned To | Due Date | Sprint | Notes | Date Added
+      row=[name,type,status,extra||'',dueDate,'',notes,dateAdded];
+    } else if (track==='content') {
+      // Title | Type | Status | Platform | Publish Date | Notes | Date Added
+      row=[name,type,status,extra||'',dueDate,notes,dateAdded];
+    } else {
+      // Records, Publishing, Freelance: Name | Type | Status | Extra | Due Date | Notes | Owner | Date Added
+      row=[name,type,status,extra||'',dueDate,notes,owner||'',dateAdded];
+    }
+    if (!demoMode) await appendRow(TRACKS[track].tab, row);
     const newItem={id:items[track].length,name,type,status,extra,dueDate,notes,owner:owner||'',dateAdded,track};
     setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
     if (block&&slot&&!demoMode) {
@@ -1785,7 +1824,6 @@ function App() {
   }
 
   async function handleEditItem(track, oldItem, newItem) {
-    // Update in sheet — update each changed field
     if (!demoMode) {
       try {
         const tab = TRACKS[track].tab;
@@ -1794,8 +1832,14 @@ function App() {
         await updateCell(tab, oldItem.id, 2, newItem.status);
         await updateCell(tab, oldItem.id, 3, newItem.extra);
         await updateCell(tab, oldItem.id, 4, newItem.dueDate);
-        await updateCell(tab, oldItem.id, 5, newItem.notes);
-        await updateCell(tab, oldItem.id, 6, newItem.owner || '');
+        if (track==='songstage') {
+          await updateCell(tab, oldItem.id, 6, newItem.notes); // Notes is col 6 in Songstage
+        } else if (track==='content') {
+          await updateCell(tab, oldItem.id, 5, newItem.notes); // Notes is col 5 in Content
+        } else {
+          await updateCell(tab, oldItem.id, 5, newItem.notes);
+          await updateCell(tab, oldItem.id, 6, newItem.owner || '');
+        }
       } catch(e) { console.error('Edit save failed:', e); }
     }
     setItems(prev => ({
