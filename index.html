@@ -1534,8 +1534,77 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onGoalBlur, onSave
   );
 }
 
+
+// ── DUE SOON SECTION ─────────────────────────────────────────────────────────
+function DueSoonSection({ items, now, onMarkDone, onEdit }) {
+  const [expanded, setExpanded] = useState(null);
+  const [editItem, setEditItem] = useState(null);
+  return (
+    <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderLeft:'3px solid var(--warning)',padding:'20px',marginBottom:'24px'}}>
+      <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--warning)',marginBottom:'14px'}}>
+        Due in the next 14 days
+      </div>
+      {items.map((item,i)=>{
+        const d=new Date(item.dueDate+'T12:00:00');
+        const isOverdue=d<now;
+        const daysLeft=Math.ceil((d-now)/86400000);
+        const isExpanded=expanded===i;
+        return (
+          <div key={i} style={{borderBottom:'1px solid var(--border)'}}>
+            <div onClick={()=>setExpanded(isExpanded?null:i)}
+              style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',fontSize:'12px',cursor:'pointer'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'10px',flex:1}}>
+                <div className="nav-dot" style={{background:TRACKS[item.track]?.color||'var(--text3)',flexShrink:0}}/>
+                <div>
+                  <div style={{fontWeight:'500'}}>{item.name}</div>
+                  <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'2px'}}>
+                    {TRACKS[item.track]?.label} · {item.status}
+                    {item.owner&&<span style={{color:'var(--freelance)',marginLeft:'8px'}}>👤 {item.owner}</span>}
+                  </div>
+                </div>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:'10px',flexShrink:0}}>
+                <span style={{fontSize:'10px',fontFamily:'DM Mono,monospace',color:isOverdue?'#ff4444':daysLeft<=3?'var(--warning)':'var(--text2)'}}>
+                  {isOverdue?`${Math.abs(daysLeft)}d overdue`:daysLeft===0?'Today':daysLeft===1?'Tomorrow':`${daysLeft}d`}
+                </span>
+                <span style={{fontSize:'10px',color:'var(--text3)'}}>{d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
+                <span style={{fontSize:'10px',color:'var(--text3)',display:'inline-block',transform:isExpanded?'rotate(180deg)':'none',transition:'transform 0.15s'}}>▾</span>
+              </div>
+            </div>
+            {isExpanded&&(
+              <div style={{background:'var(--surface2)',border:'1px solid var(--border)',padding:'14px',marginBottom:'8px'}}>
+                {item.notes&&<div style={{fontSize:'12px',color:'var(--text2)',marginBottom:'12px',lineHeight:'1.5'}}>{item.notes}</div>}
+                <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                  <button className="btn-primary" style={{fontSize:'11px',padding:'6px 14px'}}
+                    onClick={()=>{onMarkDone(item.track,item);setExpanded(null);}}>
+                    ✓ Mark Done
+                  </button>
+                  <button className="btn-secondary" style={{fontSize:'11px',padding:'6px 14px'}}
+                    onClick={()=>setEditItem(item)}>
+                    ✎ Edit
+                  </button>
+                  <button className="btn-secondary" style={{fontSize:'11px',padding:'6px 14px'}}
+                    onClick={()=>setExpanded(null)}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {editItem&&(
+        <EditCardModal item={editItem} track={editItem.track}
+          onClose={()=>setEditItem(null)}
+          onSave={newItem=>{onEdit(editItem.track,editItem,newItem);setEditItem(null);setExpanded(null);}}
+          onDelete={item=>{onMarkDone(item.track,item);setEditItem(null);}}/>
+      )}
+    </div>
+  );
+}
+
 // ── DASHBOARD PAGE ────────────────────────────────────────────────────────────
-function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWeek }) {
+function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWeek, onMarkDone, onEdit }) {
   const today = new Date();
   const isMonday = today.getDay() === 1;
   const allItems = Object.values(items).flat();
@@ -1565,41 +1634,7 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
         <div style={{fontSize:'11px',color:'var(--text2)'}}>{getWeekLabel()} · {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
       </div>
 
-      {dueSoon.length>0&&(
-        <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderLeft:'3px solid var(--warning)',padding:'20px',marginBottom:'24px'}}>
-          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--warning)',marginBottom:'14px'}}>
-            ⏰ Due in the next 14 days
-          </div>
-          {dueSoon.map((item,i)=>{
-            const d = new Date(item.dueDate+'T12:00:00');
-            const isOverdue = d < now;
-            const daysLeft = Math.ceil((d-now)/86400000);
-            return (
-              <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--border)',fontSize:'12px'}}>
-                <div style={{display:'flex',alignItems:'center',gap:'10px',flex:1}}>
-                  <div className="nav-dot" style={{background:TRACKS[item.track]?.color||'var(--text3)',flexShrink:0}}/>
-                  <div>
-                    <div>{item.name}</div>
-                    <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'2px'}}>{TRACKS[item.track]?.label} · {item.status}</div>
-                  </div>
-                </div>
-                <div style={{display:'flex',alignItems:'center',gap:'12px',flexShrink:0}}>
-                  {item.owner&&<span style={{fontSize:'10px',color:'var(--freelance)'}}>👤 {item.owner}</span>}
-                  <span style={{
-                    fontSize:'10px',fontFamily:'DM Mono,monospace',
-                    color: isOverdue?'#ff4444': daysLeft<=3?'var(--warning)':'var(--text2)',
-                  }}>
-                    {isOverdue?`${Math.abs(daysLeft)}d overdue`: daysLeft===0?'Today': daysLeft===1?'Tomorrow':`${daysLeft}d`}
-                  </span>
-                  <span style={{fontSize:'10px',color:'var(--text3)'}}>
-                    {d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {dueSoon.length>0&&<DueSoonSection items={dueSoon} now={now} onMarkDone={onMarkDone} onEdit={onEdit}/>}
 
       {(newWeek||(isMonday&&weekGoals.length===0))&&(
         <div style={{background:'rgba(232,255,71,0.06)',border:'1px solid rgba(232,255,71,0.3)',borderLeft:'3px solid var(--accent)',padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
@@ -2001,7 +2036,11 @@ function App() {
           </div>
         </div>
 
-        {page==='dashboard'&&<DashboardPage items={items} goals={goals} calEvents={calEvents} newWeek={newWeek} onCheckIn={()=>setPage('checkin')} onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}}/>}
+        {page==='dashboard'&&<DashboardPage items={items} goals={goals} calEvents={calEvents} newWeek={newWeek}
+          onCheckIn={()=>setPage('checkin')}
+          onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}}
+          onMarkDone={(track,item)=>handleMarkDone(track,item)}
+          onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}/>}
         {page==='calendar'&&<CalendarPage calEvents={calEvents} onAddEvent={handleAddCalEvent} onEditEvent={handleEditCalEvent} onDeleteEvent={handleDeleteCalEvent} demoMode={demoMode}/>}
         {page==='checkin'&&<CheckInPage items={items} calEvents={calEvents} goals={goals}
           onGoalChange={(track,val)=>setGoals(g=>({...g,[track]:val}))}
