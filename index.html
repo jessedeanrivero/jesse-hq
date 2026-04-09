@@ -251,12 +251,37 @@ const TRACKS = {
 };
 
 const STATUSES = {
-  records:   ['General','Pre-Production','Recording','Mixing','Mastered','Released'],
-  publishing:['General','Pitched','Placed','Collecting','Monetizing'],
+  records:   ['General','Pre-Production','Recording','Mixing','Mastered','Released','Done'],
+  publishing:['General','Pitched','Placed','Collecting','Monetizing','Done'],
   songstage: ['Backlog','In Progress','Review','Shipped'],
-  freelance: ['General','Booked','In Progress','Completed'],
-  content:   ['Planned','In Progress','Published'],
+  freelance: ['General','Booked','In Progress','Invoiced','Completed'],
+  content:   ['Planned','In Progress','Scheduled','Published'],
 };
+
+// Which statuses count as "completed" for stats
+const DONE_STATUSES = {
+  records:   ['Released','Done'],
+  publishing:['Monetizing','Done'],
+  songstage: ['Shipped'],
+  freelance: ['Completed'],
+  content:   ['Published'],
+};
+
+// Hidden by default — these columns collapse unless toggled
+const HIDDEN_STATUSES = {
+  records:   ['Done'],
+  publishing:['Done'],
+  songstage: [],
+  freelance: [],
+  content:   [],
+};
+
+// Smart done: Org Tasks go to 'Done', songs/projects go to terminal
+function getSmartDoneStatus(track, item) {
+  const isOrgTask = item.type === 'Org Task' || item.type === 'General Task';
+  if (isOrgTask && ['records','publishing'].includes(track)) return 'Done';
+  return TERMINAL[track];
+}
 
 const TYPES = {
   records:   ['Org Task','Song','Album','EP'],
@@ -866,36 +891,64 @@ function KanbanCard({ item, track, onStatusChange, onDelete, onMarkDone, onEdit 
 
 function TrackPage({ track, items, onAdd, onStatusChange, onDelete, onMarkDone, onEdit, loading, calEvents }) {
   const t = TRACKS[track];
+  const [showHidden, setShowHidden] = useState(false);
+  const hidden = HIDDEN_STATUSES[track] || [];
+  const visibleStatuses = showHidden
+    ? STATUSES[track]
+    : STATUSES[track].filter(s => !hidden.includes(s));
   const byStatus = {};
   STATUSES[track].forEach(s=>{ byStatus[s]=items.filter(i=>i.status===s); });
+
+  // Completion stats for this track
+  const doneStatuses = DONE_STATUSES[track] || [];
+  const totalDone = items.filter(i=>doneStatuses.includes(i.status)).length;
+  const thisWeek = getWeekLabel();
+  const hiddenCount = hidden.reduce((acc,s)=>(byStatus[s]||[]).length+acc, 0);
+
   return (
     <div className="page">
       <div className="track-header">
         <div>
           <div className="track-title" style={{color:t.color}}>{t.label}</div>
-          <div style={{fontSize:'11px',color:'var(--text2)',marginTop:'4px'}}>{items.length} items</div>
+          <div style={{fontSize:'11px',color:'var(--text2)',marginTop:'4px',display:'flex',gap:'16px'}}>
+            <span>{items.length} items</span>
+            {totalDone>0&&<span style={{color:'var(--success)'}}>✓ {totalDone} completed</span>}
+            {hiddenCount>0&&!showHidden&&(
+              <button className="btn-sm" onClick={()=>setShowHidden(true)} style={{fontSize:'10px',padding:'1px 8px'}}>
+                Show {hiddenCount} done
+              </button>
+            )}
+            {showHidden&&hidden.length>0&&(
+              <button className="btn-sm" onClick={()=>setShowHidden(false)} style={{fontSize:'10px',padding:'1px 8px'}}>
+                Hide done
+              </button>
+            )}
+          </div>
         </div>
         <button className="add-btn" onClick={onAdd}>+ Add Item</button>
       </div>
       {loading
         ? <div style={{color:'var(--text3)',fontSize:'12px'}}>Loading...</div>
         : <div className="kanban">
-            {STATUSES[track].map(status=>(
-              <div key={status} className="kanban-col">
-                <div className="kanban-col-header">
-                  <div className="kanban-col-title">{status}</div>
-                  <div className="kanban-count">{(byStatus[status]||[]).length}</div>
+            {visibleStatuses.map(status=>{
+              const isDoneCol = hidden.includes(status);
+              return (
+                <div key={status} className="kanban-col">
+                  <div className="kanban-col-header">
+                    <div className="kanban-col-title" style={{color:isDoneCol?'var(--success)':undefined}}>{status}</div>
+                    <div className="kanban-count">{(byStatus[status]||[]).length}</div>
+                  </div>
+                  <div className="kanban-cards">
+                    {(byStatus[status]||[]).length===0
+                      ? <div style={{fontSize:'11px',color:'var(--text3)',padding:'12px',border:'1px dashed var(--border)',textAlign:'center'}}>Empty</div>
+                      : (byStatus[status]||[]).map(item=>(
+                          <KanbanCard key={item.id} item={item} track={track}
+                            onStatusChange={onStatusChange} onDelete={onDelete} onMarkDone={onMarkDone} onEdit={onEdit}/>
+                        ))}
+                  </div>
                 </div>
-                <div className="kanban-cards">
-                  {(byStatus[status]||[]).length===0
-                    ? <div style={{fontSize:'11px',color:'var(--text3)',padding:'12px',border:'1px dashed var(--border)',textAlign:'center'}}>Empty</div>
-                    : (byStatus[status]||[]).map(item=>(
-                        <KanbanCard key={item.id} item={item} track={track}
-                          onStatusChange={onStatusChange} onDelete={onDelete} onMarkDone={onMarkDone} onEdit={onEdit}/>
-                      ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>}
     </div>
   );
@@ -1615,10 +1668,25 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
   const now = new Date();
   const twoWeeks = new Date(now); twoWeeks.setDate(now.getDate()+14);
   const dueSoon = allItems.filter(i => {
-    if (!i.dueDate || i.status === TERMINAL[i.track]) return false;
+    if (!i.dueDate) return false;
+    const doneStats = DONE_STATUSES[i.track] || [];
+    if (doneStats.includes(i.status)) return false;
     const d = new Date(i.dueDate + 'T12:00:00');
     return !isNaN(d.getTime()) && d <= twoWeeks;
   }).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+  // Completion stats
+  const totalCompleted = allItems.filter(i => (DONE_STATUSES[i.track]||[]).includes(i.status)).length;
+  const activeItems = allItems.filter(i => !(DONE_STATUSES[i.track]||[]).includes(i.status)).length;
+  // This week = items added this week that are done (approximation until we have completedDate)
+  const weekStart = new Date(now);
+  const dayOfWeek = weekStart.getDay();
+  weekStart.setDate(weekStart.getDate() - dayOfWeek + (dayOfWeek===0?-6:1));
+  weekStart.setHours(0,0,0,0);
+  const completedThisWeek = allItems.filter(i =>
+    (DONE_STATUSES[i.track]||[]).includes(i.status) &&
+    i.dateAdded && new Date(i.dateAdded) >= weekStart
+  ).length;
 
   const thisWeekEvents = calEvents.filter(e=>{
     const start = e.start?.dateTime?new Date(e.start.dateTime):null;
@@ -1651,13 +1719,14 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
       <div className="dashboard-grid">
         {Object.entries(TRACKS).map(([key,t])=>{
           const trackItems=items[key]||[];
-          const active=trackItems.filter(i=>i.status!==TERMINAL[key]).length;
-          const done=trackItems.filter(i=>i.status===TERMINAL[key]).length;
+          const doneStats = DONE_STATUSES[key]||[];
+          const active=trackItems.filter(i=>!doneStats.includes(i.status)).length;
+          const done=trackItems.filter(i=>doneStats.includes(i.status)).length;
           return (
             <div key={key} className={`stat-card ${key}`}>
               <div className="stat-label">{t.label}</div>
               <div className="stat-number" style={{color:t.color}}>{active}</div>
-              <div className="stat-sub">active · {done} done</div>
+              <div className="stat-sub">active · <span style={{color:'var(--success)'}}>{done} done</span></div>
             </div>
           );
         })}
@@ -1667,6 +1736,40 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
             <span style={{color:'var(--records)'}}>Real Fun: 10–15h</span><br/>
             <span style={{color:'var(--songstage)'}}>Songstage: 15–20h</span><br/>
             <span style={{color:'var(--freelance)'}}>Freelance: ~10h</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Completion stats bar */}
+      <div style={{background:'var(--surface)',border:'1px solid var(--border)',padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',gap:'32px',flexWrap:'wrap'}}>
+        <div>
+          <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'4px'}}>Total Completed</div>
+          <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',color:'var(--success)'}}>{totalCompleted}</div>
+        </div>
+        <div style={{width:'1px',height:'40px',background:'var(--border)'}}/>
+        <div>
+          <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'4px'}}>This Week</div>
+          <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',color:'var(--accent)'}}>{completedThisWeek}</div>
+        </div>
+        <div style={{width:'1px',height:'40px',background:'var(--border)'}}/>
+        <div>
+          <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'4px'}}>Still Active</div>
+          <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',color:'var(--text2)'}}>{activeItems}</div>
+        </div>
+        <div style={{flex:1,minWidth:'120px'}}>
+          <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'6px'}}>
+            Overall Progress
+          </div>
+          <div style={{height:'4px',background:'var(--border)',borderRadius:'2px',overflow:'hidden'}}>
+            <div style={{
+              height:'100%',
+              width:`${totalCompleted+activeItems>0?Math.round(totalCompleted/(totalCompleted+activeItems)*100):0}%`,
+              background:'var(--success)',
+              transition:'width 0.5s ease',
+            }}/>
+          </div>
+          <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'4px'}}>
+            {totalCompleted+activeItems>0?Math.round(totalCompleted/(totalCompleted+activeItems)*100):0}% done
           </div>
         </div>
       </div>
@@ -1891,7 +1994,17 @@ function App() {
     showToast(`✕ "${item.name}" removed`);
   }
 
-  async function handleMarkDone(track, item) { await handleStatusChange(track,item,TERMINAL[track]); }
+  async function handleMarkDone(track, item) {
+    const doneStatus = getSmartDoneStatus(track, item);
+    await handleStatusChange(track, item, doneStatus);
+    // Write completion date to sheet col 9 for stats tracking
+    if (!demoMode) {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        await updateCell(TRACKS[track].tab, item.id, 9, today);
+      } catch(e) {}
+    }
+  }
 
   async function handleGoalBlur(track, val) {
     // Auto-save single goal on blur
