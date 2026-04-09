@@ -199,123 +199,31 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .demo-btn{background:transparent;color:var(--text3);border:1px solid var(--border);padding:10px 24px;font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;width:100%;margin-top:10px;}
 .demo-btn:hover{color:var(--text2);border-color:var(--text3);}
 
-/* ── MOBILE ─────────────────────────────────────────────────────────────────── */
-.hamburger {
-  display: none;
-  background: none;
-  border: none;
-  color: var(--text);
-  font-size: 20px;
-  cursor: pointer;
-  padding: 4px 8px;
-  line-height: 1;
+/* MOBILE */
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1;}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;}
+@media(max-width:768px){
+  .hamburger{display:block;}
+  .sidebar{transform:translateX(-100%);transition:transform 0.25s ease;z-index:200;}
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-overlay.open{display:block;}
+  .main{margin-left:0!important;}
+  .topbar{padding:0 16px;}
+  .page{padding:16px;}
+  .dashboard-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .kanban{flex-direction:column;}
+  .kanban-col{min-width:unset;width:100%;}
+  .cal-day{min-height:60px;padding:4px;}
+  .cal-event-pill{font-size:8px;padding:1px 3px;}
+  .modal{width:95vw;max-height:95vh;}
+  .checkin-wrap{max-width:100%;}
+  .track-header{flex-direction:column;align-items:flex-start;gap:12px;}
+  .cal-toolbar{flex-direction:column;gap:12px;align-items:flex-start;}
+  .cal-month-label{font-size:16px;min-width:unset;}
 }
-
-.sidebar-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  z-index: 99;
-  backdrop-filter: blur(2px);
-}
-
-@media (max-width: 768px) {
-  .hamburger { display: block; }
-
-  .sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.25s ease;
-    z-index: 200;
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
-  }
-
-  .sidebar-overlay.open {
-    display: block;
-  }
-
-  .main {
-    margin-left: 0 !important;
-  }
-
-  .topbar {
-    padding: 0 16px;
-  }
-
-  .page {
-    padding: 16px;
-  }
-
-  .dashboard-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-
-  .kanban {
-    flex-direction: column;
-  }
-
-  .kanban-col {
-    min-width: unset;
-    width: 100%;
-  }
-
-  .cal-month-grid {
-    font-size: 10px;
-  }
-
-  .cal-day {
-    min-height: 60px;
-    padding: 4px;
-  }
-
-  .cal-event-pill {
-    font-size: 8px;
-    padding: 1px 3px;
-  }
-
-  .modal {
-    width: 95vw;
-    max-height: 95vh;
-  }
-
-  .checkin-wrap {
-    max-width: 100%;
-  }
-
-  .track-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .topbar-right .week-badge {
-    display: none;
-  }
-
-  .cal-toolbar {
-    flex-direction: column;
-    gap: 12px;
-    align-items: flex-start;
-  }
-
-  .cal-month-label {
-    font-size: 16px;
-    min-width: unset;
-  }
-}
-
-@media (max-width: 480px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stat-number {
-    font-size: 28px;
-  }
+@media(max-width:480px){
+  .dashboard-grid{grid-template-columns:1fr;}
+  .stat-number{font-size:28px;}
 }
 </style>
 </head>
@@ -331,7 +239,7 @@ const { useState, useEffect, useRef } = React;
 const CLIENT_ID    = '84777476766-nmbmb2oj9c497qqucmlcoemgvl7j74mb.apps.googleusercontent.com';
 const SHEET_ID     = '1awdiuld1ZjawYHo_vys0kHPp0KzY4oeT1J_TsQcB5KE';
 const SCOPES       = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/calendar';
-// AI calls route through /api/breakdown — key stored securely in Vercel env vars
+const ANTHROPIC_KEY = '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';
 
 const TRACKS = {
   records:    { label:'Real Fun Records',    color:'var(--records)',   tab:'Records',    icon:'🎵' },
@@ -342,16 +250,16 @@ const TRACKS = {
 };
 
 const STATUSES = {
-  records:   ['General','Pre-Production','Recording','Mixing','Mastered','Released'],
-  publishing:['General','Pitched','Placed','Collecting','Monetizing'],
+  records:   ['Pre-Production','Recording','Mixing','Mastered','Released'],
+  publishing:['Pitched','Placed','Collecting','Monetizing'],
   songstage: ['Backlog','In Progress','Review','Shipped'],
   freelance: ['General','Booked','In Progress','Completed'],
   content:   ['Planned','In Progress','Published'],
 };
 
 const TYPES = {
-  records:   ['Song','Album','EP','Org Task'],
-  publishing:['Single','Co-write','Cover','Org Task'],
+  records:   ['Song','Album','EP'],
+  publishing:['Single','Co-write','Cover'],
   songstage: ['Feature','Bug','Task'],
   freelance: ['Session','Coaching','Production'],
   content:   ['Short-Form','Long-Form','Substack'],
@@ -361,8 +269,6 @@ const TERMINAL = {
   records:'Released', publishing:'Monetizing', songstage:'Shipped',
   freelance:'Completed', content:'Published',
 };
-// Org task done status
-const ORG_DONE = 'General';
 
 // Day schedule rules — all times respect 4pm hard cutoff (nothing after 4pm)
 const DAY_SCHEDULE = {
@@ -486,20 +392,15 @@ async function getCalendarEvents(weeksAhead=2) {
       } catch(e) { return []; }
     }));
 
-    // Merge, deduplicate by title+start, and sort by start time
+    // Merge, deduplicate, sort
     const all = results.flat();
     const seen = new Set();
     const deduped = all.filter(e => {
       const key = `${e.summary||''}|${e.start?.dateTime||e.start?.date||''}`;
       if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
+      seen.add(key); return true;
     });
-    deduped.sort((a, b) => {
-      const aTime = a.start?.dateTime || a.start?.date || '';
-      const bTime = b.start?.dateTime || b.start?.date || '';
-      return aTime.localeCompare(bTime);
-    });
+    deduped.sort((a,b)=>(a.start?.dateTime||a.start?.date||'').localeCompare(b.start?.dateTime||b.start?.date||''));
     return deduped;
   } catch(e) { return []; }
 }
@@ -514,17 +415,30 @@ async function createCalendarEvent(title, startISO, endISO, color) {
 
 // ── AI ────────────────────────────────────────────────────────────────────────
 async function breakdownGoalWithAI(track, goal, existingItems) {
-  const response = await fetch('/api/breakdown', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ track, goal, existingItems }),
+  const trackLabel = TRACKS[track].label;
+  const prompt = `You are a productivity assistant for a music entrepreneur. Break down this weekly goal into 2-4 specific, actionable tasks.
+
+Track: ${trackLabel}
+Goal: "${goal}"
+Existing items in this track: ${existingItems.map(i=>i.name).join(', ') || 'none'}
+
+Respond ONLY with a JSON array. No markdown, no explanation. Each task object must have:
+- "name": short task name (max 6 words)
+- "status": one of ${JSON.stringify(STATUSES[track])}
+- "estimatedHours": number between 0.5 and 4
+- "notes": one sentence description
+
+Example: [{"name":"Export vocal stems","status":"${STATUSES[track][0]}","estimatedHours":1,"notes":"Export all vocal takes from Logic for mixing review"}]`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-api-key':ANTHROPIC_KEY, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+    body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{ role:'user', content:prompt }] }),
   });
-  if (!response.ok) {
-    const err = await response.json().catch(()=>({}));
-    throw new Error(err.error || `Server error ${response.status}`);
-  }
   const data = await response.json();
-  return data.tasks || [];
+  const text = data.content?.[0]?.text || '[]';
+  try { return JSON.parse(text.replace(/```json|```/g,'').trim()); }
+  catch(e) { return []; }
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
@@ -560,21 +474,13 @@ function getFirstDayOfMonth(year, month) {
   return new Date(year, month, 1).getDay();
 }
 
-// Find open time slots for a task on the right days, checking real calendar
-function getSmartSlots(track, calEvents, durationHours=1.5) {
+// Get available slots for a track based on day rules, respecting 4pm cutoff
+function getSmartSlots(track, calEvents) {
   const slots = [];
-  const now = new Date();
-  const today = new Date(now);
+  const today = new Date();
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const HARD_CUTOFF = 16; // 4pm
 
-  // Validate track has defined schedule days
-  const trackHasDays = Object.values(DAY_SCHEDULE).some(daySlots =>
-    daySlots.some(s => s.track === track)
-  );
-  if (!trackHasDays) return [];
-
-  for (let i=0; i<14; i++) { // look 2 weeks ahead
+  for (let i=0; i<7; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     const dayName = dayNames[d.getDay()];
@@ -582,106 +488,40 @@ function getSmartSlots(track, calEvents, durationHours=1.5) {
     const trackSlots = schedule.filter(s => s.track === track);
 
     for (const slot of trackSlots) {
-      const dayStart = Math.max(slot.start, 8); // never before 8am
-      const dayEnd   = Math.min(slot.end, HARD_CUTOFF); // never after 4pm
-      if (dayStart >= dayEnd) continue;
+      // Hard cutoff at 4pm
+      const endHour = Math.min(slot.end, 16);
+      if (slot.start >= 16) continue;
 
-      // Only suggest future times — if today, start from current time
-      const isToday = isSameDay(d, now);
-      const minStart = isToday
-        ? Math.max(dayStart, now.getHours() + now.getMinutes()/60 + 0.25) // 15min buffer
-        : dayStart;
-      if (minStart + durationHours > dayEnd) continue; // not enough time left today
+      // Check for conflicts with existing calendar events
+      const startDt = new Date(d);
+      startDt.setHours(slot.start, 0, 0, 0);
+      const endDt = new Date(d);
+      endDt.setHours(endHour, 0, 0, 0);
 
-      // Get all calendar events for this day
-      const dayEvents = calEvents.filter(e => {
-        const es = e.start?.dateTime ? new Date(e.start.dateTime) : null;
-        return es && isSameDay(es, d);
-      }).map(e => ({
-        start: new Date(e.start.dateTime).getHours() + new Date(e.start.dateTime).getMinutes()/60,
-        end:   e.end?.dateTime ? new Date(e.end.dateTime).getHours() + new Date(e.end.dateTime).getMinutes()/60 : new Date(e.start.dateTime).getHours() + 1,
-        title: e.summary,
-      })).sort((a,b) => a.start - b.start);
+      const conflict = calEvents.find(e => {
+        if (!e.start?.dateTime) return false;
+        const es = new Date(e.start.dateTime), ee = new Date(e.end?.dateTime || e.start.dateTime);
+        return es < endDt && ee > startDt;
+      });
 
-      // Find open windows of at least durationHours within the slot
-      const windows = [];
-      let cursor = minStart; // start from now if today, else start of day slot
-
-      for (const ev of dayEvents) {
-        if (ev.start > cursor && ev.start - cursor >= durationHours) {
-          windows.push({ start: cursor, end: Math.min(ev.start, dayEnd) });
-        }
-        cursor = Math.max(cursor, ev.end);
-      }
-      // Check remaining time after last event
-      if (dayEnd - cursor >= durationHours) {
-        windows.push({ start: cursor, end: dayEnd });
-      }
-
-      // Create 1-2 slots per window (morning and afternoon if room)
-      for (const win of windows) {
-        // Snap to nearest half hour
-        const startH = Math.ceil(win.start * 2) / 2;
-        const endH   = Math.min(startH + durationHours, win.end, HARD_CUTOFF);
-        if (endH - startH < durationHours * 0.75) continue; // skip if too short
-
-        const startDt = new Date(d);
-        startDt.setHours(Math.floor(startH), (startH % 1) * 60, 0, 0);
-        const endDt = new Date(d);
-        endDt.setHours(Math.floor(endH), (endH % 1) * 60, 0, 0);
-
-        const fmtH = h => {
-          const hr = Math.floor(h), min = (h % 1) * 60;
-          const ampm = hr >= 12 ? 'pm' : 'am';
-          const displayHr = hr > 12 ? hr - 12 : hr === 0 ? 12 : hr;
-          return min > 0 ? `${displayHr}:${String(min).padStart(2,'0')}${ampm}` : `${displayHr}${ampm}`;
-        };
-
-        slots.push({
-          date: new Date(d),
-          dayName,
-          label: `${d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})} · ${fmtH(startH)}–${fmtH(endH)}`,
-          startHour: startH,
-          endHour: endH,
-          conflict: false,
-          startISO: startDt.toISOString(),
-          endISO: endDt.toISOString(),
-          durationHours: endH - startH,
-        });
-
-        // If window is big enough, offer an afternoon slot too
-        const afternoonStart = Math.max(startH + durationHours + 0.5, 13);
-        if (win.end - afternoonStart >= durationHours && afternoonStart + durationHours <= HARD_CUTOFF) {
-          const aStartDt = new Date(d); aStartDt.setHours(Math.floor(afternoonStart),(afternoonStart%1)*60,0,0);
-          const aEndH = Math.min(afternoonStart + durationHours, HARD_CUTOFF);
-          const aEndDt = new Date(d); aEndDt.setHours(Math.floor(aEndH),(aEndH%1)*60,0,0);
-          slots.push({
-            date: new Date(d), dayName,
-            label: `${d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})} · ${fmtH(afternoonStart)}–${fmtH(aEndH)}`,
-            startHour: afternoonStart, endHour: aEndH, conflict: false,
-            startISO: aStartDt.toISOString(), endISO: aEndDt.toISOString(),
-            durationHours: aEndH - afternoonStart,
-          });
-        }
-
-        if (slots.length >= 6) break; // max 6 suggestions
-      }
-      if (slots.length >= 6) break;
+      slots.push({
+        date: d,
+        dayName,
+        label: `${fmtDate(d)} ${slot.start}:00–${endHour}:00`,
+        startHour: slot.start,
+        endHour,
+        conflict: !!conflict,
+        conflictName: conflict?.summary || '',
+        startISO: startDt.toISOString(),
+        endISO: endDt.toISOString(),
+      });
     }
-    if (slots.length >= 6) break;
   }
   return slots;
 }
 
 function rowToItem(track, row, index) {
-  return {
-    id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'',
-    extra:row[3]||'', dueDate:row[4]||'', notes:row[5]||'',
-    taskType:row[6]||'', dateAdded:row[7]||'',
-    // Extended columns (vary by track)
-    col8:row[8]||'', col9:row[9]||'', col10:row[10]||'', col11:row[11]||'', col12:row[12]||'',
-    track,
-  };
+  return { id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'', extra:row[3]||'', dueDate:row[4]||'', notes:row[5]||'', dateAdded:row[7]||'', track };
 }
 
 // Demo data
@@ -715,23 +555,11 @@ function Toast({ message, onClose }) {
 }
 
 function AddItemModal({ track, onClose, onAdd, calEvents }) {
-  const isOrgTrack = track === 'records' || track === 'publishing';
-  const [form, setForm]= useState({
-    name:'', type:TYPES[track][0], status:STATUSES[track][0],
-    extra:'', dueDate:'', notes:'',
-    // Records extra fields
-    coWriters:'', releaseDate:'', distributor:'', revenueStatus:'',
-    // Publishing extra fields
-    writers:'', publisherSplit:'', pro:'', licenseType:'', revenueCollected:'',
-    // Shared
-    taskType: isOrgTrack ? 'Song/Project' : '',
-    priority:'',
-  });
+  const [form, setForm]= useState({name:'',type:TYPES[track][0],status:STATUSES[track][0],extra:'',dueDate:'',notes:''});
   const [step, setStep]= useState('form');
   const [slots, setSlots]= useState([]);
   const [selected, setSelected]= useState(null);
   const t = TRACKS[track];
-  const isOrgTask = form.taskType === 'Org Task';
   const extraLabel = {records:'Artist',publishing:'Partner',songstage:'Assigned To',freelance:'Client',content:'Platform'}[track];
 
   function next() {
@@ -751,150 +579,22 @@ function AddItemModal({ track, onClose, onAdd, calEvents }) {
         </div>
         {step==='form' ? (<>
           <div className="modal-body">
-            {/* Task Type toggle for Records and Publishing */}
-            {isOrgTrack && (
-              <div className="form-group">
-                <label className="form-label">Task Type</label>
-                <div style={{display:'flex',gap:'0'}}>
-                  {['Song/Project','Org Task'].map(opt=>(
-                    <button key={opt} onClick={()=>setForm({...form,taskType:opt,status:opt==='Org Task'?'General':STATUSES[track][1]})}
-                      style={{flex:1,padding:'8px',fontFamily:'DM Mono,monospace',fontSize:'11px',cursor:'pointer',
-                        background:form.taskType===opt?'var(--accent)':'var(--surface2)',
-                        color:form.taskType===opt?'#000':'var(--text2)',
-                        border:'1px solid var(--border)',marginLeft:opt==='Org Task'?'-1px':'0'}}>
-                      {opt}
-                    </button>
-                  ))}
-                </div>
+            {['name','extra','dueDate','notes'].map(field => (
+              <div className="form-group" key={field}>
+                <label className="form-label">{field==='name'?'Name *':field==='extra'?extraLabel:field==='dueDate'?'Due Date':'Notes'}</label>
+                {field==='notes'
+                  ? <textarea className="form-textarea form-input" value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})}/>
+                  : <input className="form-input" type={field==='dueDate'?'date':'text'} value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})} autoFocus={field==='name'}/>}
               </div>
-            )}
-
-            <div className="form-group">
-              <label className="form-label">Name *</label>
-              <input className="form-input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} autoFocus
-                placeholder={isOrgTask?'e.g. Review split sheets with Jen':'e.g. Still Waters'}/>
-            </div>
-
-            {/* Only show Artist/Partner field for Song/Project tasks */}
-            {!isOrgTask && (
-              <div className="form-group">
-                <label className="form-label">{extraLabel}</label>
-                <input className="form-input" value={form.extra} onChange={e=>setForm({...form,extra:e.target.value})}/>
+            ))}
+            {['type','status'].map(field=>(
+              <div className="form-group" key={field}>
+                <label className="form-label">{field==='type'?'Type':'Status'}</label>
+                <select className="form-select" value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})}>
+                  {(field==='type'?TYPES:STATUSES)[track].map(v=><option key={v}>{v}</option>)}
+                </select>
               </div>
-            )}
-
-            <div className="form-group">
-              <label className="form-label">Type</label>
-              <select className="form-select" value={form.type} onChange={e=>setForm({...form,type:e.target.value})}>
-                {TYPES[track].map(v=><option key={v}>{v}</option>)}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Status</label>
-              <select className="form-select" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
-                {STATUSES[track].filter(s => isOrgTask ? s==='General' : s!=='General' || true).map(v=><option key={v}>{v}</option>)}
-              </select>
-            </div>
-
-            {/* Records extra fields */}
-            {track==='records' && !isOrgTask && (<>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-                <div className="form-group">
-                  <label className="form-label">Co-writers</label>
-                  <input className="form-input" value={form.coWriters} onChange={e=>setForm({...form,coWriters:e.target.value})} placeholder="Names..."/>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Release Date</label>
-                  <input className="form-input" type="date" value={form.releaseDate} onChange={e=>setForm({...form,releaseDate:e.target.value})}/>
-                </div>
-              </div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-                <div className="form-group">
-                  <label className="form-label">Distributor</label>
-                  <input className="form-input" value={form.distributor} onChange={e=>setForm({...form,distributor:e.target.value})} placeholder="DistroKid, etc."/>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Revenue Status</label>
-                  <select className="form-select" value={form.revenueStatus} onChange={e=>setForm({...form,revenueStatus:e.target.value})}>
-                    <option value="">Not yet</option>
-                    <option>Collecting</option>
-                    <option>Paid out</option>
-                  </select>
-                </div>
-              </div>
-            </>)}
-
-            {/* Publishing extra fields */}
-            {track==='publishing' && !isOrgTask && (<>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-                <div className="form-group">
-                  <label className="form-label">Writers</label>
-                  <input className="form-input" value={form.writers} onChange={e=>setForm({...form,writers:e.target.value})}/>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Publisher Split %</label>
-                  <input className="form-input" value={form.publisherSplit} onChange={e=>setForm({...form,publisherSplit:e.target.value})} placeholder="e.g. 50"/>
-                </div>
-              </div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-                <div className="form-group">
-                  <label className="form-label">PRO</label>
-                  <select className="form-select" value={form.pro} onChange={e=>setForm({...form,pro:e.target.value})}>
-                    <option value="">Select...</option>
-                    <option>ASCAP</option><option>BMI</option><option>SESAC</option><option>SOCAN</option><option>Other</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">License Type</label>
-                  <select className="form-select" value={form.licenseType} onChange={e=>setForm({...form,licenseType:e.target.value})}>
-                    <option value="">Select...</option>
-                    <option>Sync</option><option>Print</option><option>Master</option><option>Mechanical</option><option>Admin</option>
-                  </select>
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Revenue Collected</label>
-                <input className="form-input" value={form.revenueCollected} onChange={e=>setForm({...form,revenueCollected:e.target.value})} placeholder="$0.00"/>
-              </div>
-            </>)}
-
-            {/* Freelance extra fields */}
-            {track==='freelance' && (<>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-                <div className="form-group">
-                  <label className="form-label">Client</label>
-                  <input className="form-input" value={form.extra} onChange={e=>setForm({...form,extra:e.target.value})}/>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Rate</label>
-                  <input className="form-input" value={form.rate||''} onChange={e=>setForm({...form,rate:e.target.value})} placeholder="$0"/>
-                </div>
-              </div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-                <div className="form-group">
-                  <label className="form-label">Invoice Status</label>
-                  <select className="form-select" value={form.invoiceStatus||''} onChange={e=>setForm({...form,invoiceStatus:e.target.value})}>
-                    <option value="">None yet</option>
-                    <option>Not sent</option><option>Sent</option><option>Paid</option><option>Overdue</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Hours Worked</label>
-                  <input className="form-input" value={form.hoursWorked||''} onChange={e=>setForm({...form,hoursWorked:e.target.value})} placeholder="0"/>
-                </div>
-              </div>
-            </>)}
-
-            <div className="form-group">
-              <label className="form-label">Due Date</label>
-              <input className="form-input" type="date" value={form.dueDate} onChange={e=>setForm({...form,dueDate:e.target.value})}/>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Notes</label>
-              <textarea className="form-textarea form-input" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/>
-            </div>
+            ))}
           </div>
           <div className="modal-footer">
             <button className="btn-secondary" onClick={onClose}>Cancel</button>
@@ -980,14 +680,12 @@ function AddEventModal({ date, onClose, onAdd }) {
 }
 
 function KanbanCard({ item, track, onStatusChange, onDelete, onMarkDone }) {
-  const isOrgTask = item.taskType === 'Org Task' || item.type === 'Org Task';
   return (
     <div className="card">
       <div className="card-track-line" style={{background:TRACKS[track].color}}/>
       <div className="card-name">{item.name}</div>
       <div className="card-meta">
-        {isOrgTask && <span className="tag" style={{color:'var(--accent)',borderColor:'var(--accent)33'}}>Org Task</span>}
-        {item.type && item.type !== 'Org Task' && <span className="tag">{item.type}</span>}
+        {item.type&&<span className="tag">{item.type}</span>}
         {item.extra&&<span className="tag">{item.extra}</span>}
         {item.dueDate&&<span className="tag">Due {new Date(item.dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>}
       </div>
@@ -1368,19 +1066,42 @@ function CalendarPage({ calEvents, onAddEvent, onEditEvent, onDeleteEvent, demoM
   );
 }
 // ── CHECK-IN PAGE ─────────────────────────────────────────────────────────────
-function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGenerated, demoMode }) {
-  const [aiState, setAiState]= useState({}); // track -> 'idle'|'loading'|'done'
-  const [aiTasks, setAiTasks]= useState({}); // track -> array of tasks
-  const [aiSlots, setAiSlots]= useState({}); // track -> {taskIndex -> slot}
-  const [pendingSlots, setPendingSlots]= useState(null); // {track, tasks, slots} awaiting confirmation
+function CheckInPage({ items, calEvents, goals, onGoalChange, onGoalBlur, onSave, onTasksGenerated, demoMode }) {
+  const [aiState, setAiState]   = useState({});
+  const [aiTasks, setAiTasks]   = useState({});
+  const [aiSlots, setAiSlots]   = useState({});
+  const [savedState, setSavedState] = useState({});
+  const [savingTrack, setSavingTrack] = useState(null);
 
   const prompts = {
-    records:'What do you want to move forward? How does it connect to revenue?',
-    publishing:"What's the publishing priority this week?",
-    songstage:"Where does the product stand? What's the win this week?",
-    freelance:"What's booked? Who do you need to reach out to?",
-    content:'What are you publishing? (target: 2–3 short-form, 1 long-form, 1 Substack)',
+    records:   'What do you want to move forward? How does it connect to revenue?',
+    publishing:"What is the publishing priority this week?",
+    songstage: "Where does the product stand? What is the win this week?",
+    freelance: "What is booked? Who do you need to reach out to?",
+    content:   'What are you publishing? (target: 2-3 short-form, 1 long-form, 1 Substack)',
   };
+
+  useEffect(() => {
+    const states = {};
+    Object.keys(TRACKS).forEach(track => {
+      states[track] = goals[track]?.trim() ? 'saved' : 'empty';
+    });
+    setSavedState(states);
+  }, []);
+
+  async function handleBlur(track) {
+    const val = goals[track];
+    if (!val?.trim()) { setSavedState(s=>({...s,[track]:'empty'})); return; }
+    setSavingTrack(track);
+    await onGoalBlur(track, val);
+    setSavedState(s=>({...s,[track]:'saved'}));
+    setSavingTrack(null);
+  }
+
+  function handleChange(track, val) {
+    onGoalChange(track, val);
+    setSavedState(s=>({...s,[track]: val.trim() ? 'draft' : 'empty'}));
+  }
 
   async function breakdown(track) {
     const goal = goals[track];
@@ -1389,40 +1110,26 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGen
     try {
       const tasks = await breakdownGoalWithAI(track, goal, items[track]||[]);
       if (!tasks || tasks.length === 0) {
-        setAiState(s=>({...s,[track]:'error',[track+'_err']:'No tasks returned — check browser console for details'}));
+        setAiState(s=>({...s,[track]:'error',[track+'_err']:'No tasks returned'}));
         return;
       }
-
-      // Auto-assign calendar slots to each task based on estimated hours
-      // Track used slots so tasks don't overlap
-      const bookedSlots = [];
-      const taskSlots = {};
-
+      const bookedSlots = [], taskSlots = {};
       for (let i=0; i<tasks.length; i++) {
         const duration = tasks[i].estimatedHours || 1;
-        const fakeBooked = bookedSlots.map(s=>({
-          start:{dateTime:s.startISO}, end:{dateTime:s.endISO}, summary:'[HQ] Reserved'
-        }));
+        const fakeBooked = bookedSlots.map(s=>({ start:{dateTime:s.startISO}, end:{dateTime:s.endISO}, summary:'[HQ] Reserved' }));
         const available = getSmartSlots(track, [...calEvents, ...fakeBooked], duration);
-        if (available.length > 0) {
-          taskSlots[i] = available[0];
-          bookedSlots.push(available[0]);
-        }
+        if (available.length > 0) { taskSlots[i] = available[0]; bookedSlots.push(available[0]); }
       }
-
       setAiTasks(t=>({...t,[track]:tasks}));
       setAiSlots(s=>({...s,[track]:taskSlots}));
       setAiState(s=>({...s,[track]:'done'}));
     } catch(e) {
-      console.error('breakdown error:', e);
       setAiState(s=>({...s,[track]:'error',[track+'_err']:e.message||String(e)}));
     }
   }
 
   function addTasksToTrack(track) {
-    const tasks = aiTasks[track]||[];
-    const slots = aiSlots[track]||{};
-    onTasksGenerated(track, tasks, slots);
+    onTasksGenerated(track, aiTasks[track]||[], aiSlots[track]||{});
     setAiState(s=>({...s,[track]:'idle'}));
     setAiTasks(t=>({...t,[track]:[]}));
     setAiSlots(s=>({...s,[track]:{}}));
@@ -1433,20 +1140,37 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGen
     staleByTrack[track]=trackItems.filter(i=>i.status!==TERMINAL[track]&&daysSince(i.dateAdded)>5);
   });
 
-  // Upcoming calendar for context
   const thisWeekEvents = calEvents.filter(e=>{
     const start = e.start?.dateTime?new Date(e.start.dateTime):null;
     if (!start) return false;
-    const now=new Date(), end=new Date(); end.setDate(now.getDate()+7);
-    return start>=now&&start<=end;
+    const now=new Date(), weekEnd=new Date(); weekEnd.setDate(now.getDate()+7);
+    return start>=now&&start<=weekEnd;
   }).slice(0,5);
+
+  const allSaved = Object.keys(TRACKS).every(t => savedState[t]==='saved');
+  const anySaved = Object.keys(TRACKS).some(t => savedState[t]==='saved');
+
+  function stateColor(state) {
+    if (state==='saved') return 'var(--success)';
+    if (state==='draft') return 'var(--warning)';
+    return 'transparent';
+  }
+
+  function stateLabel(state, saving) {
+    if (saving) return 'Saving...';
+    if (state==='saved') return '✓ Saved';
+    if (state==='draft') return '● Unsaved';
+    return '';
+  }
 
   return (
     <div className="page">
       <div className="checkin-wrap">
         <div className="checkin-intro">
-          <div className="checkin-intro-title">Monday Check-In 🗓</div>
-          <div className="checkin-intro-sub">Set goals, break them into tasks, block your week.</div>
+          <div className="checkin-intro-title">Monday Check-In</div>
+          <div className="checkin-intro-sub">
+            Goals auto-save when you click out of each field. Lock in when ready to commit and block your calendar.
+          </div>
         </div>
 
         {thisWeekEvents.length>0&&(
@@ -1454,7 +1178,7 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGen
             <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'10px'}}>Already on your calendar this week</div>
             {thisWeekEvents.map((e,i)=>(
               <div key={i} style={{display:'flex',gap:'12px',fontSize:'12px',padding:'6px 0',borderBottom:'1px solid var(--border)'}}>
-                <div style={{color:'var(--text3)',minWidth:'100px',fontSize:'10px'}}>
+                <div style={{color:'var(--text3)',minWidth:'140px',fontSize:'10px'}}>
                   {e.start?.dateTime?`${fmtDate(new Date(e.start.dateTime))} ${fmtTime(new Date(e.start.dateTime))}`:'All day'}
                 </div>
                 <div>{e.summary}</div>
@@ -1463,91 +1187,111 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGen
           </div>
         )}
 
-        {Object.entries(TRACKS).map(([track,t])=>(
-          <div key={track} className={`checkin-section ${track}`}>
-            <div className="checkin-section-title" style={{color:t.color}}>{t.label}</div>
-            <div className="checkin-section-sub">{prompts[track]}</div>
-            {staleByTrack[track]?.length>0&&(
-              <div className="stale-prompt">
-                ⚠ Sitting 5+ days: {staleByTrack[track].map(i=>i.name).join(', ')}
+        {Object.entries(TRACKS).map(([track,t])=>{
+          const state = savedState[track]||'empty';
+          const saving = savingTrack===track;
+          return (
+            <div key={track} className={"checkin-section "+track} style={{marginBottom:'12px'}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'4px'}}>
+                <div className="checkin-section-title" style={{color:t.color}}>{t.label}</div>
+                <div style={{fontSize:'10px',color:stateColor(state),transition:'color 0.3s',fontFamily:'DM Mono,monospace'}}>
+                  {stateLabel(state, saving)}
+                </div>
               </div>
-            )}
-            <textarea className="form-textarea form-input" style={{marginBottom:'10px'}}
-              placeholder={`What's the goal for ${t.label} this week?`}
-              value={goals[track]||''} onChange={e=>onGoalChange(track,e.target.value)}/>
+              <div className="checkin-section-sub">{prompts[track]}</div>
 
-            {/* AI breakdown */}
-            {goals[track]?.trim()&&(
-              <div>
-                {(!aiState[track]||aiState[track]==='idle')&&(
-                  <button className="btn-sm" onClick={()=>breakdown(track)}>
-                    ✦ Break into tasks with AI
-                  </button>
-                )}
-                {aiState[track]==='loading'&&(
-                  <div className="ai-thinking">
-                    <div className="ai-dot"/> Breaking down your goal...
-                  </div>
-                )}
-                {aiState[track]==='error'&&(
-                  <div style={{background:'rgba(255,68,68,0.08)',border:'1px solid rgba(255,68,68,0.3)',padding:'10px 12px',fontSize:'11px',color:'#ff6666',marginBottom:'8px'}}>
-                    ⚠ AI failed: {aiState[track+'_err'] || 'Unknown error'}
-                    <button className="btn-sm" style={{marginLeft:'10px',fontSize:'10px'}} onClick={()=>setAiState(s=>({...s,[track]:'idle'}))}>Retry</button>
-                  </div>
-                )}
-                {aiState[track]==='done'&&aiTasks[track]?.length>0&&(
-                  <div>
-                    <div className="ai-tasks">
-                      {aiTasks[track].map((task,i)=>{
-                        const slot = aiSlots[track]?.[i];
-                        return (
-                          <div key={i} className="ai-task">
-                            <div className="ai-task-name">{task.name}</div>
-                            <div className="ai-task-meta">{task.status} · ~{task.estimatedHours}h · {task.notes}</div>
-                            {slot ? (
-                              <div style={{marginTop:'6px',display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
-                                <div style={{fontSize:'10px',color:'var(--accent)',background:'rgba(232,255,71,0.08)',border:'1px solid rgba(232,255,71,0.2)',padding:'3px 8px'}}>
-                                  📅 {slot.label}
+              {staleByTrack[track]?.length>0&&(
+                <div className="stale-prompt">
+                  Sitting 5+ days: {staleByTrack[track].map(i=>i.name).join(', ')}
+                </div>
+              )}
+
+              <textarea
+                className="form-textarea form-input"
+                style={{
+                  marginBottom:'10px',
+                  borderColor: state==='saved'?'rgba(77,255,145,0.35)': state==='draft'?'rgba(255,179,71,0.35)':'var(--border)',
+                  transition:'border-color 0.3s',
+                }}
+                placeholder={"What's the goal for "+t.label+" this week?"}
+                value={goals[track]||''}
+                onChange={e=>handleChange(track,e.target.value)}
+                onBlur={()=>handleBlur(track)}
+              />
+
+              {goals[track]?.trim()&&(
+                <div>
+                  {(!aiState[track]||aiState[track]==='idle')&&(
+                    <button className="btn-sm" onClick={()=>breakdown(track)}>Break into tasks with AI</button>
+                  )}
+                  {aiState[track]==='loading'&&(
+                    <div className="ai-thinking"><div className="ai-dot"/> Breaking down your goal...</div>
+                  )}
+                  {aiState[track]==='error'&&(
+                    <div style={{background:'rgba(255,68,68,0.08)',border:'1px solid rgba(255,68,68,0.3)',padding:'10px 12px',fontSize:'11px',color:'#ff6666',marginBottom:'8px'}}>
+                      {aiState[track+'_err']||'Unknown error'}
+                      <button className="btn-sm" style={{marginLeft:'10px'}} onClick={()=>setAiState(s=>({...s,[track]:'idle'}))}>Retry</button>
+                    </div>
+                  )}
+                  {aiState[track]==='done'&&aiTasks[track]?.length>0&&(
+                    <div>
+                      <div className="ai-tasks">
+                        {aiTasks[track].map((task,i)=>{
+                          const slot=aiSlots[track]?.[i];
+                          return (
+                            <div key={i} className="ai-task">
+                              <div className="ai-task-name">{task.name}</div>
+                              <div className="ai-task-meta">{task.status} · ~{task.estimatedHours}h · {task.notes}</div>
+                              {slot?(
+                                <div style={{marginTop:'6px',display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                                  <div style={{fontSize:'10px',color:'var(--accent)',background:'rgba(232,255,71,0.08)',border:'1px solid rgba(232,255,71,0.2)',padding:'3px 8px'}}>
+                                    {slot.label}
+                                  </div>
+                                  <select style={{fontFamily:'DM Mono,monospace',fontSize:'9px',background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--text2)',padding:'3px 6px',cursor:'pointer'}}
+                                    onChange={ev=>{
+                                      const idx=parseInt(ev.target.value);
+                                      const allSlots=getSmartSlots(track,calEvents,task.estimatedHours||1);
+                                      if(idx>=0&&allSlots[idx]) setAiSlots(s=>({...s,[track]:{...s[track],[i]:allSlots[idx]}}));
+                                    }}>
+                                    <option value={-1}>Change slot...</option>
+                                    {getSmartSlots(track,calEvents,task.estimatedHours||1).slice(0,5).map((s,si)=>(
+                                      <option key={si} value={si}>{s.label}</option>
+                                    ))}
+                                  </select>
                                 </div>
-                                <select style={{fontFamily:'DM Mono,monospace',fontSize:'9px',background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--text2)',padding:'3px 6px',cursor:'pointer'}}
-                                  onChange={e=>{
-                                    const idx = parseInt(e.target.value);
-                                    const allSlots = getSmartSlots(track, calEvents, task.estimatedHours||1);
-                                    if (idx >= 0 && allSlots[idx]) {
-                                      setAiSlots(s=>({...s,[track]:{...s[track],[i]:allSlots[idx]}}));
-                                    }
-                                  }}>
-                                  <option value={-1}>Change slot...</option>
-                                  {getSmartSlots(track, calEvents, task.estimatedHours||1).slice(0,5).map((s,si)=>(
-                                    <option key={si} value={si}>{s.label}</option>
-                                  ))}
-                                </select>
-                              </div>
-                            ) : (
-                              <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'4px'}}>No available slot found this week</div>
-                            )}
-                          </div>
-                        );
-                      })}
+                              ):(
+                                <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'4px'}}>No available slot found</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
+                        <button className="btn-primary" style={{fontSize:'11px',padding:'7px 14px'}} onClick={()=>addTasksToTrack(track)}>
+                          Add {aiTasks[track].length} tasks + block calendar
+                        </button>
+                        <button className="btn-secondary" style={{fontSize:'11px',padding:'7px 14px'}} onClick={()=>setAiState(s=>({...s,[track]:'idle'}))}>
+                          Dismiss
+                        </button>
+                      </div>
                     </div>
-                    <div style={{display:'flex',gap:'8px',marginTop:'10px'}}>
-                      <button className="btn-primary" style={{fontSize:'11px',padding:'7px 14px'}} onClick={()=>addTasksToTrack(track)}>
-                        Add {aiTasks[track].length} tasks + block calendar
-                      </button>
-                      <button className="btn-secondary" style={{fontSize:'11px',padding:'7px 14px'}} onClick={()=>setAiState(s=>({...s,[track]:'idle'}))}>
-                        Dismiss
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
 
-        <button className="btn-primary" style={{width:'100%',marginTop:'8px',padding:'14px'}} onClick={onSave}>
-          Lock In This Week →
-        </button>
+        {anySaved&&(
+          <div style={{marginTop:'8px',padding:'20px',background:'var(--surface)',border:'1px solid var(--border)',borderLeft:'3px solid var(--accent)'}}>
+            <div style={{fontSize:'12px',color:'var(--text2)',marginBottom:'12px'}}>
+              {allSaved?'All goals saved — ready to lock in your week':'Some goals saved. Lock in now or keep filling in the rest.'}
+            </div>
+            <button className="btn-primary" style={{width:'100%',padding:'14px'}} onClick={onSave}>
+              Lock In This Week
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1555,11 +1299,11 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onSave, onTasksGen
 
 // ── DASHBOARD PAGE ────────────────────────────────────────────────────────────
 function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWeek }) {
+  const today = new Date();
+  const isMonday = today.getDay() === 1;
   const allItems = Object.values(items).flat();
   const stale = allItems.filter(i=>i.status!==TERMINAL[i.track]&&daysSince(i.dateAdded)>7);
   const weekGoals = Object.entries(goals).filter(([,v])=>v);
-  const today = new Date();
-  const isMonday = today.getDay() === 1;
 
   const thisWeekEvents = calEvents.filter(e=>{
     const start = e.start?.dateTime?new Date(e.start.dateTime):null;
@@ -1575,29 +1319,15 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
         <div style={{fontSize:'11px',color:'var(--text2)'}}>{getWeekLabel()} · {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
       </div>
 
-      {/* New week banner — shows when no goals set for this week */}
-      {(newWeek || (isMonday && weekGoals.length === 0)) && (
-        <div style={{
-          background:'rgba(232,255,71,0.06)',
-          border:'1px solid rgba(232,255,71,0.3)',
-          borderLeft:'3px solid var(--accent)',
-          padding:'16px 20px',
-          marginBottom:'24px',
-          display:'flex',
-          alignItems:'center',
-          justifyContent:'space-between',
-        }}>
+      {(newWeek||(isMonday&&weekGoals.length===0))&&(
+        <div style={{background:'rgba(232,255,71,0.06)',border:'1px solid rgba(232,255,71,0.3)',borderLeft:'3px solid var(--accent)',padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
           <div>
             <div style={{fontFamily:'Syne,sans-serif',fontSize:'15px',fontWeight:'700',color:'var(--accent)',marginBottom:'3px'}}>
-              {isMonday ? '🗓 New week — time to check in' : '🗓 No goals set for this week yet'}
+              {isMonday?'New week — time to check in':'No goals set for this week yet'}
             </div>
-            <div style={{fontSize:'11px',color:'var(--text2)'}}>
-              Set your goals, review what's stale, and block your time for the week.
-            </div>
+            <div style={{fontSize:'11px',color:'var(--text2)'}}>Set your goals, review stale items, and block your time.</div>
           </div>
-          <button className="add-btn" onClick={onCheckIn} style={{flexShrink:0,marginLeft:'16px'}}>
-            Start Check-In →
-          </button>
+          <button className="add-btn" onClick={onCheckIn}>Start Check-In</button>
         </div>
       )}
 
@@ -1707,44 +1437,29 @@ function App() {
       loaded[track]=rows.map((r,i)=>rowToItem(track,r,i));
     }
     setItems(loaded);
-
     const thisWeek = getWeekLabel();
+    const lastSavedWeek = localStorage.getItem('hq_last_week');
+    const isNewWeek = lastSavedWeek !== thisWeek;
     const goalRows = await readSheet('Weekly Goals');
     const weekRow = goalRows.find(r=>r[0]===thisWeek);
-    if (weekRow) {
-      // Goals exist for this week — load them
+    if (weekRow && !isNewWeek) {
       setGoals({records:weekRow[1]||'',publishing:weekRow[2]||'',songstage:weekRow[3]||'',freelance:weekRow[4]||'',content:weekRow[5]||''});
       setNewWeek(false);
     } else {
-      // No goals for this week — it's a new week, clear goals and flag it
       setGoals({});
       setNewWeek(true);
+      localStorage.setItem('hq_last_week', thisWeek);
     }
-
     const events=await getCalendarEvents(4);
     setCalEvents(events);
     setLoading(false);
   }
 
   async function handleAdd(track, formData) {
-    const {name,type,status,extra,dueDate,notes,block,slot,
-      taskType,coWriters,releaseDate,distributor,revenueStatus,
-      writers,publisherSplit,pro,licenseType,revenueCollected,
-      rate,invoiceStatus,hoursWorked}=formData;
+    const {name,type,status,extra,dueDate,notes,block,slot}=formData;
     const dateAdded=new Date().toISOString().split('T')[0];
-    // Build row based on track — extended columns
-    let row;
-    if (track==='records') {
-      row=[name,type,status,extra,dueDate,notes,taskType||'Song/Project',dateAdded,coWriters||'',releaseDate||'',distributor||'',revenueStatus||''];
-    } else if (track==='publishing') {
-      row=[name,type,status,extra,dueDate,notes,taskType||'Song/Project',dateAdded,writers||'',publisherSplit||'',pro||'',licenseType||'',revenueCollected||''];
-    } else if (track==='freelance') {
-      row=[name,type,status,extra,dueDate,notes,'',dateAdded,rate||'',invoiceStatus||'',hoursWorked||''];
-    } else {
-      row=[name,type,status,extra,dueDate,notes,'',dateAdded];
-    }
-    if (!demoMode) await appendRow(TRACKS[track].tab, row);
-    const newItem={id:items[track].length,name,type,status,extra,dueDate,notes,taskType:taskType||'',dateAdded,track};
+    if (!demoMode) await appendRow(TRACKS[track].tab,[name,type,status,extra,dueDate,notes,'',dateAdded]);
+    const newItem={id:items[track].length,name,type,status,extra,dueDate,notes,dateAdded,track};
     setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
     if (block&&slot&&!demoMode) {
       try {
@@ -1824,54 +1539,43 @@ function App() {
 
   async function handleMarkDone(track, item) { await handleStatusChange(track,item,TERMINAL[track]); }
 
+  async function handleGoalBlur(track, val) {
+    // Auto-save single goal on blur
+    if (!val?.trim() || demoMode) return;
+    const thisWeek = getWeekLabel();
+    // Read existing goals row and update just this track
+    try {
+      const goalRows = await readSheet('Weekly Goals');
+      const existingIdx = goalRows.findIndex(r=>r[0]===thisWeek);
+      const trackOrder = ['records','publishing','songstage','freelance','content'];
+      const colIdx = trackOrder.indexOf(track) + 1;
+      if (existingIdx >= 0) {
+        await updateCell('Weekly Goals', existingIdx, colIdx, val);
+      } else {
+        const row = [thisWeek,'','','','',''];
+        row[colIdx] = val;
+        await appendRow('Weekly Goals', row);
+      }
+    } catch(e) { console.error('Auto-save goal failed:', e); }
+  }
+
   async function handleSaveGoals() {
     if (!demoMode) await appendRow('Weekly Goals',[getWeekLabel(),goals.records||'',goals.publishing||'',goals.songstage||'',goals.freelance||'',goals.content||'']);
     setNewWeek(false);
+    localStorage.setItem('hq_last_week', getWeekLabel());
     showToast('✓ Goals locked in for the week');
     setPage('dashboard');
   }
 
-  async function handleTasksGenerated(track, tasks, slots={}) {
-    const dateAdded = new Date().toISOString().split('T')[0];
-    const newItems = [];
-    let blockedCount = 0;
-
-    for (let i=0; i<tasks.length; i++) {
-      const task = tasks[i];
-      const taskType   = task.type   || TYPES[track][0];
-      const taskStatus = task.status || STATUSES[track][0];
-      const slot = slots[i];
-
-      // Write to sheet
-      const row = [task.name, taskType, taskStatus, '', slot?.label||'', task.notes||'', task.taskType||'', dateAdded];
-      if (!demoMode) await appendRow(TRACKS[track].tab, row);
-
-      // Block calendar if slot assigned
-      if (slot && !demoMode) {
-        try {
-          await createCalendarEvent(task.name, slot.startISO, slot.endISO, TRACK_COLORS_HEX[track]);
-          blockedCount++;
-        } catch(e) { console.error('Calendar block failed for', task.name, e); }
-      }
-
-      newItems.push({
-        id: items[track].length + newItems.length,
-        name: task.name, type: taskType, status: taskStatus,
-        extra: '', dueDate: slot?.label||'', notes: task.notes||'',
-        dateAdded, track,
-      });
+  async function handleTasksGenerated(track, tasks) {
+    const dateAdded=new Date().toISOString().split('T')[0];
+    for (const task of tasks) {
+      const row=[task.name,TYPES[track][0],task.status,'',''  ,task.notes,'',dateAdded];
+      if (!demoMode) await appendRow(TRACKS[track].tab,row);
+      const newItem={id:items[track].length,name:task.name,type:TYPES[track][0],status:task.status,extra:'',dueDate:'',notes:task.notes,dateAdded,track};
+      setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
     }
-
-    setItems(prev => ({ ...prev, [track]: [...prev[track], ...newItems] }));
-
-    // Refresh calendar to show new blocks
-    if (blockedCount > 0 && !demoMode) {
-      const refreshed = await getCalendarEvents(4);
-      setCalEvents(refreshed);
-      showToast(`✓ ${tasks.length} tasks added · ${blockedCount} time blocks created`);
-    } else {
-      showToast(`✓ ${tasks.length} tasks added to ${TRACKS[track].label}`);
-    }
+    showToast(`✓ ${tasks.length} tasks added to ${TRACKS[track].label}`);
   }
 
   // AUTH SCREEN
@@ -1936,10 +1640,10 @@ function App() {
           <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
             <button className="hamburger" onClick={()=>setSidebarOpen(o=>!o)}>☰</button>
             <div className="topbar-title">
-              {page==='dashboard'&&'Dashboard'}
-              {page==='calendar'&&'Calendar'}
-              {page==='checkin'&&'Monday Check-In'}
-              {TRACKS[page]&&TRACKS[page].label}
+            {page==='dashboard'&&'Dashboard'}
+            {page==='calendar'&&'Calendar'}
+            {page==='checkin'&&'Monday Check-In'}
+            {TRACKS[page]&&TRACKS[page].label}
             </div>
           </div>
           <div className="topbar-right">
@@ -1952,6 +1656,7 @@ function App() {
         {page==='calendar'&&<CalendarPage calEvents={calEvents} onAddEvent={handleAddCalEvent} onEditEvent={handleEditCalEvent} onDeleteEvent={handleDeleteCalEvent} demoMode={demoMode}/>}
         {page==='checkin'&&<CheckInPage items={items} calEvents={calEvents} goals={goals}
           onGoalChange={(track,val)=>setGoals(g=>({...g,[track]:val}))}
+          onGoalBlur={handleGoalBlur}
           onSave={handleSaveGoals}
           onTasksGenerated={handleTasksGenerated}
           demoMode={demoMode}/>}
