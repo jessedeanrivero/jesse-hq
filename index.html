@@ -584,7 +584,36 @@ async function deleteRowFromSheet(tab, rowIndex) {
   });
 }
 
-async function getAllCalendars() {
+async function updateRow(tab, rowIndex, values) {
+  // values is an object: { colIndex: value, ... } — only writes specified cells
+  const updates = Object.entries(values).map(([col, val]) => ({
+    range: `${tab}!${String.fromCharCode(65 + parseInt(col))}${rowIndex + 2}`,
+    values: [[val]],
+  }));
+  if (updates.length === 0) return;
+  await gapi.client.sheets.spreadsheets.values.batchUpdate({
+    spreadsheetId: SHEET_ID,
+    resource: { valueInputOption: 'USER_ENTERED', data: updates },
+  });
+}
+
+async function appendDailyLog(entry) {
+  // Daily Log tab: Date | Win | Top3_1 | Top3_2 | Top3_3 | BrainDump | EveningNote | Workout | Sleep | Weight | HealthNote
+  await appendRow('Daily Log', [
+    entry.date || '',
+    entry.win || '',
+    entry.top3?.[0] || '',
+    entry.top3?.[1] || '',
+    entry.top3?.[2] || '',
+    entry.brainDump || '',
+    entry.eveningNote || '',
+    entry.workout || '',
+    entry.sleep || '',
+    entry.weight || '',
+    entry.healthNote || '',
+  ]);
+}
+
   try {
     const r = await gapi.client.calendar.calendarList.list({ minAccessRole:'reader' });
     return r.result.items || [];
@@ -2762,11 +2791,12 @@ function TransitionScreen({ onDone }) {
 }
 
 // ── PERSONAL MODE PAGE ────────────────────────────────────────────────────────
-function PersonalModePage({ onExitPersonal, onBeginWorkDay }) {
+function PersonalModePage({ onExitPersonal, onBeginWorkDay, onSaveReflection }) {
   const [tasks, setTasks] = useState(loadPersonalTasks);
   const [checked, setChecked] = useState(loadPersonalChecked);
   const [streaks, setStreaks] = useState(loadStreaks);
   const [reflection, setReflection] = useState('');
+  const [reflectionSaved, setReflectionSaved] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
   const [shutdownLog] = useState(loadShutdownLog);
 
@@ -2974,9 +3004,21 @@ function PersonalModePage({ onExitPersonal, onBeginWorkDay }) {
             style={{minHeight:'80px',background:'var(--surface2)'}}
             placeholder="Anything worth remembering from today..."
             value={reflection}
-            onChange={e=>setReflection(e.target.value)}
+            onChange={e=>{ setReflection(e.target.value); setReflectionSaved(false); }}
           />
-          <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px'}}>Good day. Rest well.</div>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:'10px'}}>
+            <div style={{fontSize:'10px',color:'var(--text3)'}}>Good day. Rest well.</div>
+            {reflection.trim() && !reflectionSaved && (
+              <button
+                onClick={async ()=>{ await onSaveReflection(reflection); setReflectionSaved(true); }}
+                style={{fontFamily:'DM Mono,monospace',fontSize:'10px',padding:'4px 14px',background:'var(--accent)',color:'#000',border:'none',cursor:'pointer',letterSpacing:'1px'}}>
+                Save note
+              </button>
+            )}
+            {reflectionSaved && (
+              <div style={{fontSize:'10px',color:'var(--success)'}}>✓ Saved to Daily Log</div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -3636,8 +3678,56 @@ function App() {
 
   function handleEndWorkday() { setAppMode('shutting_down'); }
 
-  function handleShutdownComplete() {
+  async function handleShutdownComplete(log) {
     setAppMode('transitioning');
+
+    if (!demoMode) {
+      // 1. Write shutdown log to Daily Log sheet
+      try {
+        await appendDailyLog({
+          date: new Date().toISOString().split('T')[0],
+          win: log.win,
+          top3: log.top3,
+          brainDump: log.brainDump,
+        });
+      } catch(e) { console.error('Daily log write failed:', e); }
+
+      // 2. Act on creature game decisions
+      if (log.gameSorted) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+        for (const [key, decision] of Object.entries(log.gameSorted)) {
+          // key is "track::id"
+          const [track, idStr] = key.split('::');
+          const id = parseInt(idStr);
+          const tab = TRACKS[track]?.tab;
+          if (!tab) continue;
+
+          try {
+            if (decision === 'tomorrow') {
+              // Move to tomorrow: update dueDate column
+              // dueDate col: records/publishing/freelance=4, content=4, songstage=4
+              await updateCell(tab, id, 4, tomorrowStr);
+              // Update in local state too
+              setItems(prev => ({
+                ...prev,
+                [track]: prev[track].map(i => i.id === id ? {...i, dueDate: tomorrowStr} : i),
+              }));
+            } else if (decision === 'drop') {
+              // Drop: mark as Done in status column (col 2)
+              const doneStatus = TERMINAL[track] || 'Done';
+              await updateCell(tab, id, 2, doneStatus);
+              setItems(prev => ({
+                ...prev,
+                [track]: prev[track].map(i => i.id === id ? {...i, status: doneStatus} : i),
+              }));
+            }
+          } catch(e) { console.error(`Shutdown sheet write failed for ${key}:`, e); }
+        }
+      }
+    }
   }
 
   function handleTransitionDone() {
@@ -4030,7 +4120,19 @@ function App() {
           </div>
         </div>
 
-        {appMode==='personal'&&page==='personal'&&<PersonalModePage onExitPersonal={handleExitPersonal} onBeginWorkDay={handleBeginWorkDay}/>}
+        {appMode==='personal'&&page==='personal'&&<PersonalModePage
+          onExitPersonal={handleExitPersonal}
+          onBeginWorkDay={handleBeginWorkDay}
+          onSaveReflection={async (note) => {
+            if (demoMode) return;
+            try {
+              await appendDailyLog({
+                date: new Date().toISOString().split('T')[0],
+                eveningNote: note,
+              });
+            } catch(e) { console.error('Reflection save failed:', e); }
+          }}
+        />
         {page==='today'&&<TodayPage items={items} goals={goals} calEvents={calEvents}
           onMarkDone={(track,item)=>handleMarkDone(track,item)}
           onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}
