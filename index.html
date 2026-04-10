@@ -218,6 +218,86 @@ select option{background:#1e1e1e;color:#f0f0f0;}
 .energy-btn:hover,.energy-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(232,255,71,0.06);}
 .overload-warning{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.3);border-left:3px solid var(--warning);padding:14px 18px;margin-bottom:20px;font-size:12px;color:var(--warning);}
 
+/* MORNING STARTUP MODAL */
+.startup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px);}
+.startup-modal{background:var(--surface);border:1px solid var(--border);width:560px;max-width:100%;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;}
+.startup-header{padding:28px 32px 0;border-bottom:none;}
+.startup-step-dots{display:flex;gap:6px;margin-bottom:20px;}
+.startup-step-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background 0.2s;}
+.startup-step-dot.active{background:var(--accent);}
+.startup-step-dot.done{background:var(--success);}
+.startup-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;}
+.startup-sub{font-size:12px;color:var(--text2);margin-bottom:24px;}
+.startup-body{padding:0 32px;flex:1;}
+.startup-footer{padding:24px 32px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);margin-top:24px;}
+/* Priority confirm step */
+.startup-priority-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.startup-priority-row:last-child{border-bottom:none;}
+.startup-keep-btn{font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all 0.15s;white-space:nowrap;}
+.startup-keep-btn:hover,.startup-keep-btn.kept{border-color:var(--success);color:var(--success);}
+.startup-drop-btn{font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all 0.15s;white-space:nowrap;}
+.startup-drop-btn:hover,.startup-drop-btn.dropped{border-color:#ff4444;color:#ff4444;}
+.startup-priority-name{font-size:13px;flex:1;line-height:1.4;}
+.startup-priority-meta{font-size:10px;color:var(--text3);margin-top:3px;}
+/* Health step */
+.health-option-group{margin-bottom:22px;}
+.health-option-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.health-options{display:flex;flex-wrap:wrap;gap:8px;}
+.health-opt{font-family:'DM Mono',monospace;font-size:11px;padding:8px 16px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+.health-opt:hover{border-color:var(--text2);color:var(--text);}
+.health-opt.selected{border-color:var(--accent);color:var(--accent);background:rgba(232,255,71,0.06);}
+.health-opt.selected-good{border-color:var(--success);color:var(--success);background:rgba(77,255,145,0.06);}
+.health-opt.selected-warn{border-color:var(--warning);color:var(--warning);background:rgba(255,179,71,0.06);}
+.health-opt.selected-bad{border-color:#ff4444;color:#ff4444;background:rgba(255,68,68,0.06);}
+.health-note-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:10px 12px;outline:none;resize:none;min-height:60px;transition:border-color 0.15s;}
+.health-note-input:focus{border-color:var(--accent);}
+/* Today health bar */
+.health-bar{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--success);padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.health-bar-item{display:flex;align-items:center;gap:8px;font-size:11px;}
+.health-bar-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.health-bar-label{color:var(--text3);font-size:9px;letter-spacing:2px;text-transform:uppercase;}
+.health-bar-val{color:var(--text2);}
+.health-bar-edit{font-family:'DM Mono',monospace;font-size:9px;padding:2px 8px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all 0.15s;letter-spacing:1px;margin-left:auto;}
+.health-bar-edit:hover{border-color:var(--text2);color:var(--text2);}
+/* Reprioritize nudge */
+.reprioritize-banner{background:rgba(232,255,71,0.05);border:1px solid rgba(232,255,71,0.2);border-left:3px solid var(--accent);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;}
+.reprioritize-banner button{font-family:'DM Mono',monospace;font-size:10px;padding:4px 12px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;white-space:nowrap;}
+
+/* ── CREATURE GAME ───────────────────────────────────────────────────────── */
+.creature-game{width:100%;min-height:320px;position:relative;background:var(--surface2);border:1px solid var(--border);overflow:hidden;border-radius:0;}
+.creature-game-bg{position:absolute;inset:0;background:linear-gradient(180deg,#0a0a12 0%,#0e0e1a 60%,#12100a 100%);}
+.creature-floor{position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(180deg,#1a1608 0%,#141005 100%);border-top:2px solid #2a2010;}
+.bucket{position:absolute;bottom:0;width:120px;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform 0.15s;}
+.bucket:hover{transform:translateY(-4px);}
+.bucket-body{width:100px;height:64px;position:relative;display:flex;align-items:center;justify-content:center;}
+.bucket-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;text-align:center;}
+.bucket-tomorrow{left:12px;}
+.bucket-drop{right:12px;}
+.bucket-tomorrow .bucket-label{color:#47c9ff;}
+.bucket-drop .bucket-label{color:#ff4d8f;}
+.creature-wrap{position:absolute;cursor:pointer;transition:transform 0.1s;user-select:none;}
+.creature-wrap:hover{transform:scale(1.08);}
+.creature-wrap.selected{filter:drop-shadow(0 0 6px var(--accent));}
+.creature-wrap.flying{transition:left 0.4s cubic-bezier(.4,0,.2,1),top 0.4s cubic-bezier(.4,0,.2,1),opacity 0.3s;}
+.creature-name-tag{position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);border:1px solid var(--border);padding:3px 8px;font-size:9px;color:var(--text2);white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;}
+.game-instructions{position:absolute;top:10px;left:0;right:0;text-align:center;font-size:10px;color:var(--text3);letter-spacing:1px;pointer-events:none;}
+.game-counter{position:absolute;top:10px;right:12px;font-size:10px;color:var(--text3);}
+.bucket-glow-tomorrow{box-shadow:0 0 20px rgba(71,201,255,0.3);}
+.bucket-glow-drop{box-shadow:0 0 20px rgba(255,77,143,0.3);}
+.poof{position:absolute;pointer-events:none;font-size:20px;animation:poofAnim 0.6s ease forwards;}
+@keyframes poofAnim{0%{opacity:1;transform:scale(0.5)}50%{opacity:1;transform:scale(1.4)}100%{opacity:0;transform:scale(1.8)translateY(-20px)}}
+/* BEGIN WORK DAY BANNER */
+.begin-work-banner{background:linear-gradient(135deg,rgba(232,255,71,0.06) 0%,rgba(77,255,145,0.04) 100%);border:1px solid rgba(232,255,71,0.25);border-left:4px solid #e8ff47;padding:24px 28px;margin-bottom:24px;position:relative;overflow:hidden;}
+.begin-work-banner::before{content:'';position:absolute;top:0;right:0;width:200px;height:100%;background:linear-gradient(270deg,rgba(232,255,71,0.04),transparent);pointer-events:none;}
+.begin-work-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#e8ff47;margin-bottom:4px;}
+.begin-work-sub{font-size:11px;color:var(--text2);margin-bottom:16px;line-height:1.5;}
+.begin-work-top3{margin-bottom:16px;}
+.begin-work-top3-item{font-size:12px;color:var(--text2);padding:4px 0;display:flex;gap:10px;border-bottom:1px solid var(--border);}
+.begin-work-top3-item:last-child{border-bottom:none;}
+.begin-work-top3-num{color:var(--text3);}
+.begin-work-btn{background:#e8ff47;color:#000;border:none;padding:12px 28px;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:1px;transition:opacity 0.15s;width:100%;}
+.begin-work-btn:hover{opacity:0.88;}
+
 /* TOAST */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);padding:14px 18px;font-size:12px;z-index:2000;animation:slideIn 0.2s ease;max-width:320px;}
 @keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
@@ -260,6 +340,78 @@ select option{background:#1e1e1e;color:#f0f0f0;}
   .dashboard-grid{grid-template-columns:1fr;}
   .stat-number{font-size:28px;}
 }
+
+/* ── PERSONAL MODE THEME ─────────────────────────────────────────────────── */
+body.personal-mode {
+  --bg:#0d0b07; --surface:#171209; --surface2:#1e1608; --border:#2e2510;
+  --accent:#ffb347; --text:#f5ede0; --text2:#9e8a6e; --text3:#5a4d38;
+  --success:#7ecb8f; --warning:#ff9a3c;
+  transition: background 0.6s ease, color 0.4s ease;
+}
+body.personal-mode .logo-text { color: var(--accent); }
+body.personal-mode .add-btn, body.personal-mode .btn-primary { background:var(--accent); color:#000; }
+body.personal-mode .priority-check.done { background:var(--accent); border-color:var(--accent); }
+body.personal-mode .energy-btn:hover, body.personal-mode .energy-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(255,179,71,0.08); }
+body.personal-mode .form-input:focus, body.personal-mode .form-select:focus, body.personal-mode .form-textarea:focus { border-color:var(--accent); }
+body.personal-mode .nav-item[data-track="personal"].active { border-left-color:var(--accent); }
+body.personal-mode .cal-view-btn.active { background:var(--accent); border-color:var(--accent); }
+body.personal-mode .ai-dot { background:var(--accent); }
+body.personal-mode .block-check.checked { background:var(--accent); border-color:var(--accent); }
+
+/* ── SHUTDOWN MODAL ──────────────────────────────────────────────────────── */
+.shutdown-step-indicator { display:flex; gap:8px; margin-bottom:24px; }
+.shutdown-step-dot { width:8px; height:8px; border-radius:50%; background:var(--border); transition:background 0.3s; }
+.shutdown-step-dot.active { background:var(--accent); }
+.shutdown-step-dot.done { background:var(--success); }
+.shutdown-task-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); gap:12px; }
+.shutdown-task-row:last-child { border-bottom:none; }
+.shutdown-task-name { font-size:12px; flex:1; }
+.shutdown-task-track { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-top:2px; }
+.shutdown-task-actions { display:flex; gap:6px; flex-shrink:0; }
+.shutdown-task-btn { font-family:'DM Mono',monospace; font-size:10px; padding:4px 10px; border:1px solid var(--border); background:transparent; color:var(--text2); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.shutdown-task-btn:hover { border-color:var(--accent); color:var(--accent); }
+.shutdown-task-btn.moved { background:rgba(77,255,145,0.1); border-color:var(--success); color:var(--success); }
+.shutdown-task-btn.dropped { background:rgba(255,68,68,0.08); border-color:#ff4444; color:#ff4444; }
+.win-input { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-family:'DM Mono',monospace; font-size:13px; padding:12px; outline:none; transition:border-color 0.15s; resize:none; min-height:72px; }
+.win-input:focus { border-color:var(--accent); }
+.tomorrow-input { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-family:'DM Mono',monospace; font-size:13px; padding:10px 12px; outline:none; transition:border-color 0.15s; margin-bottom:8px; }
+.tomorrow-input:focus { border-color:var(--accent); }
+.tomorrow-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.tomorrow-num { font-size:10px; color:var(--text3); width:14px; flex-shrink:0; }
+
+/* ── TRANSITION SCREEN ───────────────────────────────────────────────────── */
+.transition-screen { position:fixed; inset:0; background:#0d0b07; z-index:9000; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; animation:fadeInScreen 0.5s ease; }
+@keyframes fadeInScreen { from{opacity:0} to{opacity:1} }
+.transition-pulse { width:60px; height:60px; border-radius:50%; background:rgba(255,179,71,0.15); border:1px solid rgba(255,179,71,0.4); animation:warmPulse 1.5s ease-in-out infinite; }
+@keyframes warmPulse { 0%,100%{transform:scale(1);opacity:0.6} 50%{transform:scale(1.15);opacity:1} }
+.transition-title { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:#ffb347; letter-spacing:-0.5px; }
+.transition-sub { font-size:12px; color:#9e8a6e; letter-spacing:1px; }
+
+/* ── PERSONAL MODE PAGE ──────────────────────────────────────────────────── */
+.personal-hero { padding:28px; margin-bottom:24px; border:1px solid var(--border); background:var(--surface); border-left:4px solid var(--accent); }
+.personal-hero-title { font-family:'Syne',sans-serif; font-size:30px; font-weight:800; color:var(--accent); line-height:1; }
+.personal-hero-sub { font-size:11px; color:var(--text2); margin-top:6px; }
+.personal-category { background:var(--surface); border:1px solid var(--border); padding:20px; margin-bottom:14px; }
+.personal-category-label { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--text3); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+.personal-task-row { display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); }
+.personal-task-row:last-child { border-bottom:none; }
+.personal-check { width:20px; height:20px; border:1px solid var(--border); border-radius:50%; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px; transition:all 0.2s; }
+.personal-check:hover { border-color:var(--accent); }
+.personal-check.checked { background:var(--accent); border-color:var(--accent); color:#000; }
+.personal-task-label { font-size:13px; flex:1; transition:color 0.2s; }
+.personal-task-label.checked { text-decoration:line-through; color:var(--text3); }
+.streak-badge { font-size:10px; color:var(--accent); background:rgba(255,179,71,0.1); border:1px solid rgba(255,179,71,0.2); padding:2px 8px; }
+.personal-progress-bar { height:3px; background:var(--border); margin-bottom:24px; }
+.personal-progress-fill { height:100%; background:var(--accent); transition:width 0.4s ease; }
+.personal-progress-label { font-size:10px; color:var(--text2); margin-bottom:8px; display:flex; justify-content:space-between; }
+.personal-reflection { background:var(--surface); border:1px solid var(--border); padding:20px; margin-top:8px; }
+.personal-task-edit-btn { font-family:'DM Mono',monospace; font-size:9px; padding:2px 8px; border:1px solid var(--border); background:transparent; color:var(--text3); cursor:pointer; letter-spacing:1px; }
+.personal-task-edit-btn:hover { border-color:var(--accent); color:var(--accent); }
+.free-night-banner { background:rgba(255,179,71,0.08); border:1px solid rgba(255,179,71,0.3); border-left:3px solid var(--accent); padding:16px 20px; margin-bottom:20px; }
+.free-night-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; color:var(--accent); margin-bottom:4px; }
+.free-night-sub { font-size:11px; color:var(--text2); }
+.end-workday-btn { background:transparent; border:1px solid var(--border); color:var(--text2); font-family:'DM Mono',monospace; font-size:11px; padding:8px 16px; cursor:pointer; transition:all 0.2s; letter-spacing:1px; }
+.end-workday-btn:hover { border-color:var(--warning); color:var(--warning); }
 </style>
 </head>
 <body>
@@ -1943,8 +2095,1114 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
   );
 }
 
-// ── TODAY PAGE ────────────────────────────────────────────────────────────────
-function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin }) {
+// ── SHUTDOWN + PERSONAL MODE CONSTANTS ───────────────────────────────────────
+const DEFAULT_PERSONAL_TASKS = [
+  { id:'walk',        category:'health',  label:'Walk 1 mile',                  active:true },
+  { id:'stretch',     category:'health',  label:'Stretch 5 minutes',            active:true },
+  { id:'family_din',  category:'family',  label:'Dinner with family',           active:true },
+  { id:'kids_time',   category:'family',  label:'Focused time with the boys',   active:true },
+  { id:'kendall',     category:'family',  label:'Intentional conversation with Kendall', active:false },
+  { id:'gratitude',   category:'reset',   label:'One thing you\'re grateful for', active:true },
+  { id:'brain_dump',  category:'reset',   label:'Brain dump — write it out',    active:false },
+  { id:'read',        category:'wind',    label:'Read 5–10 pages',              active:true },
+  { id:'no_phone',    category:'wind',    label:'Phone down by 9pm',            active:false },
+  { id:'music',       category:'wind',    label:'Listen to music for fun',      active:false },
+];
+
+const PERSONAL_CATEGORY_LABELS = {
+  health: 'Health',
+  family: 'Family',
+  reset:  'Reset',
+  wind:   'Wind Down',
+};
+
+function todayKey() { return new Date().toISOString().split('T')[0]; }
+
+function loadPersonalTasks() {
+  try {
+    const saved = localStorage.getItem('hq_personal_tasks');
+    return saved ? JSON.parse(saved) : DEFAULT_PERSONAL_TASKS;
+  } catch { return DEFAULT_PERSONAL_TASKS; }
+}
+
+function savePersonalTasks(tasks) {
+  try { localStorage.setItem('hq_personal_tasks', JSON.stringify(tasks)); } catch {}
+}
+
+function loadPersonalChecked() {
+  try {
+    const saved = localStorage.getItem('hq_personal_' + todayKey());
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+}
+
+function savePersonalChecked(checked) {
+  try { localStorage.setItem('hq_personal_' + todayKey(), JSON.stringify(checked)); } catch {}
+}
+
+function loadStreaks() {
+  try {
+    const saved = localStorage.getItem('hq_streaks');
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+}
+
+function updateStreaks(checkedToday, personalTasks) {
+  const streaks = loadStreaks();
+  const today = todayKey();
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yesterdayKey = yesterday.toISOString().split('T')[0];
+
+  personalTasks.filter(t=>t.active).forEach(task => {
+    const existing = streaks[task.id] || { count:0, lastDate:'' };
+    if (checkedToday[task.id]) {
+      if (existing.lastDate === today) return; // already counted
+      const continued = existing.lastDate === yesterdayKey;
+      streaks[task.id] = { count: continued ? existing.count+1 : 1, lastDate: today };
+    }
+  });
+
+  try { localStorage.setItem('hq_streaks', JSON.stringify(streaks)); } catch {}
+  return streaks;
+}
+
+function loadShutdownLog() {
+  try {
+    const saved = localStorage.getItem('hq_shutdown_' + todayKey());
+    return saved ? JSON.parse(saved) : null;
+  } catch { return null; }
+}
+
+function saveShutdownLog(log) {
+  try { localStorage.setItem('hq_shutdown_' + todayKey(), JSON.stringify(log)); } catch {}
+}
+
+// ── CREATURE GAME ─────────────────────────────────────────────────────────────
+function CreatureGame({ openItems, onAllSorted }) {
+  const containerRef = React.useRef(null);
+  const animRef = React.useRef(null);
+  const dragRef = React.useRef(null); // { key, offsetX, offsetY }
+  const posRef = React.useRef({});    // live positions, not in state to avoid re-render during drag
+  const timeRef = React.useRef(0);
+
+  const [sorted, setSorted] = React.useState({});
+  const [dragging, setDragging] = React.useState(null); // key being dragged
+  const [hoverBucket, setHoverBucket] = React.useState(null); // 'tomorrow'|'drop'|null
+  const [poofs, setPoofs] = React.useState([]);
+  const [, forceRender] = React.useReducer(x => x+1, 0);
+
+  // Creature personality — each gets a fixed phase/speed so idle is consistent
+  const personalities = React.useRef({});
+
+  // Init positions
+  React.useEffect(() => {
+    const cols = Math.min(4, openItems.length);
+    openItems.forEach((item, i) => {
+      const key = `${item.track}::${item.id}`;
+      if (posRef.current[key]) return; // don't re-init
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const baseX = 130 + col * 80 + (row % 2) * 20;
+      const baseY = 30 + row * 85;
+      posRef.current[key] = { x: baseX, y: baseY, baseX, baseY };
+      personalities.current[key] = {
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.5 + Math.random() * 0.6,
+        bobAmp: 3 + Math.random() * 4,
+        swayAmp: 2 + Math.random() * 3,
+      };
+    });
+  }, [openItems]);
+
+  // Idle animation loop — skips any creature being dragged or sorted
+  React.useEffect(() => {
+    function tick() {
+      timeRef.current += 0.035;
+      const t = timeRef.current;
+      let changed = false;
+      openItems.forEach(item => {
+        const key = `${item.track}::${item.id}`;
+        if (sorted[key] || dragRef.current?.key === key) return;
+        const p = personalities.current[key];
+        const pos = posRef.current[key];
+        if (!p || !pos) return;
+        posRef.current[key] = {
+          ...pos,
+          x: pos.baseX + Math.sin(t * p.speed + p.phase) * p.swayAmp,
+          y: pos.baseY + Math.cos(t * p.speed * 0.8 + p.phase) * p.bobAmp,
+        };
+        changed = true;
+      });
+      if (changed) forceRender();
+      animRef.current = requestAnimationFrame(tick);
+    }
+    animRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [openItems, sorted]);
+
+  function getCreatureColor(track) {
+    return { records:'#ff6b35', publishing:'#d4e840', songstage:'#47c9ff', freelance:'#b47cff', content:'#ff4d8f' }[track] || '#aaa';
+  }
+
+  // Psyduck-inspired: round head, confused expression, little hands on cheeks, duck feet
+  function CreatureSVG({ color, isDragging, hue }) {
+    const lightColor = color + 'dd';
+    const darkColor  = color + '99';
+    const scale = isDragging ? 1.12 : 1;
+    return (
+      <svg width="56" height="64" viewBox="0 0 56 64"
+        style={{display:'block', filter: isDragging ? `drop-shadow(0 6px 12px ${color}88)` : 'none',
+          transform:`scale(${scale})`, transformOrigin:'50% 80%', transition:'transform 0.15s'}}>
+
+        {/* Ground shadow */}
+        <ellipse cx="28" cy="62" rx="13" ry="3.5" fill="rgba(0,0,0,0.25)"/>
+
+        {/* Body — round, egg-shaped */}
+        <ellipse cx="28" cy="42" rx="16" ry="18" fill={color}/>
+        {/* Body highlight */}
+        <ellipse cx="22" cy="34" rx="5" ry="7" fill="rgba(255,255,255,0.18)" transform="rotate(-20,22,34)"/>
+        {/* Belly patch */}
+        <ellipse cx="28" cy="46" rx="9" ry="11" fill={lightColor} opacity="0.55"/>
+
+        {/* Stubby tail */}
+        <ellipse cx="44" cy="40" rx="5" ry="4" fill={darkColor} transform="rotate(15,44,40)"/>
+        <ellipse cx="47" cy="39" rx="3" ry="2.5" fill={color} transform="rotate(15,47,39)"/>
+
+        {/* Left arm/hand on head (confused pose) */}
+        <ellipse cx="13" cy="32" rx="4.5" ry="3.5" fill={color} transform="rotate(-30,13,32)"/>
+        <ellipse cx="10" cy="29" rx="3.5" ry="3" fill={darkColor} transform="rotate(-30,10,29)"/>
+
+        {/* Right arm/hand on head */}
+        <ellipse cx="43" cy="32" rx="4.5" ry="3.5" fill={color} transform="rotate(30,43,32)"/>
+        <ellipse cx="46" cy="29" rx="3.5" ry="3" fill={darkColor} transform="rotate(30,46,29)"/>
+
+        {/* Feet — flat duck feet */}
+        <ellipse cx="21" cy="59" rx="7" ry="3.5" fill={darkColor}/>
+        <ellipse cx="35" cy="59" rx="7" ry="3.5" fill={darkColor}/>
+        {/* Toe lines */}
+        <line x1="16" y1="59" x2="13" y2="57" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+        <line x1="21" y1="60" x2="21" y2="57" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+        <line x1="26" y1="59" x2="28" y2="57" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+        <line x1="30" y1="59" x2="27" y2="57" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+        <line x1="35" y1="60" x2="35" y2="57" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+        <line x1="40" y1="59" x2="42" y2="57" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
+
+        {/* Head — big round */}
+        <circle cx="28" cy="22" r="18" fill={color}/>
+        {/* Head highlight */}
+        <ellipse cx="21" cy="13" rx="6" ry="8" fill="rgba(255,255,255,0.2)" transform="rotate(-15,21,13)"/>
+
+        {/* Forehead bump / little horn nub */}
+        <ellipse cx="28" cy="6" rx="4" ry="3" fill={darkColor}/>
+
+        {/* Ears */}
+        <ellipse cx="12" cy="12" rx="5" ry="7" fill={color} transform="rotate(-20,12,12)"/>
+        <ellipse cx="12" cy="12" rx="2.5" ry="4" fill={darkColor} transform="rotate(-20,12,12)" opacity="0.6"/>
+        <ellipse cx="44" cy="12" rx="5" ry="7" fill={color} transform="rotate(20,44,12)"/>
+        <ellipse cx="44" cy="12" rx="2.5" ry="4" fill={darkColor} transform="rotate(20,44,12)" opacity="0.6"/>
+
+        {/* Eyes — big, slightly crossed/confused */}
+        <ellipse cx="22" cy="22" rx="5.5" ry="6" fill="white"/>
+        <ellipse cx="34" cy="22" rx="5.5" ry="6" fill="white"/>
+        {/* Pupils — slightly inward (confused look) */}
+        <circle cx="23.5" cy="23" r="3" fill="#1a1a1a"/>
+        <circle cx="32.5" cy="23" r="3" fill="#1a1a1a"/>
+        {/* Eye shine */}
+        <circle cx="24.5" cy="21.5" r="1.2" fill="white"/>
+        <circle cx="33.5" cy="21.5" r="1.2" fill="white"/>
+        {/* Worried brow lines */}
+        <path d="M18 16 Q22 14 25 16" stroke={darkColor} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+        <path d="M31 16 Q34 14 38 16" stroke={darkColor} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+
+        {/* Bill / beak */}
+        <ellipse cx="28" cy="32" rx="6" ry="4" fill={darkColor}/>
+        <ellipse cx="28" cy="31" rx="6" ry="3" fill={color} opacity="0.7"/>
+        {/* Bill line */}
+        <line x1="22" y1="32" x2="34" y2="32" stroke={darkColor} strokeWidth="1" opacity="0.5"/>
+
+        {/* Sweat drop — confused/stressed */}
+        {!isDragging && <>
+          <ellipse cx="43" cy="14" rx="2.5" ry="4" fill="#87ceeb" opacity="0.7" transform="rotate(15,43,14)"/>
+          <circle cx="43" cy="11" r="2" fill="#87ceeb" opacity="0.7"/>
+        </>}
+        {/* Stars when dragging — dazed */}
+        {isDragging && <>
+          <text x="6" y="10" fontSize="8" opacity="0.8">✦</text>
+          <text x="44" y="8" fontSize="7" opacity="0.7">✦</text>
+        </>}
+      </svg>
+    );
+  }
+
+  // ── Drag logic ────────────────────────────────────────────────────────────
+  function getBucketZones() {
+    const el = containerRef.current;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    return {
+      tomorrow: { x: 0, y: rect.height - 140, w: 140, h: 140 },
+      drop:     { x: rect.width - 140, y: rect.height - 140, w: 140, h: 140 },
+      rect,
+    };
+  }
+
+  function hitBucket(clientX, clientY) {
+    const zones = getBucketZones();
+    if (!zones) return null;
+    const rx = clientX - zones.rect.left;
+    const ry = clientY - zones.rect.top;
+    if (rx < 140 && ry > zones.rect.height - 140) return 'tomorrow';
+    if (rx > zones.rect.width - 140 && ry > zones.rect.height - 140) return 'drop';
+    return null;
+  }
+
+  function startDrag(key, clientX, clientY, e) {
+    if (sorted[key]) return;
+    e.preventDefault();
+    const pos = posRef.current[key];
+    if (!pos) return;
+    const el = containerRef.current;
+    const rect = el.getBoundingClientRect();
+    dragRef.current = {
+      key,
+      offsetX: clientX - rect.left - pos.x,
+      offsetY: clientY - rect.top - pos.y,
+    };
+    setDragging(key);
+  }
+
+  function onMove(clientX, clientY) {
+    if (!dragRef.current) return;
+    const { key, offsetX, offsetY } = dragRef.current;
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const newX = clientX - rect.left - offsetX;
+    const newY = clientY - rect.top - offsetY;
+    posRef.current[key] = { ...posRef.current[key], x: newX, y: newY };
+    forceRender();
+    setHoverBucket(hitBucket(clientX, clientY));
+  }
+
+  function endDrag(clientX, clientY) {
+    if (!dragRef.current) return;
+    const { key } = dragRef.current;
+    const bucket = hitBucket(clientX, clientY);
+    dragRef.current = null;
+    setDragging(null);
+    setHoverBucket(null);
+    if (bucket) {
+      doSort(key, bucket);
+    } else {
+      // Snap back to base
+      const pos = posRef.current[key];
+      if (pos) posRef.current[key] = { ...pos, x: pos.baseX, y: pos.baseY };
+      forceRender();
+    }
+  }
+
+  function doSort(key, destination) {
+    const el = containerRef.current;
+    const rect = el ? el.getBoundingClientRect() : { width: 520, height: 300 };
+    const targetX = destination === 'tomorrow' ? 45 : rect.width - 100;
+    const targetY = rect.height - 110;
+    posRef.current[key] = { ...posRef.current[key], x: targetX, y: targetY };
+    forceRender();
+    setTimeout(() => {
+      setSorted(s => ({ ...s, [key]: destination }));
+      const poofId = Date.now() + Math.random();
+      setPoofs(pf => [...pf, { id: poofId, x: targetX + 28, y: targetY + 20, dest: destination }]);
+      setTimeout(() => setPoofs(pf => pf.filter(p => p.id !== poofId)), 700);
+    }, 220);
+  }
+
+  // Mouse events
+  function onMouseDown(key, e) { startDrag(key, e.clientX, e.clientY, e); }
+  React.useEffect(() => {
+    function onMouseMove(e) { onMove(e.clientX, e.clientY); }
+    function onMouseUp(e) { endDrag(e.clientX, e.clientY); }
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    return () => { window.removeEventListener('mousemove', onMouseMove); window.removeEventListener('mouseup', onMouseUp); };
+  }, [sorted]);
+
+  // Touch events
+  function onTouchStart(key, e) {
+    const t = e.touches[0];
+    startDrag(key, t.clientX, t.clientY, e);
+  }
+  React.useEffect(() => {
+    function onTouchMove(e) { if (dragRef.current) { e.preventDefault(); const t=e.touches[0]; onMove(t.clientX, t.clientY); } }
+    function onTouchEnd(e) { if (dragRef.current) { const t=e.changedTouches[0]; endDrag(t.clientX, t.clientY); } }
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+    return () => { window.removeEventListener('touchmove', onTouchMove); window.removeEventListener('touchend', onTouchEnd); };
+  }, [sorted]);
+
+  // Click to sort (for keyboard/tap without drag)
+  const [clickSelected, setClickSelected] = React.useState(null);
+  function handleCreatureClick(key) {
+    if (dragging) return; // was a drag, not a click
+    if (sorted[key]) return;
+    setClickSelected(k => k === key ? null : key);
+  }
+  function handleBucketClick(dest) {
+    if (clickSelected) { doSort(clickSelected, dest); setClickSelected(null); }
+  }
+
+  const unsortedCount = openItems.filter(i => !sorted[`${i.track}::${i.id}`]).length;
+  const allSorted = unsortedCount === 0 && openItems.length > 0;
+
+  React.useEffect(() => {
+    if (allSorted) setTimeout(() => onAllSorted(sorted), 500);
+  }, [allSorted]);
+
+  const gameH = Math.max(300, 60 + Math.ceil(openItems.length / 4) * 90);
+
+  return (
+    <div>
+      <div className="creature-game" ref={containerRef}
+        style={{ height: gameH + 'px', cursor: dragging ? 'grabbing' : 'default', userSelect:'none' }}>
+        <div className="creature-game-bg"/>
+
+        {/* Stars */}
+        {[...Array(14)].map((_,i) => (
+          <div key={i} style={{
+            position:'absolute', borderRadius:'50%',
+            width: i%4===0?2:1, height: i%4===0?2:1,
+            background:'rgba(255,255,255,' + (0.3+i*0.03) + ')',
+            left: (6+i*6.5)+'%', top: (4+i*3.2)+'%',
+            animation:`pulse ${1.4+i*0.25}s infinite alternate`
+          }}/>
+        ))}
+
+        <div className="game-instructions">
+          {allSorted
+            ? '✓ All sorted — moving on...'
+            : dragging
+            ? 'Drop into a bucket →'
+            : clickSelected
+            ? 'Now tap a bucket to send it'
+            : 'Drag a creature into a bucket — or tap to select'}
+        </div>
+        <div className="game-counter">{unsortedCount} left</div>
+
+        {/* Tomorrow bucket */}
+        <div className="bucket bucket-tomorrow"
+          style={{
+            filter: hoverBucket==='tomorrow' ? 'brightness(1.6)' : clickSelected ? 'brightness(1.25)' : 'brightness(0.85)',
+            transition:'filter 0.15s', cursor: clickSelected ? 'pointer' : 'default'
+          }}
+          onClick={() => handleBucketClick('tomorrow')}>
+          <div className="bucket-label">Tomorrow</div>
+          <div className="bucket-body">
+            <svg width="110" height="72" viewBox="0 0 110 72">
+              <path d="M18 24 L10 68 L100 68 L92 24 Z" fill="#0d1a24" stroke="#47c9ff" strokeWidth="1.5"/>
+              <path d="M18 24 L92 24" stroke="#47c9ff" strokeWidth="2"/>
+              <path d="M33 24 Q55 6 77 24" fill="none" stroke="#47c9ff" strokeWidth="2"/>
+              {/* Moon */}
+              <path d="M48 44 Q42 38 46 30 Q38 34 38 44 Q38 54 48 58 Q40 52 48 44Z" fill="#47c9ff" opacity="0.7"/>
+              {/* Stars inside */}
+              <circle cx="68" cy="36" r="1.5" fill="#47c9ff" opacity="0.6"/>
+              <circle cx="72" cy="48" r="1" fill="#47c9ff" opacity="0.5"/>
+              <circle cx="60" cy="54" r="1" fill="#47c9ff" opacity="0.4"/>
+              {Object.values(sorted).filter(v=>v==='tomorrow').length > 0 && (
+                <text x="55" y="20" textAnchor="middle" fontSize="11" fill="#47c9ff" fontFamily="DM Mono,monospace">
+                  {Object.values(sorted).filter(v=>v==='tomorrow').length} in
+                </text>
+              )}
+            </svg>
+          </div>
+        </div>
+
+        {/* Drop bucket */}
+        <div className="bucket bucket-drop"
+          style={{
+            filter: hoverBucket==='drop' ? 'brightness(1.6)' : clickSelected ? 'brightness(1.25)' : 'brightness(0.85)',
+            transition:'filter 0.15s', cursor: clickSelected ? 'pointer' : 'default'
+          }}
+          onClick={() => handleBucketClick('drop')}>
+          <div className="bucket-label">Drop it</div>
+          <div className="bucket-body">
+            <svg width="110" height="72" viewBox="0 0 110 72">
+              <ellipse cx="55" cy="56" rx="42" ry="14" fill="#1a0818" stroke="#ff4d8f" strokeWidth="1.5"/>
+              <ellipse cx="55" cy="56" rx="30" ry="9" fill="#0f0012" stroke="#ff4d8f" strokeWidth="0.5" opacity="0.6"/>
+              <ellipse cx="55" cy="56" rx="16" ry="5" fill="#000" opacity="0.9"/>
+              <path d="M30 56 Q42 48 55 56 Q68 64 80 56" fill="none" stroke="#ff4d8f" strokeWidth="0.8" opacity="0.35"/>
+              <path d="M38 50 Q55 42 72 50" fill="none" stroke="#ff4d8f" strokeWidth="0.6" opacity="0.2"/>
+              {/* Lightning bolt */}
+              <path d="M62 28 L52 42 L58 42 L48 62 L66 44 L59 44 Z" fill="#ff4d8f" opacity="0.65"/>
+              {Object.values(sorted).filter(v=>v==='drop').length > 0 && (
+                <text x="55" y="20" textAnchor="middle" fontSize="11" fill="#ff4d8f" fontFamily="DM Mono,monospace">
+                  {Object.values(sorted).filter(v=>v==='drop').length} gone
+                </text>
+              )}
+            </svg>
+          </div>
+        </div>
+
+        {/* Floor */}
+        <div className="creature-floor"/>
+
+        {/* Creatures */}
+        {openItems.map(item => {
+          const key = `${item.track}::${item.id}`;
+          const pos = posRef.current[key];
+          const isSorted = !!sorted[key];
+          const isDrag = dragging === key;
+          const isClickSel = clickSelected === key;
+          const color = getCreatureColor(item.track);
+          if (!pos) return null;
+          return (
+            <div key={key} style={{
+              position:'absolute',
+              left: pos.x + 'px',
+              top:  pos.y + 'px',
+              opacity: isSorted ? 0 : 1,
+              transition: isSorted ? 'opacity 0.3s' : isDrag ? 'none' : 'opacity 0.3s',
+              zIndex: isDrag ? 20 : isClickSel ? 10 : 2,
+              cursor: isSorted ? 'default' : isDrag ? 'grabbing' : 'grab',
+              filter: isClickSel && !isDrag ? `drop-shadow(0 0 8px ${color})` : 'none',
+            }}
+              onMouseDown={e => !isSorted && onMouseDown(key, e)}
+              onTouchStart={e => !isSorted && onTouchStart(key, e)}
+              onClick={() => handleCreatureClick(key)}
+            >
+              <div className="creature-name-tag" style={{
+                borderColor: color, color,
+                background:'rgba(0,0,0,0.88)',
+                transform: isDrag ? 'translateX(-50%) scale(1.05)' : 'translateX(-50%)',
+                left:'50%', position:'absolute',
+              }}>
+                {item.name.length > 16 ? item.name.slice(0,14)+'…' : item.name}
+              </div>
+              <CreatureSVG color={color} isDragging={isDrag || isClickSel}/>
+            </div>
+          );
+        })}
+
+        {/* Empty state */}
+        {openItems.length === 0 && (
+          <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'10px'}}>
+            <div style={{fontSize:'28px'}}>✨</div>
+            <div style={{fontSize:'12px',color:'var(--success)',letterSpacing:'1px'}}>Clean slate — nothing open</div>
+          </div>
+        )}
+
+        {/* Poof effects */}
+        {poofs.map(p => (
+          <div key={p.id} className="poof" style={{left:p.x+'px',top:p.y+'px',position:'absolute'}}>
+            {p.dest==='tomorrow' ? '💫' : '💥'}
+          </div>
+        ))}
+      </div>
+
+      {/* Below-game instruction */}
+      <div style={{textAlign:'center',fontSize:'10px',color:'var(--text3)',marginTop:'10px',letterSpacing:'1px'}}>
+        {clickSelected
+          ? 'TAP A BUCKET ABOVE TO SORT · OR DRAG DIRECTLY'
+          : unsortedCount > 0
+          ? 'DRAG INTO A BUCKET · OR TAP TO SELECT FIRST'
+          : ''}
+      </div>
+    </div>
+  );
+}
+
+// ── SHUTDOWN MODAL ────────────────────────────────────────────────────────────
+function ShutdownModal({ items, onClose, onComplete }) {
+  const [step, setStep] = useState(0);
+  const [gameSorted, setGameSorted] = useState(null); // result from creature game
+  const [win, setWin] = useState('');
+  const [top3, setTop3] = useState(['','','']);
+  const [brainDump, setBrainDump] = useState('');
+
+  // Gather open items across all tracks
+  const openItems = Object.entries(items).flatMap(([track, trackItems]) =>
+    trackItems.filter(i => !(DONE_STATUSES[track]||[]).includes(i.status))
+              .map(i => ({...i, track}))
+  );
+
+  function handleGameDone(sorted) {
+    setGameSorted(sorted);
+    setTimeout(() => setStep(1), 500);
+  }
+
+  function handleComplete() {
+    const log = { win, top3, brainDump, gameSorted, completedAt: new Date().toISOString() };
+    saveShutdownLog(log);
+    onComplete(log);
+  }
+
+  const stepLabels = ['Sort your tasks','Before you go','Brain dump'];
+
+  return (
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal" style={{width:'580px'}}>
+        <div className="modal-header">
+          <div>
+            <div className="modal-title">Closing Out</div>
+            <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'2px'}}>
+              {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+            </div>
+          </div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="modal-body">
+          {/* Step indicator */}
+          <div className="shutdown-step-indicator">
+            {stepLabels.map((label,i) => (
+              <div key={i} style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                <div className={`shutdown-step-dot${i===step?' active':i<step?' done':''}`}/>
+                <span style={{fontSize:'10px',color:i===step?'var(--text2)':'var(--text3)',letterSpacing:'1px'}}>
+                  {label}
+                </span>
+                {i < 2 && <span style={{color:'var(--text3)',fontSize:'10px',marginLeft:'4px'}}>·</span>}
+              </div>
+            ))}
+          </div>
+
+          {/* Step 0: Creature game */}
+          {step === 0 && (
+            <>
+              <div style={{fontSize:'12px',color:'var(--text2)',marginBottom:'14px'}}>
+                {openItems.length === 0
+                  ? 'Nothing open — clean slate.'
+                  : `${openItems.length} creature${openItems.length>1?'s':''} need a home. Sort them all to continue.`}
+              </div>
+              <CreatureGame openItems={openItems} onAllSorted={handleGameDone}/>
+              {openItems.length === 0 && (
+                <div style={{textAlign:'center',padding:'16px 0'}}>
+                  <button className="btn-primary" onClick={()=>setStep(1)}>Next →</button>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Step 1: Win + Top 3 */}
+          {step === 1 && (
+            <>
+              <div className="form-group">
+                <label className="form-label">One win from today</label>
+                <textarea
+                  className="win-input"
+                  placeholder="What moved today? Even small counts."
+                  value={win}
+                  onChange={e=>setWin(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <div className="form-group" style={{marginBottom:0}}>
+                <label className="form-label">Top 3 for tomorrow</label>
+                {[0,1,2].map(i => (
+                  <div key={i} className="tomorrow-row">
+                    <span className="tomorrow-num">{i+1}.</span>
+                    <input
+                      className="tomorrow-input"
+                      style={{marginBottom:0}}
+                      placeholder={i===0?'Most important thing':''}
+                      value={top3[i]}
+                      onChange={e=>{const n=[...top3];n[i]=e.target.value;setTop3(n);}}
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Step 2: Brain dump */}
+          {step === 2 && (
+            <>
+              <div style={{fontSize:'13px',color:'var(--text2)',marginBottom:'16px',lineHeight:'1.6'}}>
+                Anything still running in the background? Get it out.
+                It'll be here tomorrow. You don't have to carry it.
+              </div>
+              <textarea
+                className="win-input"
+                style={{minHeight:'120px'}}
+                placeholder="Just type it out..."
+                value={brainDump}
+                onChange={e=>setBrainDump(e.target.value)}
+                autoFocus
+              />
+            </>
+          )}
+        </div>
+
+        <div className="modal-footer">
+          {step > 0 && <button className="btn-secondary" onClick={()=>setStep(s=>s-1)}>← Back</button>}
+          {step === 1 && <button className="btn-primary" onClick={()=>setStep(2)}>Next →</button>}
+          {step === 2 && (
+            <>
+              <button className="btn-secondary" onClick={handleComplete}>Skip</button>
+              <button className="btn-primary" onClick={handleComplete}>Close the workday →</button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── TRANSITION SCREEN ─────────────────────────────────────────────────────────
+function TransitionScreen({ onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 2200);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div className="transition-screen">
+      <div className="transition-pulse"/>
+      <div className="transition-title">Work day: closed.</div>
+      <div className="transition-sub">You worked. Now live.</div>
+    </div>
+  );
+}
+
+// ── PERSONAL MODE PAGE ────────────────────────────────────────────────────────
+function PersonalModePage({ onExitPersonal, onBeginWorkDay }) {
+  const [tasks, setTasks] = useState(loadPersonalTasks);
+  const [checked, setChecked] = useState(loadPersonalChecked);
+  const [streaks, setStreaks] = useState(loadStreaks);
+  const [reflection, setReflection] = useState('');
+  const [showEditor, setShowEditor] = useState(false);
+  const [shutdownLog] = useState(loadShutdownLog);
+
+  const activeTasks = tasks.filter(t => t.active);
+  const checkedCount = activeTasks.filter(t => checked[t.id]).length;
+  const allDone = checkedCount === activeTasks.length && activeTasks.length > 0;
+
+  // Begin Work Day logic — shows from 6am until startup is done
+  const now = new Date();
+  const hour = now.getHours();
+  const startupDone = localStorage.getItem('hq_startup_done') === now.toDateString();
+  const showBeginWork = hour >= 6 && !startupDone;
+
+  function toggle(id) {
+    const next = { ...checked, [id]: !checked[id] };
+    setChecked(next);
+    savePersonalChecked(next);
+    const updated = updateStreaks(next, tasks);
+    setStreaks(updated);
+  }
+
+  // Check for "free night" — any streak >= 7
+  const freeNight = Object.entries(streaks).find(([id, s]) => s.count >= 7 && s.lastDate === todayKey());
+  const freeNightTask = freeNight ? tasks.find(t => t.id === freeNight[0]) : null;
+
+  // Group active tasks by category
+  const byCategory = {};
+  activeTasks.forEach(t => {
+    if (!byCategory[t.category]) byCategory[t.category] = [];
+    byCategory[t.category].push(t);
+  });
+
+  function toggleTaskActive(id) {
+    const updated = tasks.map(t => t.id===id ? {...t, active:!t.active} : t);
+    setTasks(updated);
+    savePersonalTasks(updated);
+  }
+
+  const greeting = hour < 17 ? 'Evening starting' : hour < 20 ? 'Good evening' : 'Winding down';
+
+  return (
+    <div className="page" style={{maxWidth:'680px'}}>
+
+      {/* ── BEGIN WORK DAY BANNER — shows from 6am until check-in done ── */}
+      {showBeginWork && (
+        <div className="begin-work-banner">
+          <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap'}}>
+            <div style={{flex:1}}>
+              <div className="begin-work-title">
+                {hour < 9 ? 'Morning.' : hour < 12 ? 'Ready when you are.' : 'Still here.'}
+              </div>
+              <div className="begin-work-sub">
+                {hour < 9
+                  ? "New day. Your morning check-in is waiting — priorities and health, 2 minutes."
+                  : hour < 12
+                  ? "Your morning check-in is ready whenever you want to start the work day."
+                  : "You haven't done your morning check-in yet. No pressure — it's still useful mid-day."}
+              </div>
+
+              {/* Show yesterday's top 3 if they exist */}
+              {shutdownLog?.top3?.some(t=>t) && (
+                <div className="begin-work-top3">
+                  <div style={{fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'8px'}}>
+                    You said these mattered today:
+                  </div>
+                  {shutdownLog.top3.filter(t=>t).map((item,i) => (
+                    <div key={i} className="begin-work-top3-item">
+                      <span className="begin-work-top3-num">{i+1}.</span>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <button className="begin-work-btn" onClick={onBeginWorkDay}>
+            Begin Work Day →
+          </button>
+        </div>
+      )}
+
+      {/* Free night banner */}
+      {freeNightTask && (
+        <div className="free-night-banner">
+          <div className="free-night-title">7 days straight — take tonight off.</div>
+          <div className="free-night-sub">
+            You've hit {freeNightTask.label.toLowerCase()} for a week. That's real consistency.
+            Tonight is yours — no checklist needed.
+          </div>
+        </div>
+      )}
+
+      {/* Hero */}
+      <div className="personal-hero">
+        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px'}}>
+          <div>
+            <div className="personal-hero-title">Personal Mode</div>
+            <div className="personal-hero-sub">
+              {greeting} · Work is closed · Focus on what matters now
+            </div>
+          </div>
+          <button
+            className="end-workday-btn"
+            onClick={onExitPersonal}
+            style={{fontSize:'10px',marginTop:'4px',whiteSpace:'nowrap'}}
+          >↩ Back to Work</button>
+        </div>
+
+        {/* Yesterday's top 3 carried forward */}
+        {shutdownLog?.top3?.some(t=>t) && (
+          <div style={{marginTop:'16px',paddingTop:'14px',borderTop:'1px solid var(--border)'}}>
+            <div style={{fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'8px'}}>Tomorrow's focus (set at shutdown)</div>
+            {shutdownLog.top3.filter(t=>t).map((item,i) => (
+              <div key={i} style={{fontSize:'12px',color:'var(--text2)',padding:'3px 0',display:'flex',gap:'8px'}}>
+                <span style={{color:'var(--text3)'}}>{i+1}.</span> {item}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Progress */}
+      <div>
+        <div className="personal-progress-label">
+          <span style={{color:'var(--text2)'}}>{checkedCount} of {activeTasks.length} done</span>
+          {allDone && <span style={{color:'var(--accent)'}}>✓ All in</span>}
+        </div>
+        <div className="personal-progress-bar">
+          <div className="personal-progress-fill"
+            style={{width:`${activeTasks.length>0?(checkedCount/activeTasks.length)*100:0}%`}}/>
+        </div>
+      </div>
+
+      {/* Streaks row */}
+      {Object.entries(streaks).filter(([,s])=>s.count>1&&s.lastDate===todayKey()).length > 0 && (
+        <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'20px'}}>
+          {Object.entries(streaks)
+            .filter(([,s])=>s.count>1&&s.lastDate===todayKey())
+            .map(([id,s]) => {
+              const task = tasks.find(t=>t.id===id);
+              if (!task) return null;
+              return (
+                <div key={id} className="streak-badge">
+                  {task.label.split(' ').slice(0,2).join(' ')} · {s.count}d
+                </div>
+              );
+            })}
+        </div>
+      )}
+
+      {/* Task categories */}
+      {Object.entries(PERSONAL_CATEGORY_LABELS).map(([cat, label]) => {
+        const catTasks = byCategory[cat] || [];
+        if (catTasks.length === 0) return null;
+        return (
+          <div key={cat} className="personal-category">
+            <div className="personal-category-label">
+              <span>{label}</span>
+              <button className="personal-task-edit-btn" onClick={()=>setShowEditor(e=>!e)}>
+                {showEditor ? 'Done' : 'Edit'}
+              </button>
+            </div>
+            {catTasks.map(task => {
+              const streak = streaks[task.id];
+              const hasStreak = streak && streak.count > 1 && streak.lastDate === todayKey();
+              return (
+                <div key={task.id} className="personal-task-row">
+                  {showEditor ? (
+                    <>
+                      <div className={`personal-task-label`} style={{opacity:task.active?1:0.4}}>{task.label}</div>
+                      <button
+                        className="personal-task-edit-btn"
+                        onClick={()=>toggleTaskActive(task.id)}
+                      >{task.active ? 'Remove' : 'Add'}</button>
+                    </>
+                  ) : (
+                    <>
+                      <div
+                        className={`personal-check${checked[task.id]?' checked':''}`}
+                        onClick={()=>toggle(task.id)}
+                      >{checked[task.id]?'✓':''}</div>
+                      <div className={`personal-task-label${checked[task.id]?' checked':''}`}>
+                        {task.label}
+                      </div>
+                      {hasStreak && (
+                        <div className="streak-badge">{streak.count}d</div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+
+      {/* Optional reflection */}
+      {allDone && (
+        <div className="personal-reflection">
+          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>
+            Optional · End of day note
+          </div>
+          <textarea
+            className="win-input"
+            style={{minHeight:'80px',background:'var(--surface2)'}}
+            placeholder="Anything worth remembering from today..."
+            value={reflection}
+            onChange={e=>setReflection(e.target.value)}
+          />
+          <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px'}}>Good day. Rest well.</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── MORNING STARTUP MODAL ─────────────────────────────────────────────────────
+function MorningStartup({ items, goals, onComplete }) {
+  const [step, setStep] = React.useState(0); // 0 = priorities, 1 = health
+  const [kept, setKept] = React.useState({});   // id -> true/false
+  const [dropped, setDropped] = React.useState({});
+  const [workout, setWorkout] = React.useState(null);
+  const [sleep, setSleep] = React.useState(null);
+  const [weight, setWeight] = React.useState('');
+  const [note, setNote] = React.useState('');
+
+  const now = new Date();
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dayName = dayNames[now.getDay()];
+  const DAY_THEMES = {
+    Monday:    { label:'Real Fun Day', tracks:['records','publishing'] },
+    Tuesday:   { label:'Real Fun + Songstage', tracks:['records','publishing','songstage'] },
+    Wednesday: { label:'Freelance Day', tracks:['freelance'] },
+    Thursday:  { label:'Freelance Day', tracks:['freelance'] },
+    Friday:    { label:'Songstage Day', tracks:['songstage'] },
+    Saturday:  { label:'Off', tracks:[] },
+    Sunday:    { label:'Off', tracks:[] },
+  };
+  const theme = DAY_THEMES[dayName] || { tracks:[] };
+  const allItems = Object.values(items).flat();
+
+  function isDone(item) { return (DONE_STATUSES[item.track]||[]).includes(item.status); }
+  function scoreItem(item) {
+    if (!item.dueDate) return 0;
+    const diff = Math.ceil((new Date(item.dueDate+'T12:00:00') - now) / 86400000);
+    if (diff < 0) return 100 + Math.abs(diff);
+    if (diff <= 2) return 80;
+    if (diff <= 7) return 50;
+    return 10;
+  }
+
+  // Surface top items across today's tracks + any overdue from other tracks
+  const todayItems = allItems
+    .filter(i => !isDone(i) && theme.tracks.includes(i.track))
+    .sort((a,b) => scoreItem(b) - scoreItem(a))
+    .slice(0, 5);
+
+  const overdueOther = allItems
+    .filter(i => !isDone(i) && !theme.tracks.includes(i.track) && i.dueDate && new Date(i.dueDate+'T12:00:00') < now)
+    .sort((a,b) => scoreItem(b) - scoreItem(a))
+    .slice(0, 2);
+
+  const priorityList = [...todayItems, ...overdueOther];
+
+  function toggleKept(id) {
+    setKept(k => ({...k, [id]: !k[id]}));
+    setDropped(d => ({...d, [id]: false}));
+  }
+  function toggleDropped(id) {
+    setDropped(d => ({...d, [id]: !d[id]}));
+    setKept(k => ({...k, [id]: false}));
+  }
+
+  const WORKOUT_OPTIONS = ['Morning — before work','Midday break','After 4:30','Already done ✓','Rest day today'];
+  const SLEEP_OPTIONS = [
+    { label:'Great 😌', cls:'selected-good' },
+    { label:'Decent 😐', cls:'selected' },
+    { label:'Rough 😞', cls:'selected-warn' },
+    { label:'Barely slept 💀', cls:'selected-bad' },
+  ];
+
+  function finish() {
+    const healthData = { workout, sleep, weight, note, date: now.toDateString() };
+    localStorage.setItem('hq_health_today', JSON.stringify(healthData));
+    localStorage.setItem('hq_startup_done', now.toDateString());
+    const droppedIds = Object.keys(dropped).filter(id => dropped[id]);
+    onComplete({ healthData, droppedIds });
+  }
+
+  const steps = ['Priorities','Health'];
+
+  return (
+    <div className="startup-overlay">
+      <div className="startup-modal">
+        <div className="startup-header">
+          <div className="startup-step-dots">
+            {steps.map((s,i) => (
+              <div key={i} className={`startup-step-dot${i===step?' active':i<step?' done':''}`}/>
+            ))}
+            <span style={{fontSize:'10px',color:'var(--text3)',marginLeft:'8px',letterSpacing:'2px',textTransform:'uppercase'}}>
+              {steps[step]} · {step+1} of {steps.length}
+            </span>
+          </div>
+
+          {step === 0 && <>
+            <div className="startup-title">Good morning.</div>
+            <div className="startup-sub">
+              It's {dayName} — {theme.label || 'open day'}. Here's what's on your plate. Keep what matters, drop what doesn't.
+            </div>
+          </>}
+          {step === 1 && <>
+            <div className="startup-title">Quick health check.</div>
+            <div className="startup-sub">
+              30 seconds. Helps the system protect what matters.
+            </div>
+          </>}
+        </div>
+
+        <div className="startup-body">
+          {/* ── STEP 0: Priority confirm ── */}
+          {step === 0 && (
+            <div>
+              {priorityList.length === 0 && (
+                <div style={{fontSize:'12px',color:'var(--text3)',padding:'16px 0'}}>
+                  Nothing queued for today's tracks. Clean slate — set your focus in Monday Check-In.
+                </div>
+              )}
+              {priorityList.map((item, i) => {
+                const id = `${item.track}::${item.name}`;
+                const isKept = kept[id];
+                const isDropped = dropped[id];
+                const isOverdue = item.dueDate && new Date(item.dueDate+'T12:00:00') < now;
+                const isOtherTrack = !theme.tracks.includes(item.track);
+                return (
+                  <div key={id} className="startup-priority-row" style={{opacity: isDropped ? 0.35 : 1, transition:'opacity 0.2s'}}>
+                    <div style={{flex:1}}>
+                      <div className="startup-priority-name" style={{textDecoration: isDropped?'line-through':'none'}}>
+                        {item.name}
+                      </div>
+                      <div className="startup-priority-meta">
+                        <span style={{color: TRACKS[item.track]?.color}}>{TRACKS[item.track]?.label}</span>
+                        {' · '}{item.status}
+                        {isOverdue && <span style={{color:'#ff4444',marginLeft:'6px'}}>⚠ Overdue</span>}
+                        {isOtherTrack && <span style={{color:'var(--warning)',marginLeft:'6px'}}>Not today's track</span>}
+                      </div>
+                    </div>
+                    <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                      <button
+                        className={`startup-keep-btn${isKept?' kept':''}`}
+                        onClick={()=>toggleKept(id)}
+                      >{isKept ? '✓ In' : 'Keep'}</button>
+                      <button
+                        className={`startup-drop-btn${isDropped?' dropped':''}`}
+                        onClick={()=>toggleDropped(id)}
+                      >{isDropped ? '✕ Out' : 'Drop'}</button>
+                    </div>
+                  </div>
+                );
+              })}
+              {priorityList.length > 0 && (
+                <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'16px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>
+                  Dropped items stay in your tracks — they just won't show as today's priorities.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── STEP 1: Health check-in ── */}
+          {step === 1 && (
+            <div>
+              <div className="health-option-group">
+                <div className="health-option-label">Workout — when are you fitting it in?</div>
+                <div className="health-options">
+                  {WORKOUT_OPTIONS.map(o => (
+                    <button key={o} className={`health-opt${workout===o?' selected':''}`} onClick={()=>setWorkout(o)}>{o}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="health-option-group">
+                <div className="health-option-label">How'd you sleep?</div>
+                <div className="health-options">
+                  {SLEEP_OPTIONS.map(o => (
+                    <button key={o.label}
+                      className={`health-opt${sleep===o.label?' '+o.cls:''}`}
+                      onClick={()=>setSleep(o.label)}
+                    >{o.label}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="health-option-group">
+                <div className="health-option-label">Weight (optional)</div>
+                <input
+                  className="health-note-input"
+                  style={{minHeight:'unset',height:'38px'}}
+                  placeholder="e.g. 182"
+                  value={weight}
+                  onChange={e=>setWeight(e.target.value)}
+                />
+              </div>
+
+              <div className="health-option-group">
+                <div className="health-option-label">Anything else to protect today?</div>
+                <textarea
+                  className="health-note-input"
+                  placeholder="e.g. Back is tight, skip heavy lifting / Feeling anxious, keep schedule light..."
+                  value={note}
+                  onChange={e=>setNote(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="startup-footer">
+          {step === 0 && (
+            <>
+              <button className="btn-secondary" style={{fontSize:'11px'}} onClick={finish}>Skip both →</button>
+              <button className="btn-primary" onClick={()=>setStep(1)}>Next — Health check →</button>
+            </>
+          )}
+          {step === 1 && (
+            <>
+              <button className="btn-secondary" style={{fontSize:'11px'}} onClick={()=>setStep(0)}>← Back</button>
+              <button className="btn-primary" onClick={finish}>Start the day →</button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── TODAY PAGE ─────────────────────────────────────────────────────────────────
+function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin, onEndWorkday }) {
   const now = new Date();
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const dayName = dayNames[now.getDay()];
@@ -1952,9 +3210,7 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin 
 
   // Today's track theme
   const todayTracks = [...new Set(daySchedule.map(s => s.track))];
-  const primaryTrack = todayTracks[0] || null;
 
-  // Day theme label and color
   const DAY_THEMES = {
     Monday:    { label:'Real Fun Day', tracks:['records','publishing'], color:'var(--records)' },
     Tuesday:   { label:'Real Fun + Songstage', tracks:['records','publishing','songstage'], color:'var(--songstage)' },
@@ -1965,6 +3221,42 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin 
     Sunday:    { label:'Off', tracks:[], color:'var(--text3)' },
   };
   const theme = DAY_THEMES[dayName] || { label:'Open', tracks:[], color:'var(--accent)' };
+
+  // ── Morning startup state ──
+  function startupDoneToday() {
+    return localStorage.getItem('hq_startup_done') === now.toDateString();
+  }
+  function getHealthToday() {
+    try { const d = JSON.parse(localStorage.getItem('hq_health_today')||'{}'); return d.date===now.toDateString()?d:null; } catch(e){return null;}
+  }
+
+  const [showStartup, setShowStartup] = React.useState(!startupDoneToday());
+  const [healthData, setHealthData] = React.useState(getHealthToday());
+  const [droppedToday, setDroppedToday] = React.useState({});
+  const [showReprioritize, setShowReprioritize] = React.useState(false);
+
+  function handleStartupComplete({ healthData: hd, droppedIds }) {
+    setHealthData(hd);
+    const dropped = {};
+    droppedIds.forEach(id => { dropped[id] = true; });
+    setDroppedToday(dropped);
+    setShowStartup(false);
+  }
+
+  // Workout status color
+  function workoutColor(w) {
+    if (!w) return 'var(--text3)';
+    if (w.includes('Already done')) return 'var(--success)';
+    if (w.includes('Rest day')) return 'var(--text3)';
+    return 'var(--accent)';
+  }
+  function sleepColor(s) {
+    if (!s) return 'var(--text3)';
+    if (s.includes('Great')) return 'var(--success)';
+    if (s.includes('Decent')) return 'var(--accent)';
+    if (s.includes('Rough')) return 'var(--warning)';
+    return '#ff4444';
+  }
 
   // Checked-off state (local only — resets daily, just UI)
   const [checked, setChecked] = React.useState({});
@@ -2050,8 +3342,20 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin 
 
   const priorityId = (track, name) => `${track}::${name}`;
 
+  // Filter out dropped items from today's priorities
+  function isDroppedToday(item) {
+    return droppedToday[`${item.track}::${item.name}`];
+  }
+
+  const filteredTopPriorities = topPriorities.filter(i => !isDroppedToday(i));
+
   return (
     <div className="page">
+      {/* Morning startup modal */}
+      {showStartup && (
+        <MorningStartup items={items} goals={goals} onComplete={handleStartupComplete}/>
+      )}
+
       {/* Hero / day theme */}
       <div className="today-hero">
         <div>
@@ -2071,12 +3375,71 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin 
               ))}
             </div>
           )}
+          <button className="end-workday-btn" onClick={onEndWorkday}>End Workday →</button>
         </div>
       </div>
 
+      {/* Health bar — shows after startup complete */}
+      {healthData && !showStartup && (
+        <div className="health-bar">
+          {healthData.workout && (
+            <div className="health-bar-item">
+              <div className="health-bar-dot" style={{background:workoutColor(healthData.workout)}}/>
+              <div>
+                <div className="health-bar-label">Workout</div>
+                <div className="health-bar-val">{healthData.workout}</div>
+              </div>
+            </div>
+          )}
+          {healthData.sleep && (
+            <div className="health-bar-item">
+              <div className="health-bar-dot" style={{background:sleepColor(healthData.sleep)}}/>
+              <div>
+                <div className="health-bar-label">Sleep</div>
+                <div className="health-bar-val">{healthData.sleep}</div>
+              </div>
+            </div>
+          )}
+          {healthData.weight && (
+            <div className="health-bar-item">
+              <div className="health-bar-dot" style={{background:'var(--text3)'}}/>
+              <div>
+                <div className="health-bar-label">Weight</div>
+                <div className="health-bar-val">{healthData.weight} lbs</div>
+              </div>
+            </div>
+          )}
+          {healthData.note && (
+            <div className="health-bar-item" style={{flex:1}}>
+              <div className="health-bar-dot" style={{background:'var(--text3)'}}/>
+              <div>
+                <div className="health-bar-label">Note</div>
+                <div className="health-bar-val" style={{fontSize:'10px'}}>{healthData.note}</div>
+              </div>
+            </div>
+          )}
+          <button className="health-bar-edit" onClick={()=>setShowStartup(true)}>Edit</button>
+        </div>
+      )}
+
+      {/* Low sleep warning */}
+      {healthData?.sleep && (healthData.sleep.includes('Rough') || healthData.sleep.includes('Barely')) && (
+        <div className="overload-warning" style={{borderColor:'rgba(255,179,71,0.3)',marginBottom:'16px'}}>
+          😞 Rough sleep — protect your top 1 priority and keep the day lighter than you think you can handle.
+        </div>
+      )}
+
       {isOverloaded && (
         <div className="overload-warning">
-          ⚠ This looks like a heavy day — {todayCalEvents.length} calendar events. Consider dropping or moving one priority.
+          ⚠ Heavy day — {todayCalEvents.length} calendar events. Consider dropping or moving one priority.
+        </div>
+      )}
+
+      {/* Reprioritize banner — only after 11am so it doesn't nag immediately after morning startup */}
+      {!showStartup && now.getHours() >= 11 && (
+        <div className="reprioritize-banner">
+          <span style={{color:'var(--text2)'}}>Day not going as planned?</span>
+          <button onClick={()=>setShowStartup(true)}>Reprioritize →</button>
         </div>
       )}
 
@@ -2088,9 +3451,9 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin 
               <span>Today's Priorities</span>
               <span style={{color:'var(--text3)',fontSize:'9px'}}>{theme.tracks.map(t=>TRACKS[t]?.label).join(' · ')}</span>
             </div>
-            {topPriorities.length === 0 && theme.tracks.length > 0 && (
+            {filteredTopPriorities.length === 0 && theme.tracks.length > 0 && (
               <div style={{fontSize:'12px',color:'var(--text3)',padding:'8px 0'}}>
-                No active items for today's tracks. Good time to check in.
+                No active items for today's tracks — or you dropped them all. Good time to check in.
               </div>
             )}
             {theme.tracks.length === 0 && (
@@ -2098,7 +3461,7 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin 
                 It's the weekend. No work tracks scheduled.
               </div>
             )}
-            {topPriorities.map(item => {
+            {filteredTopPriorities.map(item => {
               const id = priorityId(item.track, item.name);
               const isDue = item.dueDate && (() => {
                 const d = new Date(item.dueDate+'T12:00:00');
@@ -2129,7 +3492,7 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin 
             {revItems.length > 0 && (
               <>
                 <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--success)',margin:'16px 0 10px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>Revenue Priority</div>
-                {revItems.map(item => {
+                {revItems.filter(i=>!isDroppedToday(i)).map(item => {
                   const id = priorityId(item.track, item.name)+'_rev';
                   return (
                     <div key={id} className="priority-item">
@@ -2146,7 +3509,7 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin 
             )}
 
             {/* Content item if not a content day */}
-            {contentItem && (
+            {contentItem && !isDroppedToday(contentItem) && (
               <>
                 <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--content)',margin:'16px 0 10px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>Content</div>
                 {(() => {
@@ -2176,7 +3539,7 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin 
                   <span>{item.name}</span>
                 </div>
               ))}
-              <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'10px'}}>These aren't today's tracks. They'll still be there tomorrow.</div>
+              <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'10px'}}>Not today's tracks. Still there tomorrow.</div>
             </div>
           )}
         </div>
@@ -2193,7 +3556,7 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin 
             </div>
             {energy === '😴 Low' && (
               <div style={{fontSize:'11px',color:'var(--text3)',marginTop:'12px',paddingTop:'10px',borderTop:'1px solid var(--border)'}}>
-                Low energy day — protect your top 1 priority and let the rest wait.
+                Low energy — protect the top 1 priority and let the rest wait.
               </div>
             )}
           </div>
@@ -2211,7 +3574,7 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin 
                 </div>
               ))}
             {todayCalEvents.length === 0 && upcomingToday.length === 0 && (
-              <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px'}}>Google Calendar connected? Events will show here.</div>
+              <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px'}}>Connect Google Calendar to see today's events here.</div>
             )}
           </div>
 
@@ -2256,6 +3619,49 @@ function App() {
   const [undoToast, setUndoToast]= useState(null); // {message, onUndo}
   const [newWeek, setNewWeek]= useState(false);
   const [sidebarOpen, setSidebarOpen]= useState(false);
+  // Shutdown / personal mode
+  const [appMode, setAppMode] = useState(() => {
+    // Restore personal mode if user was in it when they last closed the app (same day)
+    try {
+      const saved = localStorage.getItem('hq_app_mode');
+      const savedDate = localStorage.getItem('hq_app_mode_date');
+      if (saved === 'personal' && savedDate === todayKey()) return 'personal';
+    } catch {}
+    return 'work';
+  }); // 'work' | 'shutting_down' | 'transitioning' | 'personal'
+
+  useEffect(() => {
+    document.body.classList.toggle('personal-mode', appMode === 'personal');
+  }, [appMode]);
+
+  function handleEndWorkday() { setAppMode('shutting_down'); }
+
+  function handleShutdownComplete() {
+    setAppMode('transitioning');
+  }
+
+  function handleTransitionDone() {
+    setAppMode('personal');
+    setPage('personal');
+    try {
+      localStorage.setItem('hq_app_mode', 'personal');
+      localStorage.setItem('hq_app_mode_date', todayKey());
+    } catch {}
+  }
+
+  function handleExitPersonal() {
+    setAppMode('work');
+    setPage('today');
+    try { localStorage.removeItem('hq_app_mode'); } catch {}
+  }
+
+  function handleBeginWorkDay() {
+    // Exit personal mode, go to Today — morning startup modal will fire automatically
+    // since hq_startup_done won't be set yet
+    setAppMode('work');
+    setPage('today');
+    try { localStorage.removeItem('hq_app_mode'); } catch {}
+  }
 
   function showToast(msg) { setToast(msg); }
   function showUndoToast(message, onUndo) {
@@ -2543,27 +3949,50 @@ function App() {
 
   const trackKeys=Object.keys(TRACKS);
 
+  // Transition screen — full takeover, no sidebar
+  if (appMode === 'transitioning') {
+    return <TransitionScreen onDone={handleTransitionDone}/>;
+  }
+
   return (
     <div className="app">
       <div className={`sidebar-overlay${sidebarOpen?' open':''}`} onClick={()=>setSidebarOpen(false)}/>
       <div className={`sidebar${sidebarOpen?' open':''}`}>
         <div className="logo">
           <div className="logo-text">Jesse HQ</div>
-          <div className="logo-sub">{demoMode?'Demo Mode':'Connected'}</div>
+          <div className="logo-sub">{appMode==='personal'?'Personal Mode':demoMode?'Demo Mode':'Connected'}</div>
         </div>
         <nav className="nav">
-          <div className="nav-section-label">Overview</div>
-          {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Monday Check-In']].map(([key,label])=>(
-            <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
-              <div className={`nav-dot ${key}`}/>{label}
-            </div>
-          ))}
-          <div className="nav-section-label" style={{marginTop:'8px'}}>Tracks</div>
-          {Object.entries(TRACKS).map(([key,t])=>(
-            <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
-              <div className={`nav-dot ${key}`}/>{t.label}
-            </div>
-          ))}
+          {appMode === 'personal' ? (
+            <>
+              <div className="nav-section-label">Personal</div>
+              <div className={`nav-item${page==='personal'?' active':''}`} data-track="personal" onClick={()=>{setPage('personal');setSidebarOpen(false);}}>
+                <div className="nav-dot" style={{background:'var(--accent)'}}/>Personal Mode
+              </div>
+              <div style={{borderTop:'1px solid var(--border)',margin:'12px 0'}}/>
+              <div className="nav-section-label">Work</div>
+              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Monday Check-In']].map(([key,label])=>(
+                <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
+                  <div className={`nav-dot ${key}`}/>{label}
+                </div>
+              ))}
+            </>
+          ) : (
+            <>
+              <div className="nav-section-label">Overview</div>
+              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Monday Check-In']].map(([key,label])=>(
+                <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
+                  <div className={`nav-dot ${key}`}/>{label}
+                </div>
+              ))}
+              <div className="nav-section-label" style={{marginTop:'8px'}}>Tracks</div>
+              {Object.entries(TRACKS).map(([key,t])=>(
+                <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
+                  <div className={`nav-dot ${key}`}/>{t.label}
+                </div>
+              ))}
+            </>
+          )}
         </nav>
         <div className="sidebar-bottom">
           <div className="auth-status">
@@ -2571,6 +4000,11 @@ function App() {
             {authed?'Sheets + Calendar':demoMode?'Demo mode':'Not connected'}
           </div>
           {!authed&&!demoMode&&<button className="signin-btn" onClick={requestToken}>Connect Google</button>}
+          {appMode==='personal'&&(
+            <button className="signin-btn" style={{marginTop:'8px',background:'transparent',border:'1px solid var(--border)',color:'var(--text2)'}} onClick={handleExitPersonal}>
+              ↩ Back to Work Mode
+            </button>
+          )}
         </div>
       </div>
 
@@ -2579,6 +4013,7 @@ function App() {
           <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
             <button className="hamburger" onClick={()=>setSidebarOpen(o=>!o)}>☰</button>
             <div className="topbar-title">
+            {appMode==='personal'&&page==='personal'&&'Personal Mode'}
             {page==='today'&&'Today'}
             {page==='dashboard'&&'Dashboard'}
             {page==='calendar'&&'Calendar'}
@@ -2589,13 +4024,18 @@ function App() {
           <div className="topbar-right">
             <span className="week-badge">{getWeekLabel()}</span>
             {trackKeys.includes(page)&&<button className="add-btn" onClick={()=>setModal({track:page})}>+ Add Item</button>}
+            {appMode==='work'&&page==='today'&&(
+              <button className="end-workday-btn" style={{fontSize:'11px',padding:'6px 14px'}} onClick={handleEndWorkday}>End Workday</button>
+            )}
           </div>
         </div>
 
+        {appMode==='personal'&&page==='personal'&&<PersonalModePage onExitPersonal={handleExitPersonal} onBeginWorkDay={handleBeginWorkDay}/>}
         {page==='today'&&<TodayPage items={items} goals={goals} calEvents={calEvents}
           onMarkDone={(track,item)=>handleMarkDone(track,item)}
           onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}
-          onGoToCheckin={()=>setPage('checkin')}/>}
+          onGoToCheckin={()=>setPage('checkin')}
+          onEndWorkday={handleEndWorkday}/>}
         {page==='dashboard'&&<DashboardPage items={items} goals={goals} calEvents={calEvents} newWeek={newWeek}
           onCheckIn={()=>setPage('checkin')}
           onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}}
@@ -2617,6 +4057,7 @@ function App() {
           onEdit={(oldItem,newItem)=>handleEditItem(page,oldItem,newItem)}/>}
       </div>
 
+      {appMode==='shutting_down'&&<ShutdownModal items={items} onClose={()=>setAppMode('work')} onComplete={handleShutdownComplete}/>}
       {modal&&<AddItemModal track={modal.track} calEvents={calEvents} calendarList={calendarList} onClose={()=>setModal(null)} onAdd={formData=>handleAdd(modal.track,formData)}/>}
       {toast&&<Toast message={toast} onClose={()=>setToast(null)}/>}
       {undoToast&&<div style={{position:'fixed',bottom:'80px',right:'24px',zIndex:'2001'}}><UndoToast message={undoToast.message} onUndo={undoToast.onUndo} onClose={()=>setUndoToast(null)}/></div>}
