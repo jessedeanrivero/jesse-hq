@@ -3745,6 +3745,16 @@ function App() {
     try { localStorage.removeItem('hq_app_mode'); } catch {}
   }
 
+  async function handleSaveReflection(note) {
+    if (demoMode) return;
+    try {
+      await appendDailyLog({
+        date: new Date().toISOString().split('T')[0],
+        eveningNote: note,
+      });
+    } catch(e) { console.error('Reflection save failed:', e); }
+  }
+
   function handleBeginWorkDay() {
     // Exit personal mode, go to Today — morning startup modal will fire automatically
     // since hq_startup_done won't be set yet
@@ -4123,15 +4133,7 @@ function App() {
         {appMode==='personal'&&page==='personal'&&<PersonalModePage
           onExitPersonal={handleExitPersonal}
           onBeginWorkDay={handleBeginWorkDay}
-          onSaveReflection={async (note) => {
-            if (demoMode) return;
-            try {
-              await appendDailyLog({
-                date: new Date().toISOString().split('T')[0],
-                eveningNote: note,
-              });
-            } catch(e) { console.error('Reflection save failed:', e); }
-          }}
+          onSaveReflection={handleSaveReflection}
         />
         {page==='today'&&<TodayPage items={items} goals={goals} calEvents={calEvents}
           onMarkDone={(track,item)=>handleMarkDone(track,item)}
