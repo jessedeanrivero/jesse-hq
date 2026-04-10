@@ -1,4 +1,7 @@
 <html lang="en"><head>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <link rel="manifest" href="/manifest.webmanifest" />
 <meta name="theme-color" content="#111111" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -417,7 +420,7 @@ body.personal-mode .block-check.checked { background:var(--accent); border-color
 .end-workday-btn { background:transparent; border:1px solid var(--border); color:var(--text2); font-family:'DM Mono',monospace; font-size:11px; padding:8px 16px; cursor:pointer; transition:all 0.2s; letter-spacing:1px; }
 .end-workday-btn:hover { border-color:var(--warning); color:var(--warning); }
 </style>
-<script src="https://apis.google.com/_/scs/abc-static/_/js/k=gapi.lb.en.PJsh2cctCQI.O/m=client/rt=j/sv=1/d=1/ed=1/rs=AHpOoo_QlMhY2cycn60Rs8eI1WInRwuahw/cb=gapi.loaded_0?le=scs,fedcm_migration_mod" async=""></script><script>"use strict";
+<script>"use strict";
 
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regeneratorValues(e) { if (null != e) { var t = e["function" == typeof Symbol && Symbol.iterator || "@@iterator"], r = 0; if (t) return t.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) return { next: function next() { return e && r >= e.length && (e = void 0), { value: e && e[r++], done: !e }; } }; } throw new TypeError(_typeof(e) + " is not iterable"); }
