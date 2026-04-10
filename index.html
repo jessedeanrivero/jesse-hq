@@ -2198,433 +2198,53 @@ function saveShutdownLog(log) {
 }
 
 // ── CREATURE GAME ─────────────────────────────────────────────────────────────
-function CreatureGame({ openItems, onAllSorted }) {
-  const containerRef = React.useRef(null);
-  const animRef = React.useRef(null);
-  const dragRef = React.useRef(null); // { key, offsetX, offsetY }
-  const posRef = React.useRef({});    // live positions, not in state to avoid re-render during drag
-  const timeRef = React.useRef(0);
+function TaskSorter({ openItems, onAllSorted }) {
+  const [decisions, setDecisions] = useState({});
 
-  const [sorted, setSorted] = React.useState({});
-  const [dragging, setDragging] = React.useState(null); // key being dragged
-  const [hoverBucket, setHoverBucket] = React.useState(null); // 'tomorrow'|'drop'|null
-  const [poofs, setPoofs] = React.useState([]);
-  const [, forceRender] = React.useReducer(x => x+1, 0);
-
-  // Creature personality — each gets a fixed phase/speed so idle is consistent
-  const personalities = React.useRef({});
-
-  // Init positions
-  React.useEffect(() => {
-    const cols = Math.min(4, openItems.length);
-    openItems.forEach((item, i) => {
-      const key = `${item.track}::${item.id}`;
-      if (posRef.current[key]) return; // don't re-init
-      const col = i % cols;
-      const row = Math.floor(i / cols);
-      const baseX = 130 + col * 80 + (row % 2) * 20;
-      const baseY = 30 + row * 85;
-      posRef.current[key] = { x: baseX, y: baseY, baseX, baseY };
-      personalities.current[key] = {
-        phase: Math.random() * Math.PI * 2,
-        speed: 0.5 + Math.random() * 0.6,
-        bobAmp: 3 + Math.random() * 4,
-        swayAmp: 2 + Math.random() * 3,
-      };
-    });
-  }, [openItems]);
-
-  // Idle animation loop — skips any creature being dragged or sorted
-  React.useEffect(() => {
-    function tick() {
-      timeRef.current += 0.035;
-      const t = timeRef.current;
-      let changed = false;
-      openItems.forEach(item => {
-        const key = `${item.track}::${item.id}`;
-        if (sorted[key] || dragRef.current?.key === key) return;
-        const p = personalities.current[key];
-        const pos = posRef.current[key];
-        if (!p || !pos) return;
-        posRef.current[key] = {
-          ...pos,
-          x: pos.baseX + Math.sin(t * p.speed + p.phase) * p.swayAmp,
-          y: pos.baseY + Math.cos(t * p.speed * 0.8 + p.phase) * p.bobAmp,
-        };
-        changed = true;
-      });
-      if (changed) forceRender();
-      animRef.current = requestAnimationFrame(tick);
-    }
-    animRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animRef.current);
-  }, [openItems, sorted]);
-
-  function getCreatureColor(track) {
-    return { records:'#ff6b35', publishing:'#d4e840', songstage:'#47c9ff', freelance:'#b47cff', content:'#ff4d8f' }[track] || '#aaa';
+  function decide(key, dest) {
+    const next = {...decisions, [key]: dest};
+    setDecisions(next);
+    // Auto-advance when all items handled
+    const allDone = openItems.every(i => next[`${i.track}::${i.id}`]);
+    if (allDone) setTimeout(() => onAllSorted(next), 300);
   }
 
-  // Psyduck-inspired: round head, confused expression, little hands on cheeks, duck feet
-  function CreatureSVG({ color, isDragging, hue }) {
-    const lightColor = color + 'dd';
-    const darkColor  = color + '99';
-    const scale = isDragging ? 1.12 : 1;
-    return (
-      <svg width="56" height="64" viewBox="0 0 56 64"
-        style={{display:'block', filter: isDragging ? `drop-shadow(0 6px 12px ${color}88)` : 'none',
-          transform:`scale(${scale})`, transformOrigin:'50% 80%', transition:'transform 0.15s'}}>
+  function getDecision(key) { return decisions[key] || null; }
 
-        {/* Ground shadow */}
-        <ellipse cx="28" cy="62" rx="13" ry="3.5" fill="rgba(0,0,0,0.25)"/>
-
-        {/* Body — round, egg-shaped */}
-        <ellipse cx="28" cy="42" rx="16" ry="18" fill={color}/>
-        {/* Body highlight */}
-        <ellipse cx="22" cy="34" rx="5" ry="7" fill="rgba(255,255,255,0.18)" transform="rotate(-20,22,34)"/>
-        {/* Belly patch */}
-        <ellipse cx="28" cy="46" rx="9" ry="11" fill={lightColor} opacity="0.55"/>
-
-        {/* Stubby tail */}
-        <ellipse cx="44" cy="40" rx="5" ry="4" fill={darkColor} transform="rotate(15,44,40)"/>
-        <ellipse cx="47" cy="39" rx="3" ry="2.5" fill={color} transform="rotate(15,47,39)"/>
-
-        {/* Left arm/hand on head (confused pose) */}
-        <ellipse cx="13" cy="32" rx="4.5" ry="3.5" fill={color} transform="rotate(-30,13,32)"/>
-        <ellipse cx="10" cy="29" rx="3.5" ry="3" fill={darkColor} transform="rotate(-30,10,29)"/>
-
-        {/* Right arm/hand on head */}
-        <ellipse cx="43" cy="32" rx="4.5" ry="3.5" fill={color} transform="rotate(30,43,32)"/>
-        <ellipse cx="46" cy="29" rx="3.5" ry="3" fill={darkColor} transform="rotate(30,46,29)"/>
-
-        {/* Feet — flat duck feet */}
-        <ellipse cx="21" cy="59" rx="7" ry="3.5" fill={darkColor}/>
-        <ellipse cx="35" cy="59" rx="7" ry="3.5" fill={darkColor}/>
-        {/* Toe lines */}
-        <line x1="16" y1="59" x2="13" y2="57" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
-        <line x1="21" y1="60" x2="21" y2="57" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
-        <line x1="26" y1="59" x2="28" y2="57" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
-        <line x1="30" y1="59" x2="27" y2="57" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
-        <line x1="35" y1="60" x2="35" y2="57" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
-        <line x1="40" y1="59" x2="42" y2="57" stroke={color} strokeWidth="1.5" strokeLinecap="round"/>
-
-        {/* Head — big round */}
-        <circle cx="28" cy="22" r="18" fill={color}/>
-        {/* Head highlight */}
-        <ellipse cx="21" cy="13" rx="6" ry="8" fill="rgba(255,255,255,0.2)" transform="rotate(-15,21,13)"/>
-
-        {/* Forehead bump / little horn nub */}
-        <ellipse cx="28" cy="6" rx="4" ry="3" fill={darkColor}/>
-
-        {/* Ears */}
-        <ellipse cx="12" cy="12" rx="5" ry="7" fill={color} transform="rotate(-20,12,12)"/>
-        <ellipse cx="12" cy="12" rx="2.5" ry="4" fill={darkColor} transform="rotate(-20,12,12)" opacity="0.6"/>
-        <ellipse cx="44" cy="12" rx="5" ry="7" fill={color} transform="rotate(20,44,12)"/>
-        <ellipse cx="44" cy="12" rx="2.5" ry="4" fill={darkColor} transform="rotate(20,44,12)" opacity="0.6"/>
-
-        {/* Eyes — big, slightly crossed/confused */}
-        <ellipse cx="22" cy="22" rx="5.5" ry="6" fill="white"/>
-        <ellipse cx="34" cy="22" rx="5.5" ry="6" fill="white"/>
-        {/* Pupils — slightly inward (confused look) */}
-        <circle cx="23.5" cy="23" r="3" fill="#1a1a1a"/>
-        <circle cx="32.5" cy="23" r="3" fill="#1a1a1a"/>
-        {/* Eye shine */}
-        <circle cx="24.5" cy="21.5" r="1.2" fill="white"/>
-        <circle cx="33.5" cy="21.5" r="1.2" fill="white"/>
-        {/* Worried brow lines */}
-        <path d="M18 16 Q22 14 25 16" stroke={darkColor} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-        <path d="M31 16 Q34 14 38 16" stroke={darkColor} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-
-        {/* Bill / beak */}
-        <ellipse cx="28" cy="32" rx="6" ry="4" fill={darkColor}/>
-        <ellipse cx="28" cy="31" rx="6" ry="3" fill={color} opacity="0.7"/>
-        {/* Bill line */}
-        <line x1="22" y1="32" x2="34" y2="32" stroke={darkColor} strokeWidth="1" opacity="0.5"/>
-
-        {/* Sweat drop — confused/stressed */}
-        {!isDragging && <>
-          <ellipse cx="43" cy="14" rx="2.5" ry="4" fill="#87ceeb" opacity="0.7" transform="rotate(15,43,14)"/>
-          <circle cx="43" cy="11" r="2" fill="#87ceeb" opacity="0.7"/>
-        </>}
-        {/* Stars when dragging — dazed */}
-        {isDragging && <>
-          <text x="6" y="10" fontSize="8" opacity="0.8">✦</text>
-          <text x="44" y="8" fontSize="7" opacity="0.7">✦</text>
-        </>}
-      </svg>
-    );
-  }
-
-  // ── Drag logic ────────────────────────────────────────────────────────────
-  function getBucketZones() {
-    const el = containerRef.current;
-    if (!el) return null;
-    const rect = el.getBoundingClientRect();
-    return {
-      tomorrow: { x: 0, y: rect.height - 140, w: 140, h: 140 },
-      drop:     { x: rect.width - 140, y: rect.height - 140, w: 140, h: 140 },
-      rect,
-    };
-  }
-
-  function hitBucket(clientX, clientY) {
-    const zones = getBucketZones();
-    if (!zones) return null;
-    const rx = clientX - zones.rect.left;
-    const ry = clientY - zones.rect.top;
-    if (rx < 140 && ry > zones.rect.height - 140) return 'tomorrow';
-    if (rx > zones.rect.width - 140 && ry > zones.rect.height - 140) return 'drop';
-    return null;
-  }
-
-  function startDrag(key, clientX, clientY, e) {
-    if (sorted[key]) return;
-    e.preventDefault();
-    const pos = posRef.current[key];
-    if (!pos) return;
-    const el = containerRef.current;
-    const rect = el.getBoundingClientRect();
-    dragRef.current = {
-      key,
-      offsetX: clientX - rect.left - pos.x,
-      offsetY: clientY - rect.top - pos.y,
-    };
-    setDragging(key);
-  }
-
-  function onMove(clientX, clientY) {
-    if (!dragRef.current) return;
-    const { key, offsetX, offsetY } = dragRef.current;
-    const el = containerRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const newX = clientX - rect.left - offsetX;
-    const newY = clientY - rect.top - offsetY;
-    posRef.current[key] = { ...posRef.current[key], x: newX, y: newY };
-    forceRender();
-    setHoverBucket(hitBucket(clientX, clientY));
-  }
-
-  function endDrag(clientX, clientY) {
-    if (!dragRef.current) return;
-    const { key } = dragRef.current;
-    const bucket = hitBucket(clientX, clientY);
-    dragRef.current = null;
-    setDragging(null);
-    setHoverBucket(null);
-    if (bucket) {
-      doSort(key, bucket);
-    } else {
-      // Snap back to base
-      const pos = posRef.current[key];
-      if (pos) posRef.current[key] = { ...pos, x: pos.baseX, y: pos.baseY };
-      forceRender();
-    }
-  }
-
-  function doSort(key, destination) {
-    const el = containerRef.current;
-    const rect = el ? el.getBoundingClientRect() : { width: 520, height: 300 };
-    const targetX = destination === 'tomorrow' ? 45 : rect.width - 100;
-    const targetY = rect.height - 110;
-    posRef.current[key] = { ...posRef.current[key], x: targetX, y: targetY };
-    forceRender();
-    setTimeout(() => {
-      setSorted(s => ({ ...s, [key]: destination }));
-      const poofId = Date.now() + Math.random();
-      setPoofs(pf => [...pf, { id: poofId, x: targetX + 28, y: targetY + 20, dest: destination }]);
-      setTimeout(() => setPoofs(pf => pf.filter(p => p.id !== poofId)), 700);
-    }, 220);
-  }
-
-  // Mouse events
-  function onMouseDown(key, e) { startDrag(key, e.clientX, e.clientY, e); }
-  React.useEffect(() => {
-    function onMouseMove(e) { onMove(e.clientX, e.clientY); }
-    function onMouseUp(e) { endDrag(e.clientX, e.clientY); }
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    return () => { window.removeEventListener('mousemove', onMouseMove); window.removeEventListener('mouseup', onMouseUp); };
-  }, [sorted]);
-
-  // Touch events
-  function onTouchStart(key, e) {
-    const t = e.touches[0];
-    startDrag(key, t.clientX, t.clientY, e);
-  }
-  React.useEffect(() => {
-    function onTouchMove(e) { if (dragRef.current) { e.preventDefault(); const t=e.touches[0]; onMove(t.clientX, t.clientY); } }
-    function onTouchEnd(e) { if (dragRef.current) { const t=e.changedTouches[0]; endDrag(t.clientX, t.clientY); } }
-    window.addEventListener('touchmove', onTouchMove, { passive: false });
-    window.addEventListener('touchend', onTouchEnd);
-    return () => { window.removeEventListener('touchmove', onTouchMove); window.removeEventListener('touchend', onTouchEnd); };
-  }, [sorted]);
-
-  // Click to sort (for keyboard/tap without drag)
-  const [clickSelected, setClickSelected] = React.useState(null);
-  function handleCreatureClick(key) {
-    if (dragging) return; // was a drag, not a click
-    if (sorted[key]) return;
-    setClickSelected(k => k === key ? null : key);
-  }
-  function handleBucketClick(dest) {
-    if (clickSelected) { doSort(clickSelected, dest); setClickSelected(null); }
-  }
-
-  const unsortedCount = openItems.filter(i => !sorted[`${i.track}::${i.id}`]).length;
-  const allSorted = unsortedCount === 0 && openItems.length > 0;
-
-  React.useEffect(() => {
-    if (allSorted) setTimeout(() => onAllSorted(sorted), 500);
-  }, [allSorted]);
-
-  const gameH = Math.max(300, 60 + Math.ceil(openItems.length / 4) * 90);
+  const remaining = openItems.filter(i => !decisions[`${i.track}::${i.id}`]).length;
 
   return (
     <div>
-      <div className="creature-game" ref={containerRef}
-        style={{ height: gameH + 'px', cursor: dragging ? 'grabbing' : 'default', userSelect:'none' }}>
-        <div className="creature-game-bg"/>
-
-        {/* Stars */}
-        {[...Array(14)].map((_,i) => (
-          <div key={i} style={{
-            position:'absolute', borderRadius:'50%',
-            width: i%4===0?2:1, height: i%4===0?2:1,
-            background:'rgba(255,255,255,' + (0.3+i*0.03) + ')',
-            left: (6+i*6.5)+'%', top: (4+i*3.2)+'%',
-            animation:`pulse ${1.4+i*0.25}s infinite alternate`
-          }}/>
-        ))}
-
-        <div className="game-instructions">
-          {allSorted
-            ? '✓ All sorted — moving on...'
-            : dragging
-            ? 'Drop into a bucket →'
-            : clickSelected
-            ? 'Now tap a bucket to send it'
-            : 'Drag a creature into a bucket — or tap to select'}
-        </div>
-        <div className="game-counter">{unsortedCount} left</div>
-
-        {/* Tomorrow bucket */}
-        <div className="bucket bucket-tomorrow"
-          style={{
-            filter: hoverBucket==='tomorrow' ? 'brightness(1.6)' : clickSelected ? 'brightness(1.25)' : 'brightness(0.85)',
-            transition:'filter 0.15s', cursor: clickSelected ? 'pointer' : 'default'
-          }}
-          onClick={() => handleBucketClick('tomorrow')}>
-          <div className="bucket-label">Tomorrow</div>
-          <div className="bucket-body">
-            <svg width="110" height="72" viewBox="0 0 110 72">
-              <path d="M18 24 L10 68 L100 68 L92 24 Z" fill="#0d1a24" stroke="#47c9ff" strokeWidth="1.5"/>
-              <path d="M18 24 L92 24" stroke="#47c9ff" strokeWidth="2"/>
-              <path d="M33 24 Q55 6 77 24" fill="none" stroke="#47c9ff" strokeWidth="2"/>
-              {/* Moon */}
-              <path d="M48 44 Q42 38 46 30 Q38 34 38 44 Q38 54 48 58 Q40 52 48 44Z" fill="#47c9ff" opacity="0.7"/>
-              {/* Stars inside */}
-              <circle cx="68" cy="36" r="1.5" fill="#47c9ff" opacity="0.6"/>
-              <circle cx="72" cy="48" r="1" fill="#47c9ff" opacity="0.5"/>
-              <circle cx="60" cy="54" r="1" fill="#47c9ff" opacity="0.4"/>
-              {Object.values(sorted).filter(v=>v==='tomorrow').length > 0 && (
-                <text x="55" y="20" textAnchor="middle" fontSize="11" fill="#47c9ff" fontFamily="DM Mono,monospace">
-                  {Object.values(sorted).filter(v=>v==='tomorrow').length} in
-                </text>
-              )}
-            </svg>
-          </div>
-        </div>
-
-        {/* Drop bucket */}
-        <div className="bucket bucket-drop"
-          style={{
-            filter: hoverBucket==='drop' ? 'brightness(1.6)' : clickSelected ? 'brightness(1.25)' : 'brightness(0.85)',
-            transition:'filter 0.15s', cursor: clickSelected ? 'pointer' : 'default'
-          }}
-          onClick={() => handleBucketClick('drop')}>
-          <div className="bucket-label">Drop it</div>
-          <div className="bucket-body">
-            <svg width="110" height="72" viewBox="0 0 110 72">
-              <ellipse cx="55" cy="56" rx="42" ry="14" fill="#1a0818" stroke="#ff4d8f" strokeWidth="1.5"/>
-              <ellipse cx="55" cy="56" rx="30" ry="9" fill="#0f0012" stroke="#ff4d8f" strokeWidth="0.5" opacity="0.6"/>
-              <ellipse cx="55" cy="56" rx="16" ry="5" fill="#000" opacity="0.9"/>
-              <path d="M30 56 Q42 48 55 56 Q68 64 80 56" fill="none" stroke="#ff4d8f" strokeWidth="0.8" opacity="0.35"/>
-              <path d="M38 50 Q55 42 72 50" fill="none" stroke="#ff4d8f" strokeWidth="0.6" opacity="0.2"/>
-              {/* Lightning bolt */}
-              <path d="M62 28 L52 42 L58 42 L48 62 L66 44 L59 44 Z" fill="#ff4d8f" opacity="0.65"/>
-              {Object.values(sorted).filter(v=>v==='drop').length > 0 && (
-                <text x="55" y="20" textAnchor="middle" fontSize="11" fill="#ff4d8f" fontFamily="DM Mono,monospace">
-                  {Object.values(sorted).filter(v=>v==='drop').length} gone
-                </text>
-              )}
-            </svg>
-          </div>
-        </div>
-
-        {/* Floor */}
-        <div className="creature-floor"/>
-
-        {/* Creatures */}
-        {openItems.map(item => {
-          const key = `${item.track}::${item.id}`;
-          const pos = posRef.current[key];
-          const isSorted = !!sorted[key];
-          const isDrag = dragging === key;
-          const isClickSel = clickSelected === key;
-          const color = getCreatureColor(item.track);
-          if (!pos) return null;
-          return (
-            <div key={key} style={{
-              position:'absolute',
-              left: pos.x + 'px',
-              top:  pos.y + 'px',
-              opacity: isSorted ? 0 : 1,
-              transition: isSorted ? 'opacity 0.3s' : isDrag ? 'none' : 'opacity 0.3s',
-              zIndex: isDrag ? 20 : isClickSel ? 10 : 2,
-              cursor: isSorted ? 'default' : isDrag ? 'grabbing' : 'grab',
-              filter: isClickSel && !isDrag ? `drop-shadow(0 0 8px ${color})` : 'none',
-            }}
-              onMouseDown={e => !isSorted && onMouseDown(key, e)}
-              onTouchStart={e => !isSorted && onTouchStart(key, e)}
-              onClick={() => handleCreatureClick(key)}
-            >
-              <div className="creature-name-tag" style={{
-                borderColor: color, color,
-                background:'rgba(0,0,0,0.88)',
-                transform: isDrag ? 'translateX(-50%) scale(1.05)' : 'translateX(-50%)',
-                left:'50%', position:'absolute',
-              }}>
-                {item.name.length > 16 ? item.name.slice(0,14)+'…' : item.name}
-              </div>
-              <CreatureSVG color={color} isDragging={isDrag || isClickSel}/>
+      {openItems.map(item => {
+        const key = `${item.track}::${item.id}`;
+        const dec = getDecision(key);
+        const color = TRACKS[item.track]?.color || 'var(--text3)';
+        return (
+          <div key={key} className="shutdown-task-row" style={{opacity: dec ? 0.45 : 1, transition:'opacity 0.2s'}}>
+            <div style={{flex:1}}>
+              <div className="shutdown-task-name" style={{textDecoration: dec ? 'line-through' : 'none'}}>{item.name}</div>
+              <div className="shutdown-task-track" style={{color}}>{TRACKS[item.track]?.label} · {item.status}</div>
             </div>
-          );
-        })}
-
-        {/* Empty state */}
-        {openItems.length === 0 && (
-          <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'10px'}}>
-            <div style={{fontSize:'28px'}}>✨</div>
-            <div style={{fontSize:'12px',color:'var(--success)',letterSpacing:'1px'}}>Clean slate — nothing open</div>
+            <div className="shutdown-task-actions">
+              <button
+                className={`shutdown-task-btn${dec==='tomorrow'?' moved':''}`}
+                onClick={()=>decide(key,'tomorrow')}>
+                {dec==='tomorrow' ? '✓ Tomorrow' : '→ Tomorrow'}
+              </button>
+              <button
+                className={`shutdown-task-btn${dec==='drop'?' dropped':''}`}
+                onClick={()=>decide(key,'drop')}>
+                {dec==='drop' ? '✓ Drop' : 'Drop'}
+              </button>
+            </div>
           </div>
-        )}
-
-        {/* Poof effects */}
-        {poofs.map(p => (
-          <div key={p.id} className="poof" style={{left:p.x+'px',top:p.y+'px',position:'absolute'}}>
-            {p.dest==='tomorrow' ? '💫' : '💥'}
-          </div>
-        ))}
-      </div>
-
-      {/* Below-game instruction */}
-      <div style={{textAlign:'center',fontSize:'10px',color:'var(--text3)',marginTop:'10px',letterSpacing:'1px'}}>
-        {clickSelected
-          ? 'TAP A BUCKET ABOVE TO SORT · OR DRAG DIRECTLY'
-          : unsortedCount > 0
-          ? 'DRAG INTO A BUCKET · OR TAP TO SELECT FIRST'
-          : ''}
-      </div>
+        );
+      })}
+      {openItems.length > 0 && remaining > 0 && (
+        <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'14px',letterSpacing:'1px'}}>
+          {remaining} left to sort
+        </div>
+      )}
     </div>
   );
 }
@@ -2632,7 +2252,7 @@ function CreatureGame({ openItems, onAllSorted }) {
 // ── SHUTDOWN MODAL ────────────────────────────────────────────────────────────
 function ShutdownModal({ items, onClose, onComplete }) {
   const [step, setStep] = useState(0);
-  const [gameSorted, setGameSorted] = useState(null); // result from creature game
+  const [gameSorted, setGameSorted] = useState(null);
   const [win, setWin] = useState('');
   const [top3, setTop3] = useState(['','','']);
   const [brainDump, setBrainDump] = useState('');
@@ -2645,7 +2265,8 @@ function ShutdownModal({ items, onClose, onComplete }) {
 
   function handleGameDone(sorted) {
     setGameSorted(sorted);
-    setTimeout(() => setStep(1), 500);
+    // Brief pause then auto-advance to step 1
+    setTimeout(() => setStep(1), 350);
   }
 
   function handleComplete() {
@@ -2683,19 +2304,22 @@ function ShutdownModal({ items, onClose, onComplete }) {
             ))}
           </div>
 
-          {/* Step 0: Creature game */}
+          {/* Step 0: Sort tasks */}
           {step === 0 && (
             <>
-              <div style={{fontSize:'12px',color:'var(--text2)',marginBottom:'14px'}}>
+              <div style={{fontSize:'12px',color:'var(--text2)',marginBottom:'16px'}}>
                 {openItems.length === 0
-                  ? 'Nothing open — clean slate.'
-                  : `${openItems.length} creature${openItems.length>1?'s':''} need a home. Sort them all to continue.`}
+                  ? 'Clean slate — nothing open.'
+                  : `${openItems.length} item${openItems.length>1?'s':''} still open. Move each to tomorrow or drop it.`}
               </div>
-              <CreatureGame openItems={openItems} onAllSorted={handleGameDone}/>
-              {openItems.length === 0 && (
-                <div style={{textAlign:'center',padding:'16px 0'}}>
-                  <button className="btn-primary" onClick={()=>setStep(1)}>Next →</button>
+              {openItems.length === 0 ? (
+                <div style={{textAlign:'center',padding:'20px 0'}}>
+                  <div style={{fontSize:'22px',marginBottom:'8px'}}>✨</div>
+                  <div style={{fontSize:'13px',color:'var(--success)'}}>All caught up</div>
+                  <button className="btn-primary" style={{marginTop:'16px'}} onClick={()=>setStep(1)}>Next →</button>
                 </div>
+              ) : (
+                <TaskSorter openItems={openItems} onAllSorted={handleGameDone}/>
               )}
             </>
           )}
