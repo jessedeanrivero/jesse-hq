@@ -34,13 +34,13 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .nav-item[data-track="freelance"].active{border-left-color:var(--freelance);}
 .nav-item[data-track="content"].active{border-left-color:var(--content);}
 .nav-item[data-track="checkin"].active{border-left-color:var(--success);}
-.nav-item[data-track="today"].active{border-left-color:var(--accent3);}
-.nav-item[data-track="journal"].active{border-left-color:var(--content);}
+.nav-item[data-track="today"].active{border-left-color:var(--accent);}
 .nav-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .nav-dot.records{background:var(--records);} .nav-dot.publishing{background:var(--publishing);}
 .nav-dot.songstage{background:var(--songstage);} .nav-dot.freelance{background:var(--freelance);}
 .nav-dot.content{background:var(--content);} .nav-dot.dashboard{background:var(--accent);}
-.nav-dot.checkin{background:var(--success);} .nav-dot.calendar{background:var(--songstage);} .nav-dot.today{background:var(--accent3);} .nav-dot.journal{background:var(--content);}
+.nav-dot.checkin{background:var(--success);} .nav-dot.calendar{background:var(--songstage);}
+.nav-dot.today{background:var(--accent);}
 .sidebar-bottom{padding:16px 24px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);}
 .auth-status{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
 .auth-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);}
@@ -186,6 +186,38 @@ select option{background:#1e1e1e;color:#f0f0f0;}
 .goal-card{background:var(--surface);border:1px solid var(--border);padding:16px;margin-bottom:12px;}
 .goal-track-name{font-size:11px;margin-bottom:6px;}
 .goal-text{font-size:12px;}
+/* TODAY PAGE */
+.today-hero{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);padding:24px 28px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.today-day-label{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--accent);line-height:1;}
+.today-day-sub{font-size:11px;color:var(--text2);margin-top:4px;}
+.today-theme-badge{padding:6px 14px;font-size:11px;letter-spacing:2px;text-transform:uppercase;border:1px solid;font-weight:500;}
+.today-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+@media(max-width:768px){.today-grid{grid-template-columns:1fr;}}
+.today-section{background:var(--surface);border:1px solid var(--border);padding:20px;}
+.today-section-title{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.priority-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.priority-item:last-child{border-bottom:none;}
+.priority-check{width:18px;height:18px;border:1px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;margin-top:1px;transition:all 0.15s;}
+.priority-check:hover{border-color:var(--accent);}
+.priority-check.done{background:var(--accent);border-color:var(--accent);color:#000;}
+.priority-label{font-size:13px;flex:1;line-height:1.4;}
+.priority-label.done{text-decoration:line-through;color:var(--text3);}
+.priority-track-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:6px;}
+.priority-meta{font-size:10px;color:var(--text3);margin-top:3px;}
+.cal-event-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.cal-event-row:last-child{border-bottom:none;}
+.cal-event-time{font-size:10px;color:var(--text3);min-width:80px;flex-shrink:0;}
+.cal-event-name{flex:1;}
+.cal-event-track-bar{width:3px;height:28px;flex-shrink:0;border-radius:0;}
+.today-focus-full{background:var(--surface);border:1px solid var(--border);padding:20px;margin-bottom:24px;}
+.ignore-item{font-size:12px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.ignore-item:last-child{border-bottom:none;}
+.ignore-item::before{content:'—';color:var(--text3);flex-shrink:0;}
+.today-energy{display:flex;gap:10px;flex-wrap:wrap;}
+.energy-btn{padding:8px 16px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.15s;letter-spacing:1px;}
+.energy-btn:hover,.energy-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(232,255,71,0.06);}
+.overload-warning{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.3);border-left:3px solid var(--warning);padding:14px 18px;margin-bottom:20px;font-size:12px;color:var(--warning);}
+
 /* TOAST */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);padding:14px 18px;font-size:12px;z-index:2000;animation:slideIn 0.2s ease;max-width:320px;}
 @keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
@@ -228,6 +260,78 @@ select option{background:#1e1e1e;color:#f0f0f0;}
   .dashboard-grid{grid-template-columns:1fr;}
   .stat-number{font-size:28px;}
 }
+
+/* ── PERSONAL MODE THEME ─────────────────────────────────────────────────── */
+body.personal-mode {
+  --bg:#0d0b07; --surface:#171209; --surface2:#1e1608; --border:#2e2510;
+  --accent:#ffb347; --text:#f5ede0; --text2:#9e8a6e; --text3:#5a4d38;
+  --success:#7ecb8f; --warning:#ff9a3c;
+  transition: background 0.6s ease, color 0.4s ease;
+}
+body.personal-mode .logo-text { color: var(--accent); }
+body.personal-mode .add-btn, body.personal-mode .btn-primary { background:var(--accent); color:#000; }
+body.personal-mode .priority-check.done { background:var(--accent); border-color:var(--accent); }
+body.personal-mode .energy-btn:hover, body.personal-mode .energy-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(255,179,71,0.08); }
+body.personal-mode .form-input:focus, body.personal-mode .form-select:focus, body.personal-mode .form-textarea:focus { border-color:var(--accent); }
+body.personal-mode .nav-item[data-track="personal"].active { border-left-color:var(--accent); }
+body.personal-mode .cal-view-btn.active { background:var(--accent); border-color:var(--accent); }
+body.personal-mode .ai-dot { background:var(--accent); }
+body.personal-mode .block-check.checked { background:var(--accent); border-color:var(--accent); }
+
+/* ── SHUTDOWN MODAL ──────────────────────────────────────────────────────── */
+.shutdown-step-indicator { display:flex; gap:8px; margin-bottom:24px; }
+.shutdown-step-dot { width:8px; height:8px; border-radius:50%; background:var(--border); transition:background 0.3s; }
+.shutdown-step-dot.active { background:var(--accent); }
+.shutdown-step-dot.done { background:var(--success); }
+.shutdown-task-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); gap:12px; }
+.shutdown-task-row:last-child { border-bottom:none; }
+.shutdown-task-name { font-size:12px; flex:1; }
+.shutdown-task-track { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-top:2px; }
+.shutdown-task-actions { display:flex; gap:6px; flex-shrink:0; }
+.shutdown-task-btn { font-family:'DM Mono',monospace; font-size:10px; padding:4px 10px; border:1px solid var(--border); background:transparent; color:var(--text2); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.shutdown-task-btn:hover { border-color:var(--accent); color:var(--accent); }
+.shutdown-task-btn.moved { background:rgba(77,255,145,0.1); border-color:var(--success); color:var(--success); }
+.shutdown-task-btn.dropped { background:rgba(255,68,68,0.08); border-color:#ff4444; color:#ff4444; }
+.win-input { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-family:'DM Mono',monospace; font-size:13px; padding:12px; outline:none; transition:border-color 0.15s; resize:none; min-height:72px; }
+.win-input:focus { border-color:var(--accent); }
+.tomorrow-input { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-family:'DM Mono',monospace; font-size:13px; padding:10px 12px; outline:none; transition:border-color 0.15s; margin-bottom:8px; }
+.tomorrow-input:focus { border-color:var(--accent); }
+.tomorrow-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.tomorrow-num { font-size:10px; color:var(--text3); width:14px; flex-shrink:0; }
+
+/* ── TRANSITION SCREEN ───────────────────────────────────────────────────── */
+.transition-screen { position:fixed; inset:0; background:#0d0b07; z-index:9000; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; animation:fadeInScreen 0.5s ease; }
+@keyframes fadeInScreen { from{opacity:0} to{opacity:1} }
+.transition-pulse { width:60px; height:60px; border-radius:50%; background:rgba(255,179,71,0.15); border:1px solid rgba(255,179,71,0.4); animation:warmPulse 1.5s ease-in-out infinite; }
+@keyframes warmPulse { 0%,100%{transform:scale(1);opacity:0.6} 50%{transform:scale(1.15);opacity:1} }
+.transition-title { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:#ffb347; letter-spacing:-0.5px; }
+.transition-sub { font-size:12px; color:#9e8a6e; letter-spacing:1px; }
+
+/* ── PERSONAL MODE PAGE ──────────────────────────────────────────────────── */
+.personal-hero { padding:28px; margin-bottom:24px; border:1px solid var(--border); background:var(--surface); border-left:4px solid var(--accent); }
+.personal-hero-title { font-family:'Syne',sans-serif; font-size:30px; font-weight:800; color:var(--accent); line-height:1; }
+.personal-hero-sub { font-size:11px; color:var(--text2); margin-top:6px; }
+.personal-category { background:var(--surface); border:1px solid var(--border); padding:20px; margin-bottom:14px; }
+.personal-category-label { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--text3); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+.personal-task-row { display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); }
+.personal-task-row:last-child { border-bottom:none; }
+.personal-check { width:20px; height:20px; border:1px solid var(--border); border-radius:50%; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px; transition:all 0.2s; }
+.personal-check:hover { border-color:var(--accent); }
+.personal-check.checked { background:var(--accent); border-color:var(--accent); color:#000; }
+.personal-task-label { font-size:13px; flex:1; transition:color 0.2s; }
+.personal-task-label.checked { text-decoration:line-through; color:var(--text3); }
+.streak-badge { font-size:10px; color:var(--accent); background:rgba(255,179,71,0.1); border:1px solid rgba(255,179,71,0.2); padding:2px 8px; }
+.personal-progress-bar { height:3px; background:var(--border); margin-bottom:24px; }
+.personal-progress-fill { height:100%; background:var(--accent); transition:width 0.4s ease; }
+.personal-progress-label { font-size:10px; color:var(--text2); margin-bottom:8px; display:flex; justify-content:space-between; }
+.personal-reflection { background:var(--surface); border:1px solid var(--border); padding:20px; margin-top:8px; }
+.personal-task-edit-btn { font-family:'DM Mono',monospace; font-size:9px; padding:2px 8px; border:1px solid var(--border); background:transparent; color:var(--text3); cursor:pointer; letter-spacing:1px; }
+.personal-task-edit-btn:hover { border-color:var(--accent); color:var(--accent); }
+.free-night-banner { background:rgba(255,179,71,0.08); border:1px solid rgba(255,179,71,0.3); border-left:3px solid var(--accent); padding:16px 20px; margin-bottom:20px; }
+.free-night-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; color:var(--accent); margin-bottom:4px; }
+.free-night-sub { font-size:11px; color:var(--text2); }
+.end-workday-btn { background:transparent; border:1px solid var(--border); color:var(--text2); font-family:'DM Mono',monospace; font-size:11px; padding:8px 16px; cursor:pointer; transition:all 0.2s; letter-spacing:1px; }
+.end-workday-btn:hover { border-color:var(--warning); color:var(--warning); }
 </style>
 </head>
 <body>
@@ -323,7 +427,6 @@ const DAY_SCHEDULE = {
   Tuesday:   [{ track:'records',    label:'Real Fun Records',    start:9,  end:15.5 },
               { track:'publishing', label:'Real Fun Publishing', start:9,  end:15.5 },
               { track:'songstage',  label:'Songstage',           start:16, end:17 }],
-  // Note: Songstage Tuesday is ONLY 4-5pm meeting slot — no other suggestions on Tue for Songstage
   Wednesday: [{ track:'freelance',  label:'Freelance',           start:9,  end:16 }],
   Thursday:  [{ track:'freelance',  label:'Freelance',           start:9,  end:16 }],
   Friday:    [{ track:'songstage',  label:'Songstage',           start:9,  end:16 }],
@@ -365,38 +468,10 @@ function loadGis() {
 
 async function initGoogle(onToken) {
   await Promise.all([loadGapi(), loadGis()]);
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    callback: (resp) => {
-      if (resp.access_token) {
-        // Store token and expiry in localStorage
-        const expiry = Date.now() + (resp.expires_in * 1000) - 60000; // 1min buffer
-        localStorage.setItem('hq_token', resp.access_token);
-        localStorage.setItem('hq_token_expiry', expiry.toString());
-        gapi.client.setToken({ access_token: resp.access_token });
-      }
-      onToken(resp);
-    },
-  });
-
-  // Try to restore saved token on load
-  const savedToken = localStorage.getItem('hq_token');
-  const savedExpiry = parseInt(localStorage.getItem('hq_token_expiry') || '0');
-  if (savedToken && Date.now() < savedExpiry) {
-    gapi.client.setToken({ access_token: savedToken });
-    onToken({ access_token: savedToken }); // treat as authed
-  }
+  tokenClient = google.accounts.oauth2.initTokenClient({ client_id:CLIENT_ID, scope:SCOPES, callback:onToken });
 }
 
-function requestToken() {
-  tokenClient && tokenClient.requestAccessToken({ prompt: '' });
-}
-
-function silentRefresh() {
-  // Try silent token refresh (no popup)
-  tokenClient && tokenClient.requestAccessToken({ prompt: '' });
-}
+function requestToken() { tokenClient && tokenClient.requestAccessToken({ prompt:'' }); }
 
 async function readSheet(tab) {
   try {
@@ -406,18 +481,9 @@ async function readSheet(tab) {
 }
 
 async function appendRow(tab, values) {
-  // Ensure all values are strings (Sheets API rejects undefined)
-  const cleaned = values.map(v => v === null || v === undefined ? '' : String(v));
-  const result = await gapi.client.sheets.spreadsheets.values.append({
-    spreadsheetId:SHEET_ID,
-    range:`${tab}!A1`,
-    valueInputOption:'USER_ENTERED',
-    resource:{ values:[cleaned] },
+  await gapi.client.sheets.spreadsheets.values.append({
+    spreadsheetId:SHEET_ID, range:`${tab}!A1`, valueInputOption:'USER_ENTERED', resource:{ values:[values] },
   });
-  if (!result || result.status !== 200) {
-    throw new Error(`Sheet append failed: status ${result?.status}`);
-  }
-  return result;
 }
 
 async function updateCell(tab, rowIndex, colIndex, value) {
@@ -549,69 +615,47 @@ function getFirstDayOfMonth(year, month) {
 }
 
 // Get available slots for a track based on day rules, respecting 4pm cutoff
-function getSmartSlots(track, calEvents, durationHours=1) {
-  // Always use 1-hour blocks, never suggest after 4pm
-  const BLOCK = durationHours <= 1 ? 1 : Math.ceil(durationHours);
-  const CUTOFF = 16; // hard 4pm cutoff
+function getSmartSlots(track, calEvents) {
   const slots = [];
-  const now = new Date();
+  const today = new Date();
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-  for (let i=0; i<14; i++) {
-    const d = new Date(now);
-    d.setDate(now.getDate() + i);
+  for (let i=0; i<7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
     const dayName = dayNames[d.getDay()];
     const schedule = DAY_SCHEDULE[dayName] || [];
-    const trackRules = schedule.filter(s => s.track === track);
-    if (!trackRules.length) continue;
+    const trackSlots = schedule.filter(s => s.track === track);
 
-    // Get all events for this day as busy windows
-    const busy = calEvents
-      .filter(e => {
-        const es = e.start?.dateTime ? new Date(e.start.dateTime) : null;
-        return es && isSameDay(es, d);
-      })
-      .map(e => ({
-        start: new Date(e.start.dateTime).getHours() + new Date(e.start.dateTime).getMinutes()/60,
-        end: e.end?.dateTime
-          ? new Date(e.end.dateTime).getHours() + new Date(e.end.dateTime).getMinutes()/60
-          : new Date(e.start.dateTime).getHours() + 1,
-      }));
+    for (const slot of trackSlots) {
+      // Hard cutoff at 4pm
+      const endHour = Math.min(slot.end, 16);
+      if (slot.start >= 16) continue;
 
-    for (const rule of trackRules) {
-      // Clamp to rule bounds and hard cutoff
-      const dayStart = Math.max(rule.start, i===0 ? now.getHours() + 1 : rule.start);
-      const dayEnd   = Math.min(rule.end, CUTOFF);
-      if (dayStart >= dayEnd) continue;
+      // Check for conflicts with existing calendar events
+      const startDt = new Date(d);
+      startDt.setHours(slot.start, 0, 0, 0);
+      const endDt = new Date(d);
+      endDt.setHours(endHour, 0, 0, 0);
 
-      // Walk through hour-by-hour, offer every free 1-hour block
-      for (let h=dayStart; h+BLOCK<=dayEnd; h++) {
-        // Check if this block overlaps any busy window
-        const blocked = busy.some(b => b.start < h+BLOCK && b.end > h);
-        if (blocked) continue;
+      const conflict = calEvents.find(e => {
+        if (!e.start?.dateTime) return false;
+        const es = new Date(e.start.dateTime), ee = new Date(e.end?.dateTime || e.start.dateTime);
+        return es < endDt && ee > startDt;
+      });
 
-        const startDt = new Date(d); startDt.setHours(h, 0, 0, 0);
-        const endDt   = new Date(d); endDt.setHours(h+BLOCK, 0, 0, 0);
-
-        const fmtH = hr => hr===12?'12pm':hr>12?`${hr-12}pm`:`${hr}am`;
-
-        slots.push({
-          date: new Date(d),
-          dayName,
-          label: `${d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})} · ${fmtH(h)}–${fmtH(h+BLOCK)}`,
-          startHour: h,
-          endHour: h+BLOCK,
-          conflict: false,
-          startISO: startDt.toISOString(),
-          endISO: endDt.toISOString(),
-          durationHours: BLOCK,
-        });
-
-        if (slots.length >= 8) break;
-      }
-      if (slots.length >= 8) break;
+      slots.push({
+        date: d,
+        dayName,
+        label: `${fmtDate(d)} ${slot.start}:00–${endHour}:00`,
+        startHour: slot.start,
+        endHour,
+        conflict: !!conflict,
+        conflictName: conflict?.summary || '',
+        startISO: startDt.toISOString(),
+        endISO: endDt.toISOString(),
+      });
     }
-    if (slots.length >= 8) break;
   }
   return slots;
 }
@@ -997,9 +1041,8 @@ function KanbanCard({ item, track, onStatusChange, onDelete, onMarkDone, onEdit 
   const isOrgTask = item.type === 'Org Task' || item.type === 'General Task';
   const dueDate = item.dueDate ? new Date(item.dueDate + 'T12:00:00') : null;
   const isValidDate = dueDate && !isNaN(dueDate.getTime());
-  const isTerminal = TERMINAL[item.track] === item.status || ['Released','Monetizing','Shipped','Completed','Published'].includes(item.status);
-  const isOverdue = isValidDate && dueDate < new Date() && !isTerminal;
-  const isDueSoon = isValidDate && !isOverdue && !isTerminal && (dueDate - new Date()) < 3 * 86400000;
+  const isOverdue = isValidDate && dueDate < new Date();
+  const isDueSoon = isValidDate && !isOverdue && (dueDate - new Date()) < 3 * 86400000;
   return (
     <>
       <div className="card">
@@ -1766,11 +1809,9 @@ function DueSoonSection({ items, now, onMarkDone, onEdit }) {
                 </div>
               </div>
               <div style={{display:'flex',alignItems:'center',gap:'10px',flexShrink:0}}>
-                {!['Released','Monetizing','Shipped','Completed','Published'].includes(item.status) && (
-                  <span style={{fontSize:'10px',fontFamily:'DM Mono,monospace',color:isOverdue?'#ff4444':daysLeft<=3?'var(--warning)':'var(--text2)'}}>
-                    {isOverdue?`${Math.abs(daysLeft)}d overdue`:daysLeft===0?'Today':daysLeft===1?'Tomorrow':`${daysLeft}d`}
-                  </span>
-                )}
+                <span style={{fontSize:'10px',fontFamily:'DM Mono,monospace',color:isOverdue?'#ff4444':daysLeft<=3?'var(--warning)':'var(--text2)'}}>
+                  {isOverdue?`${Math.abs(daysLeft)}d overdue`:daysLeft===0?'Today':daysLeft===1?'Tomorrow':`${daysLeft}d`}
+                </span>
                 <span style={{fontSize:'10px',color:'var(--text3)'}}>{d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
                 <span style={{fontSize:'10px',color:'var(--text3)',display:'inline-block',transform:isExpanded?'rotate(180deg)':'none',transition:'transform 0.15s'}}>▾</span>
               </div>
@@ -1974,313 +2015,784 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
   );
 }
 
-// ── TODAY PAGE ───────────────────────────────────────────────────────────────
-function TodayPage({ items, calEvents, onMarkDone, demoMode }) {
-  const today = new Date();
-  const todayStr = today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+// ── SHUTDOWN + PERSONAL MODE CONSTANTS ───────────────────────────────────────
+const DEFAULT_PERSONAL_TASKS = [
+  { id:'walk',        category:'health',  label:'Walk 1 mile',                  active:true },
+  { id:'stretch',     category:'health',  label:'Stretch 5 minutes',            active:true },
+  { id:'family_din',  category:'family',  label:'Dinner with family',           active:true },
+  { id:'kids_time',   category:'family',  label:'Focused time with the boys',   active:true },
+  { id:'kendall',     category:'family',  label:'Intentional conversation with Kendall', active:false },
+  { id:'gratitude',   category:'reset',   label:'One thing you\'re grateful for', active:true },
+  { id:'brain_dump',  category:'reset',   label:'Brain dump — write it out',    active:false },
+  { id:'read',        category:'wind',    label:'Read 5–10 pages',              active:true },
+  { id:'no_phone',    category:'wind',    label:'Phone down by 9pm',            active:false },
+  { id:'music',       category:'wind',    label:'Listen to music for fun',      active:false },
+];
 
-  // Calendar events for today
-  const todayEvents = calEvents.filter(e => {
-    const start = e.start?.dateTime ? new Date(e.start.dateTime) : e.start?.date ? new Date(e.start.date+'T00:00:00') : null;
-    return start && isSameDay(start, today);
-  }).sort((a,b) => {
-    const at = a.start?.dateTime ? new Date(a.start.dateTime).getTime() : 0;
-    const bt = b.start?.dateTime ? new Date(b.start.dateTime).getTime() : 0;
-    return at - bt;
+const PERSONAL_CATEGORY_LABELS = {
+  health: 'Health',
+  family: 'Family',
+  reset:  'Reset',
+  wind:   'Wind Down',
+};
+
+function todayKey() { return new Date().toISOString().split('T')[0]; }
+
+function loadPersonalTasks() {
+  try {
+    const saved = localStorage.getItem('hq_personal_tasks');
+    return saved ? JSON.parse(saved) : DEFAULT_PERSONAL_TASKS;
+  } catch { return DEFAULT_PERSONAL_TASKS; }
+}
+
+function savePersonalTasks(tasks) {
+  try { localStorage.setItem('hq_personal_tasks', JSON.stringify(tasks)); } catch {}
+}
+
+function loadPersonalChecked() {
+  try {
+    const saved = localStorage.getItem('hq_personal_' + todayKey());
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+}
+
+function savePersonalChecked(checked) {
+  try { localStorage.setItem('hq_personal_' + todayKey(), JSON.stringify(checked)); } catch {}
+}
+
+function loadStreaks() {
+  try {
+    const saved = localStorage.getItem('hq_streaks');
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+}
+
+function updateStreaks(checkedToday, personalTasks) {
+  const streaks = loadStreaks();
+  const today = todayKey();
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yesterdayKey = yesterday.toISOString().split('T')[0];
+
+  personalTasks.filter(t=>t.active).forEach(task => {
+    const existing = streaks[task.id] || { count:0, lastDate:'' };
+    if (checkedToday[task.id]) {
+      if (existing.lastDate === today) return; // already counted
+      const continued = existing.lastDate === yesterdayKey;
+      streaks[task.id] = { count: continued ? existing.count+1 : 1, lastDate: today };
+    }
   });
 
-  // Items due today or overdue — only active (non-done) items
-  const dueTodayItems = Object.values(items).flat().filter(i => {
-    if (!i.dueDate) return false;
-    const due = new Date(i.dueDate+'T12:00:00');
-    const doneStatuses = DONE_STATUSES[i.track] || [];
-    if (doneStatuses.includes(i.status)) return false;
-    if (i.status === 'Done' || i.status === 'Completed') return false;
-    return due <= today;
-  }).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+  try { localStorage.setItem('hq_streaks', JSON.stringify(streaks)); } catch {}
+  return streaks;
+}
 
-  // Active items scheduled for today (those with HQ calendar blocks today)
-  const hqEvents = todayEvents.filter(e => (e.summary||'').startsWith('[HQ]'));
+function loadShutdownLog() {
+  try {
+    const saved = localStorage.getItem('hq_shutdown_' + todayKey());
+    return saved ? JSON.parse(saved) : null;
+  } catch { return null; }
+}
+
+function saveShutdownLog(log) {
+  try { localStorage.setItem('hq_shutdown_' + todayKey(), JSON.stringify(log)); } catch {}
+}
+
+// ── SHUTDOWN MODAL ────────────────────────────────────────────────────────────
+function ShutdownModal({ items, onClose, onComplete, onMarkDone, demoMode }) {
+  const [step, setStep] = useState(0);
+  const [taskStates, setTaskStates] = useState({}); // { itemKey: 'tomorrow' | 'drop' | 'done' | null }
+  const [win, setWin] = useState('');
+  const [top3, setTop3] = useState(['','','']);
+  const [brainDump, setBrainDump] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+  // Gather open items — exclude anything already done
+  const openItems = Object.entries(items).flatMap(([track, trackItems]) =>
+    trackItems.filter(i => {
+      const doneStatuses = DONE_STATUSES[track] || [];
+      return !doneStatuses.includes(i.status) && i.status !== 'Done' && i.status !== 'Completed';
+    }).map(i => ({...i, track}))
+  );
+
+  function setTaskState(key, state) {
+    setTaskStates(prev => ({...prev, [key]: state === prev[key] ? null : state}));
+  }
+
+  function allHandled() {
+    return openItems.every(i => taskStates[`${i.track}::${i.id}`]);
+  }
+
+  async function handleComplete() {
+    setSaving(true);
+    // Apply task decisions to sheets
+    for (const item of openItems) {
+      const key = `${item.track}::${item.id}`;
+      const decision = taskStates[key];
+      if (!decision) continue;
+      if (decision === 'done') {
+        await onMarkDone(item.track, item);
+      } else if (decision === 'tomorrow') {
+        if (!demoMode) {
+          try { await updateCell(TRACKS[item.track].tab, item.id, 4, tomorrowStr); } catch(e) { console.error(e); }
+        }
+      } else if (decision === 'drop') {
+        if (!demoMode) {
+          try { await updateCell(TRACKS[item.track].tab, item.id, 4, ''); } catch(e) { console.error(e); }
+        }
+      }
+    }
+    // Save journal entry
+    const today = new Date().toISOString().split('T')[0];
+    const row = [today, win, top3.join(' | '), brainDump, new Date().toLocaleTimeString()];
+    if (!demoMode) {
+      try { await appendRow('Journal', row); } catch(e) { console.error('Journal save failed:', e); }
+    }
+    setSaving(false);
+    const log = { win, top3, brainDump, completedAt: new Date().toISOString() };
+    saveShutdownLog(log);
+    onComplete(log);
+  }
+
+  const stepLabels = ['Clear the deck','Before you go','Brain dump'];
 
   return (
-    <div className="page">
-      <div style={{marginBottom:'24px'}}>
-        <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px'}}>Today</div>
-        <div style={{fontSize:'11px',color:'var(--text2)'}}>{todayStr}</div>
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal" style={{width:'560px'}}>
+        <div className="modal-header">
+          <div>
+            <div className="modal-title">Closing Out</div>
+            <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'2px'}}>
+              {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+            </div>
+          </div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="modal-body">
+          {/* Step indicator */}
+          <div className="shutdown-step-indicator">
+            {stepLabels.map((label,i) => (
+              <div key={i} style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                <div className={`shutdown-step-dot${i===step?' active':i<step?' done':''}`}/>
+                <span style={{fontSize:'10px',color:i===step?'var(--text2)':'var(--text3)',letterSpacing:'1px'}}>
+                  {label}
+                </span>
+                {i < 2 && <span style={{color:'var(--text3)',fontSize:'10px',marginLeft:'4px'}}>·</span>}
+              </div>
+            ))}
+          </div>
+
+          {/* Step 0: Handle open tasks */}
+          {step === 0 && (
+            <>
+              <div style={{fontSize:'12px',color:'var(--text2)',marginBottom:'16px'}}>
+                {openItems.length === 0
+                  ? 'Clean slate — nothing open.'
+                  : `${openItems.length} item${openItems.length>1?'s':''} still open. Move or drop each one.`}
+              </div>
+              {openItems.length === 0 ? (
+                <div style={{textAlign:'center',padding:'24px',color:'var(--success)',fontSize:'13px'}}>
+                  ✓ All caught up
+                </div>
+              ) : (
+                openItems.map(item => {
+                  const key = `${item.track}::${item.id}`;
+                  const state = taskStates[key];
+                  return (
+                    <div key={key} className="shutdown-task-row">
+                      <div style={{flex:1}}>
+                        <div className="shutdown-task-name">{item.name}</div>
+                        <div className="shutdown-task-track" style={{color:TRACKS[item.track]?.color}}>
+                          {TRACKS[item.track]?.label} · {item.status}
+                        </div>
+                      </div>
+                      <div className="shutdown-task-actions">
+                        <button
+                          className={`shutdown-task-btn${state==='done'?' moved':''}`}
+                          onClick={()=>setTaskState(key,'done')}
+                        >✓ Done</button>
+                        <button
+                          className={`shutdown-task-btn${state==='tomorrow'?' moved':''}`}
+                          onClick={()=>setTaskState(key,'tomorrow')}
+                        >→ Tomorrow</button>
+                        <button
+                          className={`shutdown-task-btn${state==='drop'?' dropped':''}`}
+                          onClick={()=>setTaskState(key,'drop')}
+                        >Drop</button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </>
+          )}
+
+          {/* Step 1: Win + Top 3 */}
+          {step === 1 && (
+            <>
+              <div className="form-group">
+                <label className="form-label">One win from today</label>
+                <textarea
+                  className="win-input"
+                  placeholder="What moved today? Even small counts."
+                  value={win}
+                  onChange={e=>setWin(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <div className="form-group" style={{marginBottom:0}}>
+                <label className="form-label">Top 3 for tomorrow</label>
+                {[0,1,2].map(i => (
+                  <div key={i} className="tomorrow-row">
+                    <span className="tomorrow-num">{i+1}.</span>
+                    <input
+                      className="tomorrow-input"
+                      style={{marginBottom:0}}
+                      placeholder={i===0?'Most important thing':''}
+                      value={top3[i]}
+                      onChange={e=>{const n=[...top3];n[i]=e.target.value;setTop3(n);}}
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Step 2: Brain dump */}
+          {step === 2 && (
+            <>
+              <div style={{fontSize:'13px',color:'var(--text2)',marginBottom:'16px',lineHeight:'1.6'}}>
+                Anything still running in the background? Get it out.
+                It'll be here tomorrow. You don't have to carry it.
+              </div>
+              <textarea
+                className="win-input"
+                style={{minHeight:'120px'}}
+                placeholder="Just type it out..."
+                value={brainDump}
+                onChange={e=>setBrainDump(e.target.value)}
+                autoFocus
+              />
+            </>
+          )}
+        </div>
+
+        <div className="modal-footer">
+          {step > 0 && <button className="btn-secondary" onClick={()=>setStep(s=>s-1)}>← Back</button>}
+          {step < 2 && (
+            <button
+              className="btn-primary"
+              onClick={()=>setStep(s=>s+1)}
+              disabled={step===0 && openItems.length>0 && !allHandled()}
+              style={{opacity: step===0&&openItems.length>0&&!allHandled()?0.4:1}}
+            >Next →</button>
+          )}
+          {step === 2 && (
+            <>
+              <button className="btn-secondary" onClick={handleComplete} disabled={saving}>Skip</button>
+              <button className="btn-primary" onClick={handleComplete} disabled={saving}>
+                {saving ? 'Saving...' : 'Close the workday →'}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── TRANSITION SCREEN ─────────────────────────────────────────────────────────
+function TransitionScreen({ onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 2200);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div className="transition-screen">
+      <div className="transition-pulse"/>
+      <div className="transition-title">Work day: closed.</div>
+      <div className="transition-sub">You worked. Now live.</div>
+    </div>
+  );
+}
+
+// ── PERSONAL MODE PAGE ────────────────────────────────────────────────────────
+function PersonalModePage({ onExitPersonal }) {
+  const [tasks, setTasks] = useState(loadPersonalTasks);
+  const [checked, setChecked] = useState(loadPersonalChecked);
+  const [streaks, setStreaks] = useState(loadStreaks);
+  const [reflection, setReflection] = useState('');
+  const [showEditor, setShowEditor] = useState(false);
+  const [shutdownLog] = useState(loadShutdownLog);
+
+  const activeTasks = tasks.filter(t => t.active);
+  const checkedCount = activeTasks.filter(t => checked[t.id]).length;
+  const allDone = checkedCount === activeTasks.length && activeTasks.length > 0;
+
+  function toggle(id) {
+    const next = { ...checked, [id]: !checked[id] };
+    setChecked(next);
+    savePersonalChecked(next);
+    const updated = updateStreaks(next, tasks);
+    setStreaks(updated);
+  }
+
+  // Check for "free night" — any streak >= 7
+  const freeNight = Object.entries(streaks).find(([id, s]) => s.count >= 7 && s.lastDate === todayKey());
+  const freeNightTask = freeNight ? tasks.find(t => t.id === freeNight[0]) : null;
+
+  // Group active tasks by category
+  const byCategory = {};
+  activeTasks.forEach(t => {
+    if (!byCategory[t.category]) byCategory[t.category] = [];
+    byCategory[t.category].push(t);
+  });
+
+  function toggleTaskActive(id) {
+    const updated = tasks.map(t => t.id===id ? {...t, active:!t.active} : t);
+    setTasks(updated);
+    savePersonalTasks(updated);
+  }
+
+  const hour = new Date().getHours();
+  const greeting = hour < 17 ? 'Evening starting' : hour < 20 ? 'Good evening' : 'Winding down';
+
+  return (
+    <div className="page" style={{maxWidth:'680px'}}>
+      {/* Free night banner */}
+      {freeNightTask && (
+        <div className="free-night-banner">
+          <div className="free-night-title">7 days straight — take tonight off.</div>
+          <div className="free-night-sub">
+            You've hit {freeNightTask.label.toLowerCase()} for a week. That's real consistency.
+            Tonight is yours — no checklist needed.
+          </div>
+        </div>
+      )}
+
+      {/* Hero */}
+      <div className="personal-hero">
+        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px'}}>
+          <div>
+            <div className="personal-hero-title">Personal Mode</div>
+            <div className="personal-hero-sub">
+              {greeting} · Work is closed · Focus on what matters now
+            </div>
+          </div>
+          <button
+            className="end-workday-btn"
+            onClick={onExitPersonal}
+            style={{fontSize:'10px',marginTop:'4px',whiteSpace:'nowrap'}}
+          >↩ Back to Work</button>
+        </div>
+
+        {/* Yesterday's top 3 carried forward */}
+        {shutdownLog?.top3?.some(t=>t) && (
+          <div style={{marginTop:'16px',paddingTop:'14px',borderTop:'1px solid var(--border)'}}>
+            <div style={{fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'8px'}}>Tomorrow's focus (set at shutdown)</div>
+            {shutdownLog.top3.filter(t=>t).map((item,i) => (
+              <div key={i} style={{fontSize:'12px',color:'var(--text2)',padding:'3px 0',display:'flex',gap:'8px'}}>
+                <span style={{color:'var(--text3)'}}>{i+1}.</span> {item}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Today's Calendar */}
-      <div style={{marginBottom:'28px'}}>
-        <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>Your Schedule Today</div>
-        {todayEvents.length === 0
-          ? <div style={{fontSize:'12px',color:'var(--text3)',padding:'16px',border:'1px dashed var(--border)',textAlign:'center'}}>Nothing on the calendar today</div>
-          : todayEvents.map((e,i) => {
-              const isHQ = (e.summary||'').startsWith('[HQ]');
-              const start = e.start?.dateTime ? new Date(e.start.dateTime) : null;
-              const end   = e.end?.dateTime   ? new Date(e.end.dateTime)   : null;
-              const color = e._calendarColor || (isHQ ? 'var(--accent)' : 'var(--text3)');
+      {/* Progress */}
+      <div>
+        <div className="personal-progress-label">
+          <span style={{color:'var(--text2)'}}>{checkedCount} of {activeTasks.length} done</span>
+          {allDone && <span style={{color:'var(--accent)'}}>✓ All in</span>}
+        </div>
+        <div className="personal-progress-bar">
+          <div className="personal-progress-fill"
+            style={{width:`${activeTasks.length>0?(checkedCount/activeTasks.length)*100:0}%`}}/>
+        </div>
+      </div>
+
+      {/* Streaks row */}
+      {Object.entries(streaks).filter(([,s])=>s.count>1&&s.lastDate===todayKey()).length > 0 && (
+        <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'20px'}}>
+          {Object.entries(streaks)
+            .filter(([,s])=>s.count>1&&s.lastDate===todayKey())
+            .map(([id,s]) => {
+              const task = tasks.find(t=>t.id===id);
+              if (!task) return null;
               return (
-                <div key={i} style={{display:'flex',gap:'16px',padding:'12px 0',borderBottom:'1px solid var(--border)',alignItems:'flex-start'}}>
-                  <div style={{minWidth:'80px',fontSize:'11px',color:'var(--text2)',paddingTop:'2px'}}>
-                    {start ? fmtTime(start) : 'All day'}
-                    {end && <div style={{fontSize:'10px',color:'var(--text3)'}}>{fmtTime(end)}</div>}
-                  </div>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:'13px',fontWeight:'500',color:isHQ?'var(--accent)':'var(--text)'}}>{(e.summary||'').replace('[HQ] ','')}</div>
-                    {e._calendarName&&<div style={{fontSize:'10px',color:'var(--text3)',marginTop:'2px'}}>{e._calendarName}</div>}
-                  </div>
-                  {isHQ && (
-                    <button className="card-btn done" style={{flexShrink:0}} onClick={()=>{
-                      // Find matching item by name and mark done
-                      const name = (e.summary||'').replace('[HQ] ','');
-                      const allItems = Object.entries(items);
-                      for (const [track, trackItems] of allItems) {
-                        const match = trackItems.find(it => it.name.toLowerCase() === name.toLowerCase());
-                        if (match) { onMarkDone(track, match); return; }
-                      }
-                    }}>✓ Done</button>
+                <div key={id} className="streak-badge">
+                  {task.label.split(' ').slice(0,2).join(' ')} · {s.count}d
+                </div>
+              );
+            })}
+        </div>
+      )}
+
+      {/* Task categories */}
+      {Object.entries(PERSONAL_CATEGORY_LABELS).map(([cat, label]) => {
+        const catTasks = byCategory[cat] || [];
+        if (catTasks.length === 0) return null;
+        return (
+          <div key={cat} className="personal-category">
+            <div className="personal-category-label">
+              <span>{label}</span>
+              <button className="personal-task-edit-btn" onClick={()=>setShowEditor(e=>!e)}>
+                {showEditor ? 'Done' : 'Edit'}
+              </button>
+            </div>
+            {catTasks.map(task => {
+              const streak = streaks[task.id];
+              const hasStreak = streak && streak.count > 1 && streak.lastDate === todayKey();
+              return (
+                <div key={task.id} className="personal-task-row">
+                  {showEditor ? (
+                    <>
+                      <div className={`personal-task-label`} style={{opacity:task.active?1:0.4}}>{task.label}</div>
+                      <button
+                        className="personal-task-edit-btn"
+                        onClick={()=>toggleTaskActive(task.id)}
+                      >{task.active ? 'Remove' : 'Add'}</button>
+                    </>
+                  ) : (
+                    <>
+                      <div
+                        className={`personal-check${checked[task.id]?' checked':''}`}
+                        onClick={()=>toggle(task.id)}
+                      >{checked[task.id]?'✓':''}</div>
+                      <div className={`personal-task-label${checked[task.id]?' checked':''}`}>
+                        {task.label}
+                      </div>
+                      {hasStreak && (
+                        <div className="streak-badge">{streak.count}d</div>
+                      )}
+                    </>
                   )}
                 </div>
               );
             })}
-      </div>
+          </div>
+        );
+      })}
 
-      {/* Due Today / Overdue */}
-      {dueTodayItems.length > 0 && (
-        <div>
-          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--warning)',marginBottom:'12px'}}>Due Today / Overdue</div>
-          {dueTodayItems.map((item,i) => {
-            const due = new Date(item.dueDate+'T12:00:00');
-            const isOverdue = due < today;
-            return (
-              <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 0',borderBottom:'1px solid var(--border)'}}>
-                <div className="nav-dot" style={{background:TRACKS[item.track]?.color||'#888',flexShrink:0}}/>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:'13px'}}>{item.name}</div>
-                  <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'2px'}}>{TRACKS[item.track]?.label} · {item.status}</div>
-                </div>
-                <span style={{fontSize:'10px',color:isOverdue?'#ff4444':'var(--warning)'}}>
-                  {isOverdue ? `${Math.floor((today-due)/86400000)}d overdue` : 'Due today'}
-                </span>
-                <button className="card-btn done" onClick={()=>onMarkDone(item.track, item)}>✓ Done</button>
-              </div>
-            );
-          })}
+      {/* Optional reflection */}
+      {allDone && (
+        <div className="personal-reflection">
+          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>
+            Optional · End of day note
+          </div>
+          <textarea
+            className="win-input"
+            style={{minHeight:'80px',background:'var(--surface2)'}}
+            placeholder="Anything worth remembering from today..."
+            value={reflection}
+            onChange={e=>setReflection(e.target.value)}
+          />
+          <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px'}}>Good day. Rest well.</div>
         </div>
       )}
     </div>
   );
 }
 
-// ── END OF DAY PAGE ───────────────────────────────────────────────────────────
-function EndOfDayPage({ items, onMarkDone, onStatusChange, demoMode }) {
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
-  const [step, setStep] = useState('triage'); // 'triage' | 'reflection' | 'done'
-  const [triage, setTriage] = useState({}); // itemKey -> 'done' | 'tomorrow' | 'drop' | null
-  const [form, setForm] = useState({ wins:'', stuck:'', tomorrow:'', energy:'3' });
-  const [saving, setSaving] = useState(false);
+// ── TODAY PAGE ────────────────────────────────────────────────────────────────
+function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin, onEndWorkday }) {
+  const now = new Date();
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dayName = dayNames[now.getDay()];
+  const daySchedule = DAY_SCHEDULE[dayName] || [];
 
-  // Collect all active, non-done items that had due dates today or earlier
-  const triageItems = Object.values(items).flat().filter(i => {
-    if (!i.dueDate) return false;
-    const due = new Date(i.dueDate+'T12:00:00');
-    const doneStatuses = DONE_STATUSES[i.track] || [];
-    if (doneStatuses.includes(i.status)) return false;
-    if (i.status === 'Done' || i.status === 'Completed') return false;
-    return due <= today;
-  }).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+  // Today's track theme
+  const todayTracks = [...new Set(daySchedule.map(s => s.track))];
+  const primaryTrack = todayTracks[0] || null;
 
-  const itemKey = i => `${i.track}-${i.id}`;
-  const allTriaged = triageItems.length === 0 || triageItems.every(i => triage[itemKey(i)]);
-
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
-  async function applyTriage() {
-    for (const item of triageItems) {
-      const decision = triage[itemKey(item)];
-      if (!decision || decision === 'keep') continue;
-      if (decision === 'done') {
-        await onMarkDone(item.track, item);
-      } else if (decision === 'tomorrow') {
-        // Push due date to tomorrow
-        if (!demoMode) {
-          try { await updateCell(TRACKS[item.track].tab, item.id, 4, tomorrowStr); } catch(e) {}
-        }
-        // Update UI via status change trick — just refresh dueDate in local state
-        // (handled by onStatusChange with same status to trigger re-render isn't ideal,
-        //  so we use a lightweight local approach — the sheet is updated above)
-      } else if (decision === 'drop') {
-        await onStatusChange(item.track, item, 'General');
-      }
-    }
-  }
-
-  async function handleFinish() {
-    setSaving(true);
-    await applyTriage();
-    const row = [todayStr, form.wins, form.stuck, form.tomorrow, form.energy, new Date().toLocaleTimeString()];
-    if (!demoMode) {
-      try { await appendRow('Journal', row); } catch(e) { console.error('Journal save failed:', e); }
-    }
-    setSaving(false);
-    setStep('done');
-  }
-
-  const energyLabels = ['','😴 Drained','😑 Low','😐 Okay','🙂 Good','🔥 Fired up'];
-
-  const triageColors = {
-    done:     { bg:'rgba(77,255,145,0.12)',  border:'rgba(77,255,145,0.35)',  label:'var(--success)' },
-    tomorrow: { bg:'rgba(232,255,71,0.1)',   border:'rgba(232,255,71,0.35)',  label:'var(--accent)'  },
-    drop:     { bg:'rgba(136,136,136,0.08)', border:'rgba(136,136,136,0.25)', label:'var(--text3)'   },
+  // Day theme label and color
+  const DAY_THEMES = {
+    Monday:    { label:'Real Fun Day', tracks:['records','publishing'], color:'var(--records)' },
+    Tuesday:   { label:'Real Fun + Songstage', tracks:['records','publishing','songstage'], color:'var(--songstage)' },
+    Wednesday: { label:'Freelance Day', tracks:['freelance'], color:'var(--freelance)' },
+    Thursday:  { label:'Freelance Day', tracks:['freelance'], color:'var(--freelance)' },
+    Friday:    { label:'Songstage Day', tracks:['songstage'], color:'var(--songstage)' },
+    Saturday:  { label:'Off', tracks:[], color:'var(--text3)' },
+    Sunday:    { label:'Off', tracks:[], color:'var(--text3)' },
   };
+  const theme = DAY_THEMES[dayName] || { label:'Open', tracks:[], color:'var(--accent)' };
+
+  // Checked-off state (local only — resets daily, just UI)
+  const [checked, setChecked] = React.useState({});
+  const [energy, setEnergy] = React.useState(null);
+
+  function toggleCheck(id) {
+    setChecked(c => ({...c, [id]: !c[id]}));
+  }
+
+  // Build today's priorities: items from today's tracks, filtered by overdue/due-soon/stale
+  const allItems = Object.values(items).flat();
+
+  // Score items: overdue > due today/tomorrow > stale > in-progress
+  function scoreItem(item) {
+    if (!item.dueDate) return 0;
+    const due = new Date(item.dueDate + 'T12:00:00');
+    const diff = Math.ceil((due - now) / 86400000);
+    if (diff < 0) return 100 + Math.abs(diff); // overdue — highest priority
+    if (diff <= 2) return 80;
+    if (diff <= 7) return 50;
+    return 10;
+  }
+
+  function isDone(item) {
+    const doneStatuses = DONE_STATUSES[item.track] || [];
+    return doneStatuses.includes(item.status) || item.status === 'Done' || item.status === 'Completed';
+  }
+
+  // Today's track-specific items
+  const todayTrackItems = allItems.filter(i =>
+    theme.tracks.includes(i.track) && !isDone(i)
+  ).sort((a,b) => scoreItem(b) - scoreItem(a));
+
+  // Top 3 work priorities from today's tracks
+  const topPriorities = todayTrackItems.slice(0, 3);
+
+  // Revenue-driving items (freelance invoiced/booked, records items with dueDate soon)
+  const revItems = allItems.filter(i =>
+    !isDone(i) &&
+    (i.track === 'freelance' && ['Booked','In Progress'].includes(i.status))
+  ).slice(0, 2);
+
+  // One content item if it's not a content-theme day
+  const contentItem = !theme.tracks.includes('content')
+    ? allItems.filter(i => i.track === 'content' && !isDone(i) && ['In Progress','Planned'].includes(i.status))[0]
+    : null;
+
+  // Overload check: too many calendar events + too many priorities
+  const todayCalEvents = calEvents.filter(e => {
+    if (!e.start?.dateTime) return false;
+    return isSameDay(new Date(e.start.dateTime), now);
+  });
+  const isOverloaded = todayCalEvents.length >= 4 || topPriorities.length > 5;
+
+  // What to ignore today: items NOT from today's tracks that are trying to creep in
+  const ignoreItems = allItems.filter(i =>
+    !isDone(i) &&
+    !theme.tracks.includes(i.track) &&
+    i.dueDate && (() => {
+      const d = new Date(i.dueDate + 'T12:00:00');
+      return d > now && Math.ceil((d - now)/86400000) <= 3;
+    })()
+  ).slice(0, 3);
+
+  // Next calendar events today
+  const upcomingToday = calEvents.filter(e => {
+    if (!e.start?.dateTime) return false;
+    const start = new Date(e.start.dateTime);
+    return isSameDay(start, now) && start >= now;
+  }).sort((a,b) => new Date(a.start.dateTime) - new Date(b.start.dateTime)).slice(0, 5);
+
+  // Detect calendar track from event summary
+  function getEventTrackColor(event) {
+    const title = (event.summary || '').toLowerCase();
+    if (title.includes('records') || title.includes('real fun') || title.includes('[hq]')) {
+      if (title.includes('publishing')) return 'var(--publishing)';
+      return 'var(--records)';
+    }
+    if (title.includes('songstage')) return 'var(--songstage)';
+    if (title.includes('freelance') || title.includes('session') || title.includes('coaching')) return 'var(--freelance)';
+    if (title.includes('content') || title.includes('youtube') || title.includes('substack')) return 'var(--content)';
+    return event._calendarColor || 'var(--text3)';
+  }
+
+  const priorityId = (track, name) => `${track}::${name}`;
 
   return (
     <div className="page">
-      <div style={{maxWidth:'620px'}}>
-        <div style={{marginBottom:'28px'}}>
-          <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px'}}>End of Day</div>
-          <div style={{fontSize:'11px',color:'var(--text2)'}}>{today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
-        </div>
-
-        {step === 'done' && (
-          <div style={{background:'rgba(77,255,145,0.08)',border:'1px solid rgba(77,255,145,0.3)',borderLeft:'3px solid var(--success)',padding:'32px',textAlign:'center'}}>
-            <div style={{fontFamily:'Syne,sans-serif',fontSize:'22px',fontWeight:'700',color:'var(--success)',marginBottom:'8px'}}>Clocked out ✓</div>
-            <div style={{fontSize:'12px',color:'var(--text2)',marginBottom:'20px'}}>Good work today. Go be with your family.</div>
-            <button className="btn-secondary" style={{fontSize:'11px'}} onClick={()=>{
-              setStep('triage');
-              setTriage({});
-              setForm({wins:'',stuck:'',tomorrow:'',energy:'3'});
-            }}>New entry</button>
+      {/* Hero / day theme */}
+      <div className="today-hero">
+        <div>
+          <div className="today-day-label">{dayName}</div>
+          <div className="today-day-sub">
+            {now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · Cutoff at 4:30 PM
           </div>
-        )}
+        </div>
+        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'8px'}}>
+          <div className="today-theme-badge" style={{color:theme.color,borderColor:theme.color}}>
+            {theme.label}
+          </div>
+          {theme.tracks.length > 0 && (
+            <div style={{display:'flex',gap:'6px'}}>
+              {theme.tracks.map(t => (
+                <div key={t} style={{width:'8px',height:'8px',borderRadius:'50%',background:TRACKS[t]?.color||'var(--text3)'}}/>
+              ))}
+            </div>
+          )}
+          <button className="end-workday-btn" onClick={onEndWorkday}>End Workday →</button>
+        </div>
+      </div>
 
-        {step === 'triage' && (
-          <div>
-            {triageItems.length === 0 ? (
-              <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderLeft:'3px solid var(--success)',padding:'20px',marginBottom:'20px'}}>
-                <div style={{fontSize:'13px',color:'var(--success)',fontWeight:'500',marginBottom:'4px'}}>Clean slate ✓</div>
-                <div style={{fontSize:'11px',color:'var(--text2)'}}>Nothing overdue or due today left open. Nice.</div>
+      {isOverloaded && (
+        <div className="overload-warning">
+          ⚠ This looks like a heavy day — {todayCalEvents.length} calendar events. Consider dropping or moving one priority.
+        </div>
+      )}
+
+      <div className="today-grid">
+        {/* Left: Today's priorities */}
+        <div>
+          <div className="today-focus-full">
+            <div className="today-section-title">
+              <span>Today's Priorities</span>
+              <span style={{color:'var(--text3)',fontSize:'9px'}}>{theme.tracks.map(t=>TRACKS[t]?.label).join(' · ')}</span>
+            </div>
+            {topPriorities.length === 0 && theme.tracks.length > 0 && (
+              <div style={{fontSize:'12px',color:'var(--text3)',padding:'8px 0'}}>
+                No active items for today's tracks. Good time to check in.
               </div>
-            ) : (
-              <div style={{marginBottom:'20px'}}>
-                <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--warning)',marginBottom:'4px'}}>
-                  {triageItems.length} item{triageItems.length!==1?'s':''} to triage
+            )}
+            {theme.tracks.length === 0 && (
+              <div style={{fontSize:'12px',color:'var(--text3)',padding:'8px 0'}}>
+                It's the weekend. No work tracks scheduled.
+              </div>
+            )}
+            {topPriorities.map(item => {
+              const id = priorityId(item.track, item.name);
+              const isDue = item.dueDate && (() => {
+                const d = new Date(item.dueDate+'T12:00:00');
+                const diff = Math.ceil((d-now)/86400000);
+                return { overdue: diff < 0, soon: diff <= 2, diff };
+              })();
+              return (
+                <div key={id} className="priority-item">
+                  <div
+                    className={`priority-check${checked[id]?' done':''}`}
+                    onClick={()=>toggleCheck(id)}
+                  >{checked[id]?'✓':''}</div>
+                  <div className="priority-track-dot" style={{background:TRACKS[item.track]?.color}}/>
+                  <div style={{flex:1}}>
+                    <div className={`priority-label${checked[id]?' done':''}`}>{item.name}</div>
+                    <div className="priority-meta">
+                      {TRACKS[item.track]?.label}
+                      {item.status && ` · ${item.status}`}
+                      {isDue && isDue.overdue && <span style={{color:'#ff4444',marginLeft:'6px'}}>⚠ Overdue</span>}
+                      {isDue && !isDue.overdue && isDue.soon && <span style={{color:'var(--warning)',marginLeft:'6px'}}>⏰ Due soon</span>}
+                    </div>
+                  </div>
                 </div>
-                <div style={{fontSize:'11px',color:'var(--text2)',marginBottom:'16px'}}>
-                  What happens to each of these?
-                </div>
-                {triageItems.map(item => {
-                  const key = itemKey(item);
-                  const decision = triage[key];
-                  const due = new Date(item.dueDate+'T12:00:00');
-                  const daysOver = Math.floor((today - due) / 86400000);
+              );
+            })}
+
+            {/* Revenue item */}
+            {revItems.length > 0 && (
+              <>
+                <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--success)',margin:'16px 0 10px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>Revenue Priority</div>
+                {revItems.map(item => {
+                  const id = priorityId(item.track, item.name)+'_rev';
                   return (
-                    <div key={key} style={{
-                      background: decision ? triageColors[decision].bg : 'var(--surface)',
-                      border: `1px solid ${decision ? triageColors[decision].border : 'var(--border)'}`,
-                      padding:'14px 16px',
-                      marginBottom:'8px',
-                      transition:'all 0.15s',
-                    }}>
-                      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',marginBottom:'10px'}}>
-                        <div style={{flex:1}}>
-                          <div style={{fontSize:'13px',fontWeight:'500'}}>{item.name}</div>
-                          <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'3px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                            <span style={{color:TRACKS[item.track]?.color}}>{TRACKS[item.track]?.label}</span>
-                            <span>· {item.status}</span>
-                            {daysOver > 0
-                              ? <span style={{color:'#ff4444'}}>· {daysOver}d overdue</span>
-                              : <span style={{color:'var(--warning)'}}>· due today</span>}
-                          </div>
-                        </div>
-                        {decision && (
-                          <div style={{fontSize:'10px',color:triageColors[decision].label,fontWeight:'500',flexShrink:0,textTransform:'uppercase',letterSpacing:'1px'}}>
-                            {decision === 'done' ? '✓ Done' : decision === 'tomorrow' ? '→ Tomorrow' : '✕ Dropped'}
-                          </div>
-                        )}
-                      </div>
-                      <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-                        {[
-                          {id:'done',     label:'✓ Done',      title:'Mark it complete'},
-                          {id:'tomorrow', label:'→ Tomorrow',   title:'Push to tomorrow'},
-                          {id:'drop',     label:'✕ Drop it',    title:'Clear due date pressure'},
-                        ].map(opt => (
-                          <button key={opt.id}
-                            title={opt.title}
-                            onClick={()=>setTriage(t=>({...t,[key]:t[key]===opt.id?null:opt.id}))}
-                            style={{
-                              fontFamily:'DM Mono,monospace',fontSize:'10px',
-                              padding:'5px 12px',cursor:'pointer',
-                              border:`1px solid ${decision===opt.id ? triageColors[opt.id].border : 'var(--border)'}`,
-                              background: decision===opt.id ? triageColors[opt.id].bg : 'transparent',
-                              color: decision===opt.id ? triageColors[opt.id].label : 'var(--text3)',
-                              transition:'all 0.15s',letterSpacing:'0.5px',
-                            }}>
-                            {opt.label}
-                          </button>
-                        ))}
+                    <div key={id} className="priority-item">
+                      <div className={`priority-check${checked[id]?' done':''}`} onClick={()=>toggleCheck(id)}>{checked[id]?'✓':''}</div>
+                      <div className="priority-track-dot" style={{background:'var(--success)'}}/>
+                      <div style={{flex:1}}>
+                        <div className={`priority-label${checked[id]?' done':''}`}>{item.name}</div>
+                        <div className="priority-meta">{TRACKS[item.track]?.label} · {item.status}</div>
                       </div>
                     </div>
                   );
                 })}
-              </div>
+              </>
             )}
-            <button className="btn-primary" style={{width:'100%',padding:'13px'}}
-              onClick={()=>setStep('reflection')}
-              disabled={!allTriaged}>
-              {allTriaged ? 'Next → Reflection' : `Triage all ${triageItems.filter(i=>!triage[itemKey(i)]).length} remaining items first`}
-            </button>
-            {triageItems.length > 0 && !allTriaged && (
-              <button className="btn-secondary" style={{width:'100%',padding:'10px',marginTop:'8px',fontSize:'11px'}}
-                onClick={()=>setStep('reflection')}>
-                Skip triage, go to reflection
-              </button>
-            )}
-          </div>
-        )}
 
-        {step === 'reflection' && (
-          <div>
-            <div style={{background:'var(--surface)',border:'1px solid var(--border)',padding:'20px',marginBottom:'12px'}}>
-              <label className="form-label" style={{marginBottom:'10px',display:'block'}}>⚡ Energy Level Today</label>
-              <div style={{display:'flex',gap:'8px'}}>
-                {[1,2,3,4,5].map(n=>(
-                  <button key={n} onClick={()=>setForm({...form,energy:String(n)})}
-                    style={{flex:1,padding:'8px 4px',fontFamily:'DM Mono,monospace',fontSize:'11px',cursor:'pointer',
-                      background:form.energy===String(n)?'var(--accent)':'var(--surface2)',
-                      color:form.energy===String(n)?'#000':'var(--text2)',
-                      border:'1px solid var(--border)'}}>
-                    {energyLabels[n]}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {[
-              {key:'wins',    label:'✓ What got done today?',     placeholder:'What did you actually ship, move forward, or finish?'},
-              {key:'stuck',   label:'⚠ What felt stuck or hard?', placeholder:'What got in the way? What felt off?'},
-              {key:'tomorrow',label:'→ Top priority tomorrow',     placeholder:'The one thing that has to happen tomorrow...'},
-            ].map(({key,label,placeholder})=>(
-              <div key={key} style={{background:'var(--surface)',border:'1px solid var(--border)',padding:'20px',marginBottom:'10px'}}>
-                <label className="form-label" style={{marginBottom:'10px',display:'block'}}>{label}</label>
-                <textarea className="form-textarea form-input" style={{minHeight:'72px'}}
-                  placeholder={placeholder} value={form[key]}
-                  onChange={e=>setForm({...form,[key]:e.target.value})}/>
-              </div>
-            ))}
-            <div style={{display:'flex',gap:'8px',marginTop:'4px'}}>
-              <button className="btn-secondary" style={{padding:'13px 20px',fontSize:'11px'}}
-                onClick={()=>setStep('triage')}>← Back</button>
-              <button className="btn-primary" style={{flex:1,padding:'13px'}}
-                onClick={handleFinish} disabled={saving}>
-                {saving ? 'Saving...' : 'End Workday →'}
-              </button>
-            </div>
-            {demoMode && <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px',textAlign:'center'}}>Demo mode — connect Google to save</div>}
+            {/* Content item if not a content day */}
+            {contentItem && (
+              <>
+                <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--content)',margin:'16px 0 10px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>Content</div>
+                {(() => {
+                  const id = priorityId('content', contentItem.name)+'_c';
+                  return (
+                    <div className="priority-item">
+                      <div className={`priority-check${checked[id]?' done':''}`} onClick={()=>toggleCheck(id)}>{checked[id]?'✓':''}</div>
+                      <div className="priority-track-dot" style={{background:'var(--content)'}}/>
+                      <div style={{flex:1}}>
+                        <div className={`priority-label${checked[id]?' done':''}`}>{contentItem.name}</div>
+                        <div className="priority-meta">Content · {contentItem.status}</div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </>
+            )}
           </div>
-        )}
+
+          {/* Ignore today */}
+          {ignoreItems.length > 0 && (
+            <div className="today-section" style={{marginTop:'0'}}>
+              <div className="today-section-title"><span>Leave Alone Today</span></div>
+              {ignoreItems.map((item,i) => (
+                <div key={i} className="ignore-item">
+                  <span style={{color:TRACKS[item.track]?.color,fontSize:'10px'}}>{TRACKS[item.track]?.label}</span>
+                  <span>{item.name}</span>
+                </div>
+              ))}
+              <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'10px'}}>These aren't today's tracks. They'll still be there tomorrow.</div>
+            </div>
+          )}
+        </div>
+
+        {/* Right column */}
+        <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
+          {/* Energy check-in */}
+          <div className="today-section">
+            <div className="today-section-title"><span>Energy Check</span></div>
+            <div className="today-energy">
+              {['🔋 High','⚡ Medium','😴 Low','🔥 In the zone'].map(e => (
+                <button key={e} className={`energy-btn${energy===e?' active':''}`} onClick={()=>setEnergy(e)}>{e}</button>
+              ))}
+            </div>
+            {energy === '😴 Low' && (
+              <div style={{fontSize:'11px',color:'var(--text3)',marginTop:'12px',paddingTop:'10px',borderTop:'1px solid var(--border)'}}>
+                Low energy day — protect your top 1 priority and let the rest wait.
+              </div>
+            )}
+          </div>
+
+          {/* Today's calendar */}
+          <div className="today-section">
+            <div className="today-section-title"><span>On Your Calendar Today</span></div>
+            {upcomingToday.length === 0
+              ? <div style={{fontSize:'12px',color:'var(--text3)'}}>Nothing scheduled yet today.</div>
+              : upcomingToday.map((e,i) => (
+                <div key={i} className="cal-event-row">
+                  <div className="cal-event-track-bar" style={{background:getEventTrackColor(e)}}/>
+                  <div className="cal-event-time">{fmtTime(new Date(e.start.dateTime))}</div>
+                  <div className="cal-event-name">{e.summary}</div>
+                </div>
+              ))}
+            {todayCalEvents.length === 0 && upcomingToday.length === 0 && (
+              <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px'}}>Google Calendar connected? Events will show here.</div>
+            )}
+          </div>
+
+          {/* Weekly goals for today's tracks */}
+          {theme.tracks.some(t => goals[t]) && (
+            <div className="today-section">
+              <div className="today-section-title"><span>This Week's Goal</span></div>
+              {theme.tracks.filter(t => goals[t]).map(t => (
+                <div key={t} style={{marginBottom:'10px'}}>
+                  <div style={{fontSize:'10px',color:TRACKS[t]?.color,marginBottom:'4px',letterSpacing:'1px',textTransform:'uppercase'}}>{TRACKS[t]?.label}</div>
+                  <div style={{fontSize:'12px',color:'var(--text2)',lineHeight:'1.5'}}>{goals[t]}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* No goals nudge */}
+          {theme.tracks.length > 0 && !theme.tracks.some(t => goals[t]) && (
+            <div style={{background:'rgba(232,255,71,0.05)',border:'1px solid rgba(232,255,71,0.2)',padding:'16px',fontSize:'12px',color:'var(--text2)'}}>
+              No weekly goals set for today's tracks.
+              <button className="btn-sm" style={{marginLeft:'10px'}} onClick={onGoToCheckin}>Set Goals</button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -2290,7 +2802,7 @@ function EndOfDayPage({ items, onMarkDone, onStatusChange, demoMode }) {
 function App() {
   const [authed, setAuthed]= useState(false);
   const [demoMode, setDemoMode]= useState(false);
-  const [page, setPage]= useState('dashboard');
+  const [page, setPage]= useState('today');
   const [items, setItems]= useState({records:[],publishing:[],songstage:[],freelance:[],content:[]});
   const [goals, setGoals]= useState({});
   const [calEvents, setCalEvents]= useState([]);
@@ -2301,6 +2813,40 @@ function App() {
   const [undoToast, setUndoToast]= useState(null); // {message, onUndo}
   const [newWeek, setNewWeek]= useState(false);
   const [sidebarOpen, setSidebarOpen]= useState(false);
+  // Shutdown / personal mode
+  const [appMode, setAppMode] = useState(() => {
+    // Restore personal mode if user was in it when they last closed the app (same day)
+    try {
+      const saved = localStorage.getItem('hq_app_mode');
+      const savedDate = localStorage.getItem('hq_app_mode_date');
+      if (saved === 'personal' && savedDate === todayKey()) return 'personal';
+    } catch {}
+    return 'work';
+  }); // 'work' | 'shutting_down' | 'transitioning' | 'personal'
+
+  useEffect(() => {
+    document.body.classList.toggle('personal-mode', appMode === 'personal');
+  }, [appMode]);
+
+  function handleEndWorkday() { setAppMode('shutting_down'); }
+
+  function handleShutdownComplete() {
+    setAppMode('transitioning');
+  }
+
+  function handleTransitionDone() {
+    setAppMode('personal');
+    setPage('personal');
+    try {
+      localStorage.setItem('hq_app_mode', 'personal');
+      localStorage.setItem('hq_app_mode_date', todayKey());
+    } catch {}
+  }
+
+  function handleExitPersonal() {
+    setAppMode('work');
+    try { localStorage.removeItem('hq_app_mode'); } catch {}
+  }
 
   function showToast(msg) { setToast(msg); }
   function showUndoToast(message, onUndo) {
@@ -2347,45 +2893,29 @@ function App() {
 
   async function handleAdd(track, formData) {
     const {name,type,status,extra,dueDate,notes,block,slot,owner}=formData;
-    if (!name?.trim()) return;
     const dateAdded=new Date().toISOString().split('T')[0];
     let row;
     if (track==='songstage') {
+      // Feature/Task | Type | Status | Assigned To | Due Date | Sprint | Notes | Date Added
       row=[name,type,status,extra||'',dueDate,'',notes,dateAdded];
     } else if (track==='content') {
+      // Title | Type | Status | Platform | Publish Date | Notes | Date Added
       row=[name,type,status,extra||'',dueDate,notes,dateAdded];
     } else {
+      // Records, Publishing, Freelance: Name | Type | Status | Extra | Due Date | Notes | Owner | Date Added
       row=[name,type,status,extra||'',dueDate,notes,owner||'',dateAdded];
     }
-
-    // Add to UI immediately
-    const newItem={id:items[track].length,name,type,status,extra:extra||'',dueDate,notes,owner:owner||'',dateAdded,track};
+    if (!demoMode) await appendRow(TRACKS[track].tab, row);
+    const newItem={id:items[track].length,name,type,status,extra,dueDate,notes,owner:owner||'',dateAdded,track};
     setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
-
-    // Write to sheet
-    if (!demoMode) {
-      try {
-        await appendRow(TRACKS[track].tab, row);
-      } catch(e) {
-        console.error('Sheet write failed:', e);
-        showToast(`⚠ "${name}" added locally but sheet save failed — check your connection`);
-        return;
-      }
-    }
-
-    // Block calendar if slot selected
     if (block&&slot&&!demoMode) {
       try {
         await createCalendarEvent(name,slot.startISO,slot.endISO,TRACK_COLORS_HEX[track],formData.calendarId||'primary');
         const refreshed=await getCalendarEvents(4);
         setCalEvents(refreshed);
-        showToast(`✓ "${name}" saved to sheet + time blocked`);
-      } catch(e) {
-        showToast(`✓ "${name}" saved to sheet — calendar block failed`);
-      }
-    } else {
-      showToast(`✓ "${name}" saved to ${TRACKS[track].label}`);
-    }
+        showToast(`✓ "${name}" added + time blocked ${slot.label}`);
+      } catch(e) { showToast(`✓ "${name}" added — calendar block failed`); }
+    } else { showToast(`✓ "${name}" added to ${TRACKS[track].label}`); }
   }
 
   async function handleEditCalEvent(ev) {
@@ -2443,9 +2973,16 @@ function App() {
   }
 
   async function handleStatusChange(track, item, newStatus) {
-    if (!demoMode) await updateCell(TRACKS[track].tab,item.id,2,newStatus);
-    setItems(prev=>({...prev,[track]:prev[track].map(i=>i.id===item.id?{...i,status:newStatus}:i)}));
-    showToast(`↑ "${item.name}" → ${newStatus}`);
+    try {
+      if (!demoMode) await updateCell(TRACKS[track].tab, item.id, 2, newStatus);
+      setItems(prev=>({...prev,[track]:prev[track].map(i=>i.id===item.id?{...i,status:newStatus}:i)}));
+      showToast(`↑ "${item.name}" → ${newStatus}`);
+      return true;
+    } catch(e) {
+      console.error('Status update failed:', e);
+      showToast(`⚠ Could not sync "${item.name}" to Google Sheets`);
+      return false;
+    }
   }
 
   async function handleEditItem(track, oldItem, newItem) {
@@ -2494,8 +3031,8 @@ function App() {
 
   async function handleMarkDone(track, item) {
     const doneStatus = getSmartDoneStatus(track, item);
-    await handleStatusChange(track, item, doneStatus);
-    // Write completion date to sheet col 9 for stats tracking
+    const ok = await handleStatusChange(track, item, doneStatus);
+    if (!ok) return;
     if (!demoMode) {
       try {
         const today = new Date().toISOString().split('T')[0];
@@ -2604,27 +3141,50 @@ function App() {
 
   const trackKeys=Object.keys(TRACKS);
 
+  // Transition screen — full takeover, no sidebar
+  if (appMode === 'transitioning') {
+    return <TransitionScreen onDone={handleTransitionDone}/>;
+  }
+
   return (
     <div className="app">
       <div className={`sidebar-overlay${sidebarOpen?' open':''}`} onClick={()=>setSidebarOpen(false)}/>
       <div className={`sidebar${sidebarOpen?' open':''}`}>
         <div className="logo">
           <div className="logo-text">Jesse HQ</div>
-          <div className="logo-sub">{demoMode?'Demo Mode':'Connected'}</div>
+          <div className="logo-sub">{appMode==='personal'?'Personal Mode':demoMode?'Demo Mode':'Connected'}</div>
         </div>
         <nav className="nav">
-          <div className="nav-section-label">Overview</div>
-          {[['dashboard','Dashboard'],['today','Today'],['calendar','Calendar'],['checkin','Monday Check-In'],['journal','End of Day']].map(([key,label])=>(
-            <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
-              <div className={`nav-dot ${key}`}/>{label}
-            </div>
-          ))}
-          <div className="nav-section-label" style={{marginTop:'8px'}}>Tracks</div>
-          {Object.entries(TRACKS).map(([key,t])=>(
-            <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
-              <div className={`nav-dot ${key}`}/>{t.label}
-            </div>
-          ))}
+          {appMode === 'personal' ? (
+            <>
+              <div className="nav-section-label">Personal</div>
+              <div className={`nav-item${page==='personal'?' active':''}`} data-track="personal" onClick={()=>{setPage('personal');setSidebarOpen(false);}}>
+                <div className="nav-dot" style={{background:'var(--accent)'}}/>Personal Mode
+              </div>
+              <div style={{borderTop:'1px solid var(--border)',margin:'12px 0'}}/>
+              <div className="nav-section-label">Work</div>
+              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Monday Check-In']].map(([key,label])=>(
+                <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
+                  <div className={`nav-dot ${key}`}/>{label}
+                </div>
+              ))}
+            </>
+          ) : (
+            <>
+              <div className="nav-section-label">Overview</div>
+              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Monday Check-In']].map(([key,label])=>(
+                <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
+                  <div className={`nav-dot ${key}`}/>{label}
+                </div>
+              ))}
+              <div className="nav-section-label" style={{marginTop:'8px'}}>Tracks</div>
+              {Object.entries(TRACKS).map(([key,t])=>(
+                <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
+                  <div className={`nav-dot ${key}`}/>{t.label}
+                </div>
+              ))}
+            </>
+          )}
         </nav>
         <div className="sidebar-bottom">
           <div className="auth-status">
@@ -2632,6 +3192,11 @@ function App() {
             {authed?'Sheets + Calendar':demoMode?'Demo mode':'Not connected'}
           </div>
           {!authed&&!demoMode&&<button className="signin-btn" onClick={requestToken}>Connect Google</button>}
+          {appMode==='personal'&&(
+            <button className="signin-btn" style={{marginTop:'8px',background:'transparent',border:'1px solid var(--border)',color:'var(--text2)'}} onClick={handleExitPersonal}>
+              ↩ Back to Work Mode
+            </button>
+          )}
         </div>
       </div>
 
@@ -2640,27 +3205,34 @@ function App() {
           <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
             <button className="hamburger" onClick={()=>setSidebarOpen(o=>!o)}>☰</button>
             <div className="topbar-title">
-            {page==='dashboard'&&'Dashboard'}
+            {appMode==='personal'&&page==='personal'&&'Personal Mode'}
             {page==='today'&&'Today'}
+            {page==='dashboard'&&'Dashboard'}
             {page==='calendar'&&'Calendar'}
             {page==='checkin'&&'Monday Check-In'}
-            {page==='journal'&&'End of Day'}
             {TRACKS[page]&&TRACKS[page].label}
             </div>
           </div>
           <div className="topbar-right">
             <span className="week-badge">{getWeekLabel()}</span>
             {trackKeys.includes(page)&&<button className="add-btn" onClick={()=>setModal({track:page})}>+ Add Item</button>}
+            {appMode==='work'&&page==='today'&&(
+              <button className="end-workday-btn" style={{fontSize:'11px',padding:'6px 14px'}} onClick={handleEndWorkday}>End Workday</button>
+            )}
           </div>
         </div>
 
+        {appMode==='personal'&&page==='personal'&&<PersonalModePage onExitPersonal={handleExitPersonal}/>}
+        {page==='today'&&<TodayPage items={items} goals={goals} calEvents={calEvents}
+          onMarkDone={(track,item)=>handleMarkDone(track,item)}
+          onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}
+          onGoToCheckin={()=>setPage('checkin')}
+          onEndWorkday={handleEndWorkday}/>}
         {page==='dashboard'&&<DashboardPage items={items} goals={goals} calEvents={calEvents} newWeek={newWeek}
           onCheckIn={()=>setPage('checkin')}
           onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}}
           onMarkDone={(track,item)=>handleMarkDone(track,item)}
           onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}/>}
-        {page==='today'&&<TodayPage items={items} calEvents={calEvents} onMarkDone={(track,item)=>handleMarkDone(track,item)} demoMode={demoMode}/>}
-        {page==='journal'&&<EndOfDayPage items={items} onMarkDone={(track,item)=>handleMarkDone(track,item)} onStatusChange={(track,item,status)=>handleStatusChange(track,item,status)} demoMode={demoMode}/>}
         {page==='calendar'&&<CalendarPage calEvents={calEvents} calendarList={calendarList} onAddEvent={handleAddCalEvent} onEditEvent={handleEditCalEvent} onDeleteEvent={handleDeleteCalEvent} demoMode={demoMode}/>}
         {page==='checkin'&&<CheckInPage items={items} calEvents={calEvents} goals={goals}
           onGoalChange={(track,val)=>setGoals(g=>({...g,[track]:val}))}
@@ -2677,6 +3249,7 @@ function App() {
           onEdit={(oldItem,newItem)=>handleEditItem(page,oldItem,newItem)}/>}
       </div>
 
+      {appMode==='shutting_down'&&<ShutdownModal items={items} onClose={()=>setAppMode('work')} onComplete={handleShutdownComplete} onMarkDone={(track,item)=>handleMarkDone(track,item)} demoMode={demoMode}/>}
       {modal&&<AddItemModal track={modal.track} calEvents={calEvents} calendarList={calendarList} onClose={()=>setModal(null)} onAdd={formData=>handleAdd(modal.track,formData)}/>}
       {toast&&<Toast message={toast} onClose={()=>setToast(null)}/>}
       {undoToast&&<div style={{position:'fixed',bottom:'80px',right:'24px',zIndex:'2001'}}><UndoToast message={undoToast.message} onUndo={undoToast.onUndo} onClose={()=>setUndoToast(null)}/></div>}
