@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#111111">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Jesse HQ">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Jesse HQ</title>
@@ -40,13 +34,13 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .nav-item[data-track="freelance"].active{border-left-color:var(--freelance);}
 .nav-item[data-track="content"].active{border-left-color:var(--content);}
 .nav-item[data-track="checkin"].active{border-left-color:var(--success);}
-.nav-item[data-track="today"].active{border-left-color:var(--accent);}
+.nav-item[data-track="today"].active{border-left-color:var(--accent3);}
+.nav-item[data-track="journal"].active{border-left-color:var(--content);}
 .nav-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .nav-dot.records{background:var(--records);} .nav-dot.publishing{background:var(--publishing);}
 .nav-dot.songstage{background:var(--songstage);} .nav-dot.freelance{background:var(--freelance);}
 .nav-dot.content{background:var(--content);} .nav-dot.dashboard{background:var(--accent);}
-.nav-dot.checkin{background:var(--success);} .nav-dot.calendar{background:var(--songstage);}
-.nav-dot.today{background:var(--accent);}
+.nav-dot.checkin{background:var(--success);} .nav-dot.calendar{background:var(--songstage);} .nav-dot.today{background:var(--accent3);} .nav-dot.journal{background:var(--content);}
 .sidebar-bottom{padding:16px 24px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);}
 .auth-status{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
 .auth-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);}
@@ -192,118 +186,6 @@ select option{background:#1e1e1e;color:#f0f0f0;}
 .goal-card{background:var(--surface);border:1px solid var(--border);padding:16px;margin-bottom:12px;}
 .goal-track-name{font-size:11px;margin-bottom:6px;}
 .goal-text{font-size:12px;}
-/* TODAY PAGE */
-.today-hero{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);padding:24px 28px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
-.today-day-label{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--accent);line-height:1;}
-.today-day-sub{font-size:11px;color:var(--text2);margin-top:4px;}
-.today-theme-badge{padding:6px 14px;font-size:11px;letter-spacing:2px;text-transform:uppercase;border:1px solid;font-weight:500;}
-.today-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
-@media(max-width:768px){.today-grid{grid-template-columns:1fr;}}
-.today-section{background:var(--surface);border:1px solid var(--border);padding:20px;}
-.today-section-title{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
-.priority-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
-.priority-item:last-child{border-bottom:none;}
-.priority-check{width:18px;height:18px;border:1px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;margin-top:1px;transition:all 0.15s;}
-.priority-check:hover{border-color:var(--accent);}
-.priority-check.done{background:var(--accent);border-color:var(--accent);color:#000;}
-.priority-label{font-size:13px;flex:1;line-height:1.4;}
-.priority-label.done{text-decoration:line-through;color:var(--text3);}
-.priority-track-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:6px;}
-.priority-meta{font-size:10px;color:var(--text3);margin-top:3px;}
-.cal-event-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
-.cal-event-row:last-child{border-bottom:none;}
-.cal-event-time{font-size:10px;color:var(--text3);min-width:80px;flex-shrink:0;}
-.cal-event-name{flex:1;}
-.cal-event-track-bar{width:3px;height:28px;flex-shrink:0;border-radius:0;}
-.today-focus-full{background:var(--surface);border:1px solid var(--border);padding:20px;margin-bottom:24px;}
-.ignore-item{font-size:12px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
-.ignore-item:last-child{border-bottom:none;}
-.ignore-item::before{content:'—';color:var(--text3);flex-shrink:0;}
-.today-energy{display:flex;gap:10px;flex-wrap:wrap;}
-.energy-btn{padding:8px 16px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:all 0.15s;letter-spacing:1px;}
-.energy-btn:hover,.energy-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(232,255,71,0.06);}
-.overload-warning{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.3);border-left:3px solid var(--warning);padding:14px 18px;margin-bottom:20px;font-size:12px;color:var(--warning);}
-
-/* MORNING STARTUP MODAL */
-.startup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px);}
-.startup-modal{background:var(--surface);border:1px solid var(--border);width:560px;max-width:100%;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;}
-.startup-header{padding:28px 32px 0;border-bottom:none;}
-.startup-step-dots{display:flex;gap:6px;margin-bottom:20px;}
-.startup-step-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:background 0.2s;}
-.startup-step-dot.active{background:var(--accent);}
-.startup-step-dot.done{background:var(--success);}
-.startup-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;}
-.startup-sub{font-size:12px;color:var(--text2);margin-bottom:24px;}
-.startup-body{padding:0 32px;flex:1;}
-.startup-footer{padding:24px 32px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);margin-top:24px;}
-/* Priority confirm step */
-.startup-priority-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
-.startup-priority-row:last-child{border-bottom:none;}
-.startup-keep-btn{font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all 0.15s;white-space:nowrap;}
-.startup-keep-btn:hover,.startup-keep-btn.kept{border-color:var(--success);color:var(--success);}
-.startup-drop-btn{font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all 0.15s;white-space:nowrap;}
-.startup-drop-btn:hover,.startup-drop-btn.dropped{border-color:#ff4444;color:#ff4444;}
-.startup-priority-name{font-size:13px;flex:1;line-height:1.4;}
-.startup-priority-meta{font-size:10px;color:var(--text3);margin-top:3px;}
-/* Health step */
-.health-option-group{margin-bottom:22px;}
-.health-option-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
-.health-options{display:flex;flex-wrap:wrap;gap:8px;}
-.health-opt{font-family:'DM Mono',monospace;font-size:11px;padding:8px 16px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
-.health-opt:hover{border-color:var(--text2);color:var(--text);}
-.health-opt.selected{border-color:var(--accent);color:var(--accent);background:rgba(232,255,71,0.06);}
-.health-opt.selected-good{border-color:var(--success);color:var(--success);background:rgba(77,255,145,0.06);}
-.health-opt.selected-warn{border-color:var(--warning);color:var(--warning);background:rgba(255,179,71,0.06);}
-.health-opt.selected-bad{border-color:#ff4444;color:#ff4444;background:rgba(255,68,68,0.06);}
-.health-note-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:10px 12px;outline:none;resize:none;min-height:60px;transition:border-color 0.15s;}
-.health-note-input:focus{border-color:var(--accent);}
-/* Today health bar */
-.health-bar{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--success);padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
-.health-bar-item{display:flex;align-items:center;gap:8px;font-size:11px;}
-.health-bar-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.health-bar-label{color:var(--text3);font-size:9px;letter-spacing:2px;text-transform:uppercase;}
-.health-bar-val{color:var(--text2);}
-.health-bar-edit{font-family:'DM Mono',monospace;font-size:9px;padding:2px 8px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all 0.15s;letter-spacing:1px;margin-left:auto;}
-.health-bar-edit:hover{border-color:var(--text2);color:var(--text2);}
-/* Reprioritize nudge */
-.reprioritize-banner{background:rgba(232,255,71,0.05);border:1px solid rgba(232,255,71,0.2);border-left:3px solid var(--accent);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;}
-.reprioritize-banner button{font-family:'DM Mono',monospace;font-size:10px;padding:4px 12px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;white-space:nowrap;}
-
-/* ── CREATURE GAME ───────────────────────────────────────────────────────── */
-.creature-game{width:100%;min-height:320px;position:relative;background:var(--surface2);border:1px solid var(--border);overflow:hidden;border-radius:0;}
-.creature-game-bg{position:absolute;inset:0;background:linear-gradient(180deg,#0a0a12 0%,#0e0e1a 60%,#12100a 100%);}
-.creature-floor{position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(180deg,#1a1608 0%,#141005 100%);border-top:2px solid #2a2010;}
-.bucket{position:absolute;bottom:0;width:120px;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform 0.15s;}
-.bucket:hover{transform:translateY(-4px);}
-.bucket-body{width:100px;height:64px;position:relative;display:flex;align-items:center;justify-content:center;}
-.bucket-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;text-align:center;}
-.bucket-tomorrow{left:12px;}
-.bucket-drop{right:12px;}
-.bucket-tomorrow .bucket-label{color:#47c9ff;}
-.bucket-drop .bucket-label{color:#ff4d8f;}
-.creature-wrap{position:absolute;cursor:pointer;transition:transform 0.1s;user-select:none;}
-.creature-wrap:hover{transform:scale(1.08);}
-.creature-wrap.selected{filter:drop-shadow(0 0 6px var(--accent));}
-.creature-wrap.flying{transition:left 0.4s cubic-bezier(.4,0,.2,1),top 0.4s cubic-bezier(.4,0,.2,1),opacity 0.3s;}
-.creature-name-tag{position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);border:1px solid var(--border);padding:3px 8px;font-size:9px;color:var(--text2);white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;}
-.game-instructions{position:absolute;top:10px;left:0;right:0;text-align:center;font-size:10px;color:var(--text3);letter-spacing:1px;pointer-events:none;}
-.game-counter{position:absolute;top:10px;right:12px;font-size:10px;color:var(--text3);}
-.bucket-glow-tomorrow{box-shadow:0 0 20px rgba(71,201,255,0.3);}
-.bucket-glow-drop{box-shadow:0 0 20px rgba(255,77,143,0.3);}
-.poof{position:absolute;pointer-events:none;font-size:20px;animation:poofAnim 0.6s ease forwards;}
-@keyframes poofAnim{0%{opacity:1;transform:scale(0.5)}50%{opacity:1;transform:scale(1.4)}100%{opacity:0;transform:scale(1.8)translateY(-20px)}}
-/* BEGIN WORK DAY BANNER */
-.begin-work-banner{background:linear-gradient(135deg,rgba(232,255,71,0.06) 0%,rgba(77,255,145,0.04) 100%);border:1px solid rgba(232,255,71,0.25);border-left:4px solid #e8ff47;padding:24px 28px;margin-bottom:24px;position:relative;overflow:hidden;}
-.begin-work-banner::before{content:'';position:absolute;top:0;right:0;width:200px;height:100%;background:linear-gradient(270deg,rgba(232,255,71,0.04),transparent);pointer-events:none;}
-.begin-work-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#e8ff47;margin-bottom:4px;}
-.begin-work-sub{font-size:11px;color:var(--text2);margin-bottom:16px;line-height:1.5;}
-.begin-work-top3{margin-bottom:16px;}
-.begin-work-top3-item{font-size:12px;color:var(--text2);padding:4px 0;display:flex;gap:10px;border-bottom:1px solid var(--border);}
-.begin-work-top3-item:last-child{border-bottom:none;}
-.begin-work-top3-num{color:var(--text3);}
-.begin-work-btn{background:#e8ff47;color:#000;border:none;padding:12px 28px;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:1px;transition:opacity 0.15s;width:100%;}
-.begin-work-btn:hover{opacity:0.88;}
-
 /* TOAST */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);padding:14px 18px;font-size:12px;z-index:2000;animation:slideIn 0.2s ease;max-width:320px;}
 @keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
@@ -346,78 +228,6 @@ select option{background:#1e1e1e;color:#f0f0f0;}
   .dashboard-grid{grid-template-columns:1fr;}
   .stat-number{font-size:28px;}
 }
-
-/* ── PERSONAL MODE THEME ─────────────────────────────────────────────────── */
-body.personal-mode {
-  --bg:#0d0b07; --surface:#171209; --surface2:#1e1608; --border:#2e2510;
-  --accent:#ffb347; --text:#f5ede0; --text2:#9e8a6e; --text3:#5a4d38;
-  --success:#7ecb8f; --warning:#ff9a3c;
-  transition: background 0.6s ease, color 0.4s ease;
-}
-body.personal-mode .logo-text { color: var(--accent); }
-body.personal-mode .add-btn, body.personal-mode .btn-primary { background:var(--accent); color:#000; }
-body.personal-mode .priority-check.done { background:var(--accent); border-color:var(--accent); }
-body.personal-mode .energy-btn:hover, body.personal-mode .energy-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(255,179,71,0.08); }
-body.personal-mode .form-input:focus, body.personal-mode .form-select:focus, body.personal-mode .form-textarea:focus { border-color:var(--accent); }
-body.personal-mode .nav-item[data-track="personal"].active { border-left-color:var(--accent); }
-body.personal-mode .cal-view-btn.active { background:var(--accent); border-color:var(--accent); }
-body.personal-mode .ai-dot { background:var(--accent); }
-body.personal-mode .block-check.checked { background:var(--accent); border-color:var(--accent); }
-
-/* ── SHUTDOWN MODAL ──────────────────────────────────────────────────────── */
-.shutdown-step-indicator { display:flex; gap:8px; margin-bottom:24px; }
-.shutdown-step-dot { width:8px; height:8px; border-radius:50%; background:var(--border); transition:background 0.3s; }
-.shutdown-step-dot.active { background:var(--accent); }
-.shutdown-step-dot.done { background:var(--success); }
-.shutdown-task-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); gap:12px; }
-.shutdown-task-row:last-child { border-bottom:none; }
-.shutdown-task-name { font-size:12px; flex:1; }
-.shutdown-task-track { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); margin-top:2px; }
-.shutdown-task-actions { display:flex; gap:6px; flex-shrink:0; }
-.shutdown-task-btn { font-family:'DM Mono',monospace; font-size:10px; padding:4px 10px; border:1px solid var(--border); background:transparent; color:var(--text2); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
-.shutdown-task-btn:hover { border-color:var(--accent); color:var(--accent); }
-.shutdown-task-btn.moved { background:rgba(77,255,145,0.1); border-color:var(--success); color:var(--success); }
-.shutdown-task-btn.dropped { background:rgba(255,68,68,0.08); border-color:#ff4444; color:#ff4444; }
-.win-input { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-family:'DM Mono',monospace; font-size:13px; padding:12px; outline:none; transition:border-color 0.15s; resize:none; min-height:72px; }
-.win-input:focus { border-color:var(--accent); }
-.tomorrow-input { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-family:'DM Mono',monospace; font-size:13px; padding:10px 12px; outline:none; transition:border-color 0.15s; margin-bottom:8px; }
-.tomorrow-input:focus { border-color:var(--accent); }
-.tomorrow-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
-.tomorrow-num { font-size:10px; color:var(--text3); width:14px; flex-shrink:0; }
-
-/* ── TRANSITION SCREEN ───────────────────────────────────────────────────── */
-.transition-screen { position:fixed; inset:0; background:#0d0b07; z-index:9000; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; animation:fadeInScreen 0.5s ease; }
-@keyframes fadeInScreen { from{opacity:0} to{opacity:1} }
-.transition-pulse { width:60px; height:60px; border-radius:50%; background:rgba(255,179,71,0.15); border:1px solid rgba(255,179,71,0.4); animation:warmPulse 1.5s ease-in-out infinite; }
-@keyframes warmPulse { 0%,100%{transform:scale(1);opacity:0.6} 50%{transform:scale(1.15);opacity:1} }
-.transition-title { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:#ffb347; letter-spacing:-0.5px; }
-.transition-sub { font-size:12px; color:#9e8a6e; letter-spacing:1px; }
-
-/* ── PERSONAL MODE PAGE ──────────────────────────────────────────────────── */
-.personal-hero { padding:28px; margin-bottom:24px; border:1px solid var(--border); background:var(--surface); border-left:4px solid var(--accent); }
-.personal-hero-title { font-family:'Syne',sans-serif; font-size:30px; font-weight:800; color:var(--accent); line-height:1; }
-.personal-hero-sub { font-size:11px; color:var(--text2); margin-top:6px; }
-.personal-category { background:var(--surface); border:1px solid var(--border); padding:20px; margin-bottom:14px; }
-.personal-category-label { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--text3); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
-.personal-task-row { display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); }
-.personal-task-row:last-child { border-bottom:none; }
-.personal-check { width:20px; height:20px; border:1px solid var(--border); border-radius:50%; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px; transition:all 0.2s; }
-.personal-check:hover { border-color:var(--accent); }
-.personal-check.checked { background:var(--accent); border-color:var(--accent); color:#000; }
-.personal-task-label { font-size:13px; flex:1; transition:color 0.2s; }
-.personal-task-label.checked { text-decoration:line-through; color:var(--text3); }
-.streak-badge { font-size:10px; color:var(--accent); background:rgba(255,179,71,0.1); border:1px solid rgba(255,179,71,0.2); padding:2px 8px; }
-.personal-progress-bar { height:3px; background:var(--border); margin-bottom:24px; }
-.personal-progress-fill { height:100%; background:var(--accent); transition:width 0.4s ease; }
-.personal-progress-label { font-size:10px; color:var(--text2); margin-bottom:8px; display:flex; justify-content:space-between; }
-.personal-reflection { background:var(--surface); border:1px solid var(--border); padding:20px; margin-top:8px; }
-.personal-task-edit-btn { font-family:'DM Mono',monospace; font-size:9px; padding:2px 8px; border:1px solid var(--border); background:transparent; color:var(--text3); cursor:pointer; letter-spacing:1px; }
-.personal-task-edit-btn:hover { border-color:var(--accent); color:var(--accent); }
-.free-night-banner { background:rgba(255,179,71,0.08); border:1px solid rgba(255,179,71,0.3); border-left:3px solid var(--accent); padding:16px 20px; margin-bottom:20px; }
-.free-night-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; color:var(--accent); margin-bottom:4px; }
-.free-night-sub { font-size:11px; color:var(--text2); }
-.end-workday-btn { background:transparent; border:1px solid var(--border); color:var(--text2); font-family:'DM Mono',monospace; font-size:11px; padding:8px 16px; cursor:pointer; transition:all 0.2s; letter-spacing:1px; }
-.end-workday-btn:hover { border-color:var(--warning); color:var(--warning); }
 </style>
 </head>
 <body>
@@ -513,6 +323,7 @@ const DAY_SCHEDULE = {
   Tuesday:   [{ track:'records',    label:'Real Fun Records',    start:9,  end:15.5 },
               { track:'publishing', label:'Real Fun Publishing', start:9,  end:15.5 },
               { track:'songstage',  label:'Songstage',           start:16, end:17 }],
+  // Note: Songstage Tuesday is ONLY 4-5pm meeting slot — no other suggestions on Tue for Songstage
   Wednesday: [{ track:'freelance',  label:'Freelance',           start:9,  end:16 }],
   Thursday:  [{ track:'freelance',  label:'Freelance',           start:9,  end:16 }],
   Friday:    [{ track:'songstage',  label:'Songstage',           start:9,  end:16 }],
@@ -554,10 +365,38 @@ function loadGis() {
 
 async function initGoogle(onToken) {
   await Promise.all([loadGapi(), loadGis()]);
-  tokenClient = google.accounts.oauth2.initTokenClient({ client_id:CLIENT_ID, scope:SCOPES, callback:onToken });
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: (resp) => {
+      if (resp.access_token) {
+        // Store token and expiry in localStorage
+        const expiry = Date.now() + (resp.expires_in * 1000) - 60000; // 1min buffer
+        localStorage.setItem('hq_token', resp.access_token);
+        localStorage.setItem('hq_token_expiry', expiry.toString());
+        gapi.client.setToken({ access_token: resp.access_token });
+      }
+      onToken(resp);
+    },
+  });
+
+  // Try to restore saved token on load
+  const savedToken = localStorage.getItem('hq_token');
+  const savedExpiry = parseInt(localStorage.getItem('hq_token_expiry') || '0');
+  if (savedToken && Date.now() < savedExpiry) {
+    gapi.client.setToken({ access_token: savedToken });
+    onToken({ access_token: savedToken }); // treat as authed
+  }
 }
 
-function requestToken() { tokenClient && tokenClient.requestAccessToken({ prompt:'' }); }
+function requestToken() {
+  tokenClient && tokenClient.requestAccessToken({ prompt: '' });
+}
+
+function silentRefresh() {
+  // Try silent token refresh (no popup)
+  tokenClient && tokenClient.requestAccessToken({ prompt: '' });
+}
 
 async function readSheet(tab) {
   try {
@@ -567,9 +406,18 @@ async function readSheet(tab) {
 }
 
 async function appendRow(tab, values) {
-  await gapi.client.sheets.spreadsheets.values.append({
-    spreadsheetId:SHEET_ID, range:`${tab}!A1`, valueInputOption:'USER_ENTERED', resource:{ values:[values] },
+  // Ensure all values are strings (Sheets API rejects undefined)
+  const cleaned = values.map(v => v === null || v === undefined ? '' : String(v));
+  const result = await gapi.client.sheets.spreadsheets.values.append({
+    spreadsheetId:SHEET_ID,
+    range:`${tab}!A1`,
+    valueInputOption:'USER_ENTERED',
+    resource:{ values:[cleaned] },
   });
+  if (!result || result.status !== 200) {
+    throw new Error(`Sheet append failed: status ${result?.status}`);
+  }
+  return result;
 }
 
 async function updateCell(tab, rowIndex, colIndex, value) {
@@ -588,20 +436,6 @@ async function deleteRowFromSheet(tab, rowIndex) {
     spreadsheetId:SHEET_ID,
     resource:{ requests:[{ deleteDimension:{ range:{ sheetId:sheet.properties.sheetId, dimension:'ROWS', startIndex:rowIndex+1, endIndex:rowIndex+2 }}}]},
   });
-}
-
-async function appendDailyLog(entry) {
-  try {
-    await appendRow('Daily Log', [
-      entry.date        || '',
-      entry.win         || '',
-      (entry.top3 && entry.top3[0]) || '',
-      (entry.top3 && entry.top3[1]) || '',
-      (entry.top3 && entry.top3[2]) || '',
-      entry.brainDump   || '',
-      entry.eveningNote || '',
-    ]);
-  } catch(e) { console.error('Daily log write failed:', e); }
 }
 
 async function getAllCalendars() {
@@ -715,47 +549,69 @@ function getFirstDayOfMonth(year, month) {
 }
 
 // Get available slots for a track based on day rules, respecting 4pm cutoff
-function getSmartSlots(track, calEvents) {
+function getSmartSlots(track, calEvents, durationHours=1) {
+  // Always use 1-hour blocks, never suggest after 4pm
+  const BLOCK = durationHours <= 1 ? 1 : Math.ceil(durationHours);
+  const CUTOFF = 16; // hard 4pm cutoff
   const slots = [];
-  const today = new Date();
+  const now = new Date();
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-  for (let i=0; i<7; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
+  for (let i=0; i<14; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() + i);
     const dayName = dayNames[d.getDay()];
     const schedule = DAY_SCHEDULE[dayName] || [];
-    const trackSlots = schedule.filter(s => s.track === track);
+    const trackRules = schedule.filter(s => s.track === track);
+    if (!trackRules.length) continue;
 
-    for (const slot of trackSlots) {
-      // Hard cutoff at 4pm
-      const endHour = Math.min(slot.end, 16);
-      if (slot.start >= 16) continue;
+    // Get all events for this day as busy windows
+    const busy = calEvents
+      .filter(e => {
+        const es = e.start?.dateTime ? new Date(e.start.dateTime) : null;
+        return es && isSameDay(es, d);
+      })
+      .map(e => ({
+        start: new Date(e.start.dateTime).getHours() + new Date(e.start.dateTime).getMinutes()/60,
+        end: e.end?.dateTime
+          ? new Date(e.end.dateTime).getHours() + new Date(e.end.dateTime).getMinutes()/60
+          : new Date(e.start.dateTime).getHours() + 1,
+      }));
 
-      // Check for conflicts with existing calendar events
-      const startDt = new Date(d);
-      startDt.setHours(slot.start, 0, 0, 0);
-      const endDt = new Date(d);
-      endDt.setHours(endHour, 0, 0, 0);
+    for (const rule of trackRules) {
+      // Clamp to rule bounds and hard cutoff
+      const dayStart = Math.max(rule.start, i===0 ? now.getHours() + 1 : rule.start);
+      const dayEnd   = Math.min(rule.end, CUTOFF);
+      if (dayStart >= dayEnd) continue;
 
-      const conflict = calEvents.find(e => {
-        if (!e.start?.dateTime) return false;
-        const es = new Date(e.start.dateTime), ee = new Date(e.end?.dateTime || e.start.dateTime);
-        return es < endDt && ee > startDt;
-      });
+      // Walk through hour-by-hour, offer every free 1-hour block
+      for (let h=dayStart; h+BLOCK<=dayEnd; h++) {
+        // Check if this block overlaps any busy window
+        const blocked = busy.some(b => b.start < h+BLOCK && b.end > h);
+        if (blocked) continue;
 
-      slots.push({
-        date: d,
-        dayName,
-        label: `${fmtDate(d)} ${slot.start}:00–${endHour}:00`,
-        startHour: slot.start,
-        endHour,
-        conflict: !!conflict,
-        conflictName: conflict?.summary || '',
-        startISO: startDt.toISOString(),
-        endISO: endDt.toISOString(),
-      });
+        const startDt = new Date(d); startDt.setHours(h, 0, 0, 0);
+        const endDt   = new Date(d); endDt.setHours(h+BLOCK, 0, 0, 0);
+
+        const fmtH = hr => hr===12?'12pm':hr>12?`${hr-12}pm`:`${hr}am`;
+
+        slots.push({
+          date: new Date(d),
+          dayName,
+          label: `${d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})} · ${fmtH(h)}–${fmtH(h+BLOCK)}`,
+          startHour: h,
+          endHour: h+BLOCK,
+          conflict: false,
+          startISO: startDt.toISOString(),
+          endISO: endDt.toISOString(),
+          durationHours: BLOCK,
+        });
+
+        if (slots.length >= 8) break;
+      }
+      if (slots.length >= 8) break;
     }
+    if (slots.length >= 8) break;
   }
   return slots;
 }
@@ -1141,8 +997,9 @@ function KanbanCard({ item, track, onStatusChange, onDelete, onMarkDone, onEdit 
   const isOrgTask = item.type === 'Org Task' || item.type === 'General Task';
   const dueDate = item.dueDate ? new Date(item.dueDate + 'T12:00:00') : null;
   const isValidDate = dueDate && !isNaN(dueDate.getTime());
-  const isOverdue = isValidDate && dueDate < new Date();
-  const isDueSoon = isValidDate && !isOverdue && (dueDate - new Date()) < 3 * 86400000;
+  const isTerminal = TERMINAL[item.track] === item.status || ['Released','Monetizing','Shipped','Completed','Published'].includes(item.status);
+  const isOverdue = isValidDate && dueDate < new Date() && !isTerminal;
+  const isDueSoon = isValidDate && !isOverdue && !isTerminal && (dueDate - new Date()) < 3 * 86400000;
   return (
     <>
       <div className="card">
@@ -1909,9 +1766,11 @@ function DueSoonSection({ items, now, onMarkDone, onEdit }) {
                 </div>
               </div>
               <div style={{display:'flex',alignItems:'center',gap:'10px',flexShrink:0}}>
-                <span style={{fontSize:'10px',fontFamily:'DM Mono,monospace',color:isOverdue?'#ff4444':daysLeft<=3?'var(--warning)':'var(--text2)'}}>
-                  {isOverdue?`${Math.abs(daysLeft)}d overdue`:daysLeft===0?'Today':daysLeft===1?'Tomorrow':`${daysLeft}d`}
-                </span>
+                {!['Released','Monetizing','Shipped','Completed','Published'].includes(item.status) && (
+                  <span style={{fontSize:'10px',fontFamily:'DM Mono,monospace',color:isOverdue?'#ff4444':daysLeft<=3?'var(--warning)':'var(--text2)'}}>
+                    {isOverdue?`${Math.abs(daysLeft)}d overdue`:daysLeft===0?'Today':daysLeft===1?'Tomorrow':`${daysLeft}d`}
+                  </span>
+                )}
                 <span style={{fontSize:'10px',color:'var(--text3)'}}>{d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
                 <span style={{fontSize:'10px',color:'var(--text3)',display:'inline-block',transform:isExpanded?'rotate(180deg)':'none',transition:'transform 0.15s'}}>▾</span>
               </div>
@@ -2115,1141 +1974,174 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
   );
 }
 
-// ── SHUTDOWN + PERSONAL MODE CONSTANTS ───────────────────────────────────────
-const DEFAULT_PERSONAL_TASKS = [
-  { id:'walk',        category:'health',  label:'Walk 1 mile',                  active:true },
-  { id:'stretch',     category:'health',  label:'Stretch 5 minutes',            active:true },
-  { id:'family_din',  category:'family',  label:'Dinner with family',           active:true },
-  { id:'kids_time',   category:'family',  label:'Focused time with the boys',   active:true },
-  { id:'kendall',     category:'family',  label:'Intentional conversation with Kendall', active:false },
-  { id:'gratitude',   category:'reset',   label:'One thing you\'re grateful for', active:true },
-  { id:'brain_dump',  category:'reset',   label:'Brain dump — write it out',    active:false },
-  { id:'read',        category:'wind',    label:'Read 5–10 pages',              active:true },
-  { id:'no_phone',    category:'wind',    label:'Phone down by 9pm',            active:false },
-  { id:'music',       category:'wind',    label:'Listen to music for fun',      active:false },
-];
+// ── TODAY PAGE ───────────────────────────────────────────────────────────────
+function TodayPage({ items, calEvents, onMarkDone, demoMode }) {
+  const today = new Date();
+  const todayStr = today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 
-const PERSONAL_CATEGORY_LABELS = {
-  health: 'Health',
-  family: 'Family',
-  reset:  'Reset',
-  wind:   'Wind Down',
-};
-
-function todayKey() { return new Date().toISOString().split('T')[0]; }
-
-function loadPersonalTasks() {
-  try {
-    const saved = localStorage.getItem('hq_personal_tasks');
-    return saved ? JSON.parse(saved) : DEFAULT_PERSONAL_TASKS;
-  } catch { return DEFAULT_PERSONAL_TASKS; }
-}
-
-function savePersonalTasks(tasks) {
-  try { localStorage.setItem('hq_personal_tasks', JSON.stringify(tasks)); } catch {}
-}
-
-function loadPersonalChecked() {
-  try {
-    const saved = localStorage.getItem('hq_personal_' + todayKey());
-    return saved ? JSON.parse(saved) : {};
-  } catch { return {}; }
-}
-
-function savePersonalChecked(checked) {
-  try { localStorage.setItem('hq_personal_' + todayKey(), JSON.stringify(checked)); } catch {}
-}
-
-function loadStreaks() {
-  try {
-    const saved = localStorage.getItem('hq_streaks');
-    return saved ? JSON.parse(saved) : {};
-  } catch { return {}; }
-}
-
-function updateStreaks(checkedToday, personalTasks) {
-  const streaks = loadStreaks();
-  const today = todayKey();
-  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
-  const yesterdayKey = yesterday.toISOString().split('T')[0];
-
-  personalTasks.filter(t=>t.active).forEach(task => {
-    const existing = streaks[task.id] || { count:0, lastDate:'' };
-    if (checkedToday[task.id]) {
-      if (existing.lastDate === today) return; // already counted
-      const continued = existing.lastDate === yesterdayKey;
-      streaks[task.id] = { count: continued ? existing.count+1 : 1, lastDate: today };
-    }
+  // Calendar events for today
+  const todayEvents = calEvents.filter(e => {
+    const start = e.start?.dateTime ? new Date(e.start.dateTime) : e.start?.date ? new Date(e.start.date+'T00:00:00') : null;
+    return start && isSameDay(start, today);
+  }).sort((a,b) => {
+    const at = a.start?.dateTime ? new Date(a.start.dateTime).getTime() : 0;
+    const bt = b.start?.dateTime ? new Date(b.start.dateTime).getTime() : 0;
+    return at - bt;
   });
 
-  try { localStorage.setItem('hq_streaks', JSON.stringify(streaks)); } catch {}
-  return streaks;
-}
+  // Items due today or overdue across all tracks
+  const dueTodayItems = Object.values(items).flat().filter(i => {
+    if (!i.dueDate) return false;
+    const due = new Date(i.dueDate+'T12:00:00');
+    const terminal = ['Released','Monetizing','Shipped','Completed','Published'];
+    return !terminal.includes(i.status) && due <= today;
+  }).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-function loadShutdownLog() {
-  try {
-    const saved = localStorage.getItem('hq_shutdown_' + todayKey());
-    return saved ? JSON.parse(saved) : null;
-  } catch { return null; }
-}
-
-function saveShutdownLog(log) {
-  try { localStorage.setItem('hq_shutdown_' + todayKey(), JSON.stringify(log)); } catch {}
-}
-
-// ── CREATURE GAME ─────────────────────────────────────────────────────────────
-function TaskSorter({ openItems, onAllSorted }) {
-  const [decisions, setDecisions] = useState({});
-
-  function decide(key, dest) {
-    const next = {...decisions, [key]: dest};
-    setDecisions(next);
-    // Auto-advance when all items handled
-    const allDone = openItems.every(i => next[`${i.track}::${i.id}`]);
-    if (allDone) setTimeout(() => onAllSorted(next), 300);
-  }
-
-  function getDecision(key) { return decisions[key] || null; }
-
-  const remaining = openItems.filter(i => !decisions[`${i.track}::${i.id}`]).length;
+  // Active items scheduled for today (those with HQ calendar blocks today)
+  const hqEvents = todayEvents.filter(e => (e.summary||'').startsWith('[HQ]'));
 
   return (
-    <div>
-      {openItems.map(item => {
-        const key = `${item.track}::${item.id}`;
-        const dec = getDecision(key);
-        const color = TRACKS[item.track]?.color || 'var(--text3)';
-        return (
-          <div key={key} className="shutdown-task-row" style={{opacity: dec ? 0.45 : 1, transition:'opacity 0.2s'}}>
-            <div style={{flex:1}}>
-              <div className="shutdown-task-name" style={{textDecoration: dec ? 'line-through' : 'none'}}>{item.name}</div>
-              <div className="shutdown-task-track" style={{color}}>{TRACKS[item.track]?.label} · {item.status}</div>
-            </div>
-            <div className="shutdown-task-actions">
-              <button
-                className={`shutdown-task-btn${dec==='tomorrow'?' moved':''}`}
-                onClick={()=>decide(key,'tomorrow')}>
-                {dec==='tomorrow' ? '✓ Tomorrow' : '→ Tomorrow'}
-              </button>
-              <button
-                className={`shutdown-task-btn${dec==='drop'?' dropped':''}`}
-                onClick={()=>decide(key,'drop')}>
-                {dec==='drop' ? '✓ Drop' : 'Drop'}
-              </button>
-            </div>
-          </div>
-        );
-      })}
-      {openItems.length > 0 && remaining > 0 && (
-        <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'14px',letterSpacing:'1px'}}>
-          {remaining} left to sort
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── SHUTDOWN MODAL ────────────────────────────────────────────────────────────
-function ShutdownModal({ items, onClose, onComplete }) {
-  const [step, setStep] = useState(0);
-  const [gameSorted, setGameSorted] = useState(null);
-  const [win, setWin] = useState('');
-  const [top3, setTop3] = useState(['','','']);
-  const [brainDump, setBrainDump] = useState('');
-
-  // Gather open items across all tracks
-  const openItems = Object.entries(items).flatMap(([track, trackItems]) =>
-    trackItems.filter(i => !(DONE_STATUSES[track]||[]).includes(i.status))
-              .map(i => ({...i, track}))
-  );
-
-  function handleGameDone(sorted) {
-    setGameSorted(sorted);
-    // Brief pause then auto-advance to step 1
-    setTimeout(() => setStep(1), 350);
-  }
-
-  function handleComplete() {
-    const log = { win, top3, brainDump, gameSorted, completedAt: new Date().toISOString() };
-    saveShutdownLog(log);
-    onComplete(log);
-  }
-
-  const stepLabels = ['Sort your tasks','Before you go','Brain dump'];
-
-  return (
-    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="modal" style={{width:'580px'}}>
-        <div className="modal-header">
-          <div>
-            <div className="modal-title">Closing Out</div>
-            <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'2px'}}>
-              {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
-            </div>
-          </div>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-
-        <div className="modal-body">
-          {/* Step indicator */}
-          <div className="shutdown-step-indicator">
-            {stepLabels.map((label,i) => (
-              <div key={i} style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                <div className={`shutdown-step-dot${i===step?' active':i<step?' done':''}`}/>
-                <span style={{fontSize:'10px',color:i===step?'var(--text2)':'var(--text3)',letterSpacing:'1px'}}>
-                  {label}
-                </span>
-                {i < 2 && <span style={{color:'var(--text3)',fontSize:'10px',marginLeft:'4px'}}>·</span>}
-              </div>
-            ))}
-          </div>
-
-          {/* Step 0: Sort tasks */}
-          {step === 0 && (
-            <>
-              <div style={{fontSize:'12px',color:'var(--text2)',marginBottom:'16px'}}>
-                {openItems.length === 0
-                  ? 'Clean slate — nothing open.'
-                  : `${openItems.length} item${openItems.length>1?'s':''} still open. Move each to tomorrow or drop it.`}
-              </div>
-              {openItems.length === 0 ? (
-                <div style={{textAlign:'center',padding:'20px 0'}}>
-                  <div style={{fontSize:'22px',marginBottom:'8px'}}>✨</div>
-                  <div style={{fontSize:'13px',color:'var(--success)'}}>All caught up</div>
-                  <button className="btn-primary" style={{marginTop:'16px'}} onClick={()=>setStep(1)}>Next →</button>
-                </div>
-              ) : (
-                <TaskSorter openItems={openItems} onAllSorted={handleGameDone}/>
-              )}
-            </>
-          )}
-
-          {/* Step 1: Win + Top 3 */}
-          {step === 1 && (
-            <>
-              <div className="form-group">
-                <label className="form-label">One win from today</label>
-                <textarea
-                  className="win-input"
-                  placeholder="What moved today? Even small counts."
-                  value={win}
-                  onChange={e=>setWin(e.target.value)}
-                  autoFocus
-                />
-              </div>
-              <div className="form-group" style={{marginBottom:0}}>
-                <label className="form-label">Top 3 for tomorrow</label>
-                {[0,1,2].map(i => (
-                  <div key={i} className="tomorrow-row">
-                    <span className="tomorrow-num">{i+1}.</span>
-                    <input
-                      className="tomorrow-input"
-                      style={{marginBottom:0}}
-                      placeholder={i===0?'Most important thing':''}
-                      value={top3[i]}
-                      onChange={e=>{const n=[...top3];n[i]=e.target.value;setTop3(n);}}
-                    />
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Step 2: Brain dump */}
-          {step === 2 && (
-            <>
-              <div style={{fontSize:'13px',color:'var(--text2)',marginBottom:'16px',lineHeight:'1.6'}}>
-                Anything still running in the background? Get it out.
-                It'll be here tomorrow. You don't have to carry it.
-              </div>
-              <textarea
-                className="win-input"
-                style={{minHeight:'120px'}}
-                placeholder="Just type it out..."
-                value={brainDump}
-                onChange={e=>setBrainDump(e.target.value)}
-                autoFocus
-              />
-            </>
-          )}
-        </div>
-
-        <div className="modal-footer">
-          {step > 0 && <button className="btn-secondary" onClick={()=>setStep(s=>s-1)}>← Back</button>}
-          {step === 1 && <button className="btn-primary" onClick={()=>setStep(2)}>Next →</button>}
-          {step === 2 && (
-            <>
-              <button className="btn-secondary" onClick={handleComplete}>Skip</button>
-              <button className="btn-primary" onClick={handleComplete}>Close the workday →</button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── TRANSITION SCREEN ─────────────────────────────────────────────────────────
-function TransitionScreen({ onDone }) {
-  useEffect(() => {
-    const t = setTimeout(onDone, 2200);
-    return () => clearTimeout(t);
-  }, []);
-
-  return (
-    <div className="transition-screen">
-      <div className="transition-pulse"/>
-      <div className="transition-title">Work day: closed.</div>
-      <div className="transition-sub">You worked. Now live.</div>
-    </div>
-  );
-}
-
-// ── PERSONAL MODE PAGE ────────────────────────────────────────────────────────
-function PersonalModePage({ onExitPersonal, onBeginWorkDay }) {
-  const [tasks, setTasks] = useState(loadPersonalTasks);
-  const [checked, setChecked] = useState(loadPersonalChecked);
-  const [streaks, setStreaks] = useState(loadStreaks);
-  const [reflection, setReflection] = useState('');
-  const [reflSaved, setReflSaved] = useState(false);
-  const [showEditor, setShowEditor] = useState(false);
-  const [shutdownLog] = useState(loadShutdownLog);
-
-  const activeTasks = tasks.filter(t => t.active);
-  const checkedCount = activeTasks.filter(t => checked[t.id]).length;
-  const allDone = checkedCount === activeTasks.length && activeTasks.length > 0;
-
-  // Begin Work Day logic — shows from 6am until startup is done
-  const now = new Date();
-  const hour = now.getHours();
-  const startupDone = localStorage.getItem('hq_startup_done') === now.toDateString();
-  const showBeginWork = hour >= 6 && !startupDone;
-
-  function toggle(id) {
-    const next = { ...checked, [id]: !checked[id] };
-    setChecked(next);
-    savePersonalChecked(next);
-    const updated = updateStreaks(next, tasks);
-    setStreaks(updated);
-  }
-
-  // Check for "free night" — any streak >= 7
-  const freeNight = Object.entries(streaks).find(([id, s]) => s.count >= 7 && s.lastDate === todayKey());
-  const freeNightTask = freeNight ? tasks.find(t => t.id === freeNight[0]) : null;
-
-  // Group active tasks by category
-  const byCategory = {};
-  activeTasks.forEach(t => {
-    if (!byCategory[t.category]) byCategory[t.category] = [];
-    byCategory[t.category].push(t);
-  });
-
-  function toggleTaskActive(id) {
-    const updated = tasks.map(t => t.id===id ? {...t, active:!t.active} : t);
-    setTasks(updated);
-    savePersonalTasks(updated);
-  }
-
-  const greeting = hour < 17 ? 'Evening starting' : hour < 20 ? 'Good evening' : 'Winding down';
-
-  return (
-    <div className="page" style={{maxWidth:'680px'}}>
-
-      {/* ── BEGIN WORK DAY BANNER — shows from 6am until check-in done ── */}
-      {showBeginWork && (
-        <div className="begin-work-banner">
-          <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap'}}>
-            <div style={{flex:1}}>
-              <div className="begin-work-title">
-                {hour < 9 ? 'Morning.' : hour < 12 ? 'Ready when you are.' : 'Still here.'}
-              </div>
-              <div className="begin-work-sub">
-                {hour < 9
-                  ? "New day. Your morning check-in is waiting — priorities and health, 2 minutes."
-                  : hour < 12
-                  ? "Your morning check-in is ready whenever you want to start the work day."
-                  : "You haven't done your morning check-in yet. No pressure — it's still useful mid-day."}
-              </div>
-
-              {/* Show yesterday's top 3 if they exist */}
-              {shutdownLog?.top3?.some(t=>t) && (
-                <div className="begin-work-top3">
-                  <div style={{fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'8px'}}>
-                    You said these mattered today:
-                  </div>
-                  {shutdownLog.top3.filter(t=>t).map((item,i) => (
-                    <div key={i} className="begin-work-top3-item">
-                      <span className="begin-work-top3-num">{i+1}.</span>
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          <button className="begin-work-btn" onClick={onBeginWorkDay}>
-            Begin Work Day →
-          </button>
-        </div>
-      )}
-
-      {/* Free night banner */}
-      {freeNightTask && (
-        <div className="free-night-banner">
-          <div className="free-night-title">7 days straight — take tonight off.</div>
-          <div className="free-night-sub">
-            You've hit {freeNightTask.label.toLowerCase()} for a week. That's real consistency.
-            Tonight is yours — no checklist needed.
-          </div>
-        </div>
-      )}
-
-      {/* Hero */}
-      <div className="personal-hero">
-        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px'}}>
-          <div>
-            <div className="personal-hero-title">Personal Mode</div>
-            <div className="personal-hero-sub">
-              {greeting} · Work is closed · Focus on what matters now
-            </div>
-          </div>
-          <button
-            className="end-workday-btn"
-            onClick={onExitPersonal}
-            style={{fontSize:'10px',marginTop:'4px',whiteSpace:'nowrap'}}
-          >↩ Back to Work</button>
-        </div>
-
-        {/* Yesterday's top 3 carried forward */}
-        {shutdownLog?.top3?.some(t=>t) && (
-          <div style={{marginTop:'16px',paddingTop:'14px',borderTop:'1px solid var(--border)'}}>
-            <div style={{fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'8px'}}>Tomorrow's focus (set at shutdown)</div>
-            {shutdownLog.top3.filter(t=>t).map((item,i) => (
-              <div key={i} style={{fontSize:'12px',color:'var(--text2)',padding:'3px 0',display:'flex',gap:'8px'}}>
-                <span style={{color:'var(--text3)'}}>{i+1}.</span> {item}
-              </div>
-            ))}
-          </div>
-        )}
+    <div className="page">
+      <div style={{marginBottom:'24px'}}>
+        <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px'}}>Today</div>
+        <div style={{fontSize:'11px',color:'var(--text2)'}}>{todayStr}</div>
       </div>
 
-      {/* Progress */}
-      <div>
-        <div className="personal-progress-label">
-          <span style={{color:'var(--text2)'}}>{checkedCount} of {activeTasks.length} done</span>
-          {allDone && <span style={{color:'var(--accent)'}}>✓ All in</span>}
-        </div>
-        <div className="personal-progress-bar">
-          <div className="personal-progress-fill"
-            style={{width:`${activeTasks.length>0?(checkedCount/activeTasks.length)*100:0}%`}}/>
-        </div>
-      </div>
-
-      {/* Streaks row */}
-      {Object.entries(streaks).filter(([,s])=>s.count>1&&s.lastDate===todayKey()).length > 0 && (
-        <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'20px'}}>
-          {Object.entries(streaks)
-            .filter(([,s])=>s.count>1&&s.lastDate===todayKey())
-            .map(([id,s]) => {
-              const task = tasks.find(t=>t.id===id);
-              if (!task) return null;
+      {/* Today's Calendar */}
+      <div style={{marginBottom:'28px'}}>
+        <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>Your Schedule Today</div>
+        {todayEvents.length === 0
+          ? <div style={{fontSize:'12px',color:'var(--text3)',padding:'16px',border:'1px dashed var(--border)',textAlign:'center'}}>Nothing on the calendar today</div>
+          : todayEvents.map((e,i) => {
+              const isHQ = (e.summary||'').startsWith('[HQ]');
+              const start = e.start?.dateTime ? new Date(e.start.dateTime) : null;
+              const end   = e.end?.dateTime   ? new Date(e.end.dateTime)   : null;
+              const color = e._calendarColor || (isHQ ? 'var(--accent)' : 'var(--text3)');
               return (
-                <div key={id} className="streak-badge">
-                  {task.label.split(' ').slice(0,2).join(' ')} · {s.count}d
-                </div>
-              );
-            })}
-        </div>
-      )}
-
-      {/* Task categories */}
-      {Object.entries(PERSONAL_CATEGORY_LABELS).map(([cat, label]) => {
-        const catTasks = byCategory[cat] || [];
-        if (catTasks.length === 0) return null;
-        return (
-          <div key={cat} className="personal-category">
-            <div className="personal-category-label">
-              <span>{label}</span>
-              <button className="personal-task-edit-btn" onClick={()=>setShowEditor(e=>!e)}>
-                {showEditor ? 'Done' : 'Edit'}
-              </button>
-            </div>
-            {catTasks.map(task => {
-              const streak = streaks[task.id];
-              const hasStreak = streak && streak.count > 1 && streak.lastDate === todayKey();
-              return (
-                <div key={task.id} className="personal-task-row">
-                  {showEditor ? (
-                    <>
-                      <div className={`personal-task-label`} style={{opacity:task.active?1:0.4}}>{task.label}</div>
-                      <button
-                        className="personal-task-edit-btn"
-                        onClick={()=>toggleTaskActive(task.id)}
-                      >{task.active ? 'Remove' : 'Add'}</button>
-                    </>
-                  ) : (
-                    <>
-                      <div
-                        className={`personal-check${checked[task.id]?' checked':''}`}
-                        onClick={()=>toggle(task.id)}
-                      >{checked[task.id]?'✓':''}</div>
-                      <div className={`personal-task-label${checked[task.id]?' checked':''}`}>
-                        {task.label}
-                      </div>
-                      {hasStreak && (
-                        <div className="streak-badge">{streak.count}d</div>
-                      )}
-                    </>
+                <div key={i} style={{display:'flex',gap:'16px',padding:'12px 0',borderBottom:'1px solid var(--border)',alignItems:'flex-start'}}>
+                  <div style={{minWidth:'80px',fontSize:'11px',color:'var(--text2)',paddingTop:'2px'}}>
+                    {start ? fmtTime(start) : 'All day'}
+                    {end && <div style={{fontSize:'10px',color:'var(--text3)'}}>{fmtTime(end)}</div>}
+                  </div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:'13px',fontWeight:'500',color:isHQ?'var(--accent)':'var(--text)'}}>{(e.summary||'').replace('[HQ] ','')}</div>
+                    {e._calendarName&&<div style={{fontSize:'10px',color:'var(--text3)',marginTop:'2px'}}>{e._calendarName}</div>}
+                  </div>
+                  {isHQ && (
+                    <button className="card-btn done" style={{flexShrink:0}} onClick={()=>{
+                      // Find matching item by name and mark done
+                      const name = (e.summary||'').replace('[HQ] ','');
+                      const allItems = Object.entries(items);
+                      for (const [track, trackItems] of allItems) {
+                        const match = trackItems.find(it => it.name.toLowerCase() === name.toLowerCase());
+                        if (match) { onMarkDone(track, match); return; }
+                      }
+                    }}>✓ Done</button>
                   )}
                 </div>
               );
             })}
-          </div>
-        );
-      })}
+      </div>
 
-      {/* Optional reflection */}
-      {allDone && (
-        <div className="personal-reflection">
-          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>
-            Optional · End of day note
-          </div>
-          <textarea
-            className="win-input"
-            style={{minHeight:'80px',background:'var(--surface2)'}}
-            placeholder="Anything worth remembering from today..."
-            value={reflection}
-            onChange={e=>{setReflection(e.target.value);setReflSaved(false);}}
-          />
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:'10px'}}>
-            <div style={{fontSize:'10px',color:'var(--text3)'}}>Good day. Rest well.</div>
-            {reflection.trim()&&!reflSaved&&(
-              <button onClick={()=>{if(!demoMode)appendDailyLog({date:new Date().toISOString().split('T')[0],eveningNote:reflection});setReflSaved(true);}} style={{fontFamily:'DM Mono,monospace',fontSize:'10px',padding:'4px 14px',background:'var(--accent)',color:'#000',border:'none',cursor:'pointer',letterSpacing:'1px'}}>Save note</button>
-            )}
-            {reflSaved&&<div style={{fontSize:'10px',color:'var(--success)'}}>✓ Saved to Daily Log</div>}
-          </div>
+      {/* Due Today / Overdue */}
+      {dueTodayItems.length > 0 && (
+        <div>
+          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--warning)',marginBottom:'12px'}}>Due Today / Overdue</div>
+          {dueTodayItems.map((item,i) => {
+            const due = new Date(item.dueDate+'T12:00:00');
+            const isOverdue = due < today;
+            return (
+              <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 0',borderBottom:'1px solid var(--border)'}}>
+                <div className="nav-dot" style={{background:TRACKS[item.track]?.color||'#888',flexShrink:0}}/>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:'13px'}}>{item.name}</div>
+                  <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'2px'}}>{TRACKS[item.track]?.label} · {item.status}</div>
+                </div>
+                <span style={{fontSize:'10px',color:isOverdue?'#ff4444':'var(--warning)'}}>
+                  {isOverdue ? `${Math.floor((today-due)/86400000)}d overdue` : 'Due today'}
+                </span>
+                <button className="card-btn done" onClick={()=>onMarkDone(item.track, item)}>✓ Done</button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
 
-// ── MORNING STARTUP MODAL ─────────────────────────────────────────────────────
-function MorningStartup({ items, goals, onComplete }) {
-  const [step, setStep] = React.useState(0); // 0 = priorities, 1 = health
-  const [kept, setKept] = React.useState({});   // id -> true/false
-  const [dropped, setDropped] = React.useState({});
-  const [workout, setWorkout] = React.useState(null);
-  const [sleep, setSleep] = React.useState(null);
-  const [weight, setWeight] = React.useState('');
-  const [note, setNote] = React.useState('');
+// ── JOURNAL PAGE ──────────────────────────────────────────────────────────────
+function JournalPage({ demoMode }) {
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const [form, setForm] = useState({ wins:'', stuck:'', tomorrow:'', energy:'3' });
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const now = new Date();
-  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const dayName = dayNames[now.getDay()];
-  const DAY_THEMES = {
-    Monday:    { label:'Real Fun Day', tracks:['records','publishing'] },
-    Tuesday:   { label:'Real Fun + Songstage', tracks:['records','publishing','songstage'] },
-    Wednesday: { label:'Freelance Day', tracks:['freelance'] },
-    Thursday:  { label:'Freelance Day', tracks:['freelance'] },
-    Friday:    { label:'Songstage Day', tracks:['songstage'] },
-    Saturday:  { label:'Off', tracks:[] },
-    Sunday:    { label:'Off', tracks:[] },
-  };
-  const theme = DAY_THEMES[dayName] || { tracks:[] };
-  const allItems = Object.values(items).flat();
-
-  function isDone(item) { return (DONE_STATUSES[item.track]||[]).includes(item.status); }
-  function scoreItem(item) {
-    if (!item.dueDate) return 0;
-    const diff = Math.ceil((new Date(item.dueDate+'T12:00:00') - now) / 86400000);
-    if (diff < 0) return 100 + Math.abs(diff);
-    if (diff <= 2) return 80;
-    if (diff <= 7) return 50;
-    return 10;
-  }
-
-  // Surface top items across today's tracks + any overdue from other tracks
-  const todayItems = allItems
-    .filter(i => !isDone(i) && theme.tracks.includes(i.track))
-    .sort((a,b) => scoreItem(b) - scoreItem(a))
-    .slice(0, 5);
-
-  const overdueOther = allItems
-    .filter(i => !isDone(i) && !theme.tracks.includes(i.track) && i.dueDate && new Date(i.dueDate+'T12:00:00') < now)
-    .sort((a,b) => scoreItem(b) - scoreItem(a))
-    .slice(0, 2);
-
-  const priorityList = [...todayItems, ...overdueOther];
-
-  function toggleKept(id) {
-    setKept(k => ({...k, [id]: !k[id]}));
-    setDropped(d => ({...d, [id]: false}));
-  }
-  function toggleDropped(id) {
-    setDropped(d => ({...d, [id]: !d[id]}));
-    setKept(k => ({...k, [id]: false}));
-  }
-
-  const WORKOUT_OPTIONS = ['Morning — before work','Midday break','After 4:30','Already done ✓','Rest day today'];
-  const SLEEP_OPTIONS = [
-    { label:'Great 😌', cls:'selected-good' },
-    { label:'Decent 😐', cls:'selected' },
-    { label:'Rough 😞', cls:'selected-warn' },
-    { label:'Barely slept 💀', cls:'selected-bad' },
-  ];
-
-  function finish() {
-    const healthData = { workout, sleep, weight, note, date: now.toDateString() };
-    localStorage.setItem('hq_health_today', JSON.stringify(healthData));
-    localStorage.setItem('hq_startup_done', now.toDateString());
-    const droppedIds = Object.keys(dropped).filter(id => dropped[id]);
-    onComplete({ healthData, droppedIds });
-  }
-
-  const steps = ['Priorities','Health'];
-
-  return (
-    <div className="startup-overlay">
-      <div className="startup-modal">
-        <div className="startup-header">
-          <div className="startup-step-dots">
-            {steps.map((s,i) => (
-              <div key={i} className={`startup-step-dot${i===step?' active':i<step?' done':''}`}/>
-            ))}
-            <span style={{fontSize:'10px',color:'var(--text3)',marginLeft:'8px',letterSpacing:'2px',textTransform:'uppercase'}}>
-              {steps[step]} · {step+1} of {steps.length}
-            </span>
-          </div>
-
-          {step === 0 && <>
-            <div className="startup-title">Good morning.</div>
-            <div className="startup-sub">
-              It's {dayName} — {theme.label || 'open day'}. Here's what's on your plate. Keep what matters, drop what doesn't.
-            </div>
-          </>}
-          {step === 1 && <>
-            <div className="startup-title">Quick health check.</div>
-            <div className="startup-sub">
-              30 seconds. Helps the system protect what matters.
-            </div>
-          </>}
-        </div>
-
-        <div className="startup-body">
-          {/* ── STEP 0: Priority confirm ── */}
-          {step === 0 && (
-            <div>
-              {priorityList.length === 0 && (
-                <div style={{fontSize:'12px',color:'var(--text3)',padding:'16px 0'}}>
-                  Nothing queued for today's tracks. Clean slate — set your focus in Monday Check-In.
-                </div>
-              )}
-              {priorityList.map((item, i) => {
-                const id = `${item.track}::${item.name}`;
-                const isKept = kept[id];
-                const isDropped = dropped[id];
-                const isOverdue = item.dueDate && new Date(item.dueDate+'T12:00:00') < now;
-                const isOtherTrack = !theme.tracks.includes(item.track);
-                return (
-                  <div key={id} className="startup-priority-row" style={{opacity: isDropped ? 0.35 : 1, transition:'opacity 0.2s'}}>
-                    <div style={{flex:1}}>
-                      <div className="startup-priority-name" style={{textDecoration: isDropped?'line-through':'none'}}>
-                        {item.name}
-                      </div>
-                      <div className="startup-priority-meta">
-                        <span style={{color: TRACKS[item.track]?.color}}>{TRACKS[item.track]?.label}</span>
-                        {' · '}{item.status}
-                        {isOverdue && <span style={{color:'#ff4444',marginLeft:'6px'}}>⚠ Overdue</span>}
-                        {isOtherTrack && <span style={{color:'var(--warning)',marginLeft:'6px'}}>Not today's track</span>}
-                      </div>
-                    </div>
-                    <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                      <button
-                        className={`startup-keep-btn${isKept?' kept':''}`}
-                        onClick={()=>toggleKept(id)}
-                      >{isKept ? '✓ In' : 'Keep'}</button>
-                      <button
-                        className={`startup-drop-btn${isDropped?' dropped':''}`}
-                        onClick={()=>toggleDropped(id)}
-                      >{isDropped ? '✕ Out' : 'Drop'}</button>
-                    </div>
-                  </div>
-                );
-              })}
-              {priorityList.length > 0 && (
-                <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'16px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>
-                  Dropped items stay in your tracks — they just won't show as today's priorities.
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── STEP 1: Health check-in ── */}
-          {step === 1 && (
-            <div>
-              <div className="health-option-group">
-                <div className="health-option-label">Workout — when are you fitting it in?</div>
-                <div className="health-options">
-                  {WORKOUT_OPTIONS.map(o => (
-                    <button key={o} className={`health-opt${workout===o?' selected':''}`} onClick={()=>setWorkout(o)}>{o}</button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="health-option-group">
-                <div className="health-option-label">How'd you sleep?</div>
-                <div className="health-options">
-                  {SLEEP_OPTIONS.map(o => (
-                    <button key={o.label}
-                      className={`health-opt${sleep===o.label?' '+o.cls:''}`}
-                      onClick={()=>setSleep(o.label)}
-                    >{o.label}</button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="health-option-group">
-                <div className="health-option-label">Weight (optional)</div>
-                <input
-                  className="health-note-input"
-                  style={{minHeight:'unset',height:'38px'}}
-                  placeholder="e.g. 182"
-                  value={weight}
-                  onChange={e=>setWeight(e.target.value)}
-                />
-              </div>
-
-              <div className="health-option-group">
-                <div className="health-option-label">Anything else to protect today?</div>
-                <textarea
-                  className="health-note-input"
-                  placeholder="e.g. Back is tight, skip heavy lifting / Feeling anxious, keep schedule light..."
-                  value={note}
-                  onChange={e=>setNote(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="startup-footer">
-          {step === 0 && (
-            <>
-              <button className="btn-secondary" style={{fontSize:'11px'}} onClick={finish}>Skip both →</button>
-              <button className="btn-primary" onClick={()=>setStep(1)}>Next — Health check →</button>
-            </>
-          )}
-          {step === 1 && (
-            <>
-              <button className="btn-secondary" style={{fontSize:'11px'}} onClick={()=>setStep(0)}>← Back</button>
-              <button className="btn-primary" onClick={finish}>Start the day →</button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── TODAY PAGE ─────────────────────────────────────────────────────────────────
-function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin, onEndWorkday }) {
-  const now = new Date();
-  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const dayName = dayNames[now.getDay()];
-  const daySchedule = DAY_SCHEDULE[dayName] || [];
-
-  // Today's track theme
-  const todayTracks = [...new Set(daySchedule.map(s => s.track))];
-
-  const DAY_THEMES = {
-    Monday:    { label:'Real Fun Day', tracks:['records','publishing'], color:'var(--records)' },
-    Tuesday:   { label:'Real Fun + Songstage', tracks:['records','publishing','songstage'], color:'var(--songstage)' },
-    Wednesday: { label:'Freelance Day', tracks:['freelance'], color:'var(--freelance)' },
-    Thursday:  { label:'Freelance Day', tracks:['freelance'], color:'var(--freelance)' },
-    Friday:    { label:'Songstage Day', tracks:['songstage'], color:'var(--songstage)' },
-    Saturday:  { label:'Off', tracks:[], color:'var(--text3)' },
-    Sunday:    { label:'Off', tracks:[], color:'var(--text3)' },
-  };
-  const theme = DAY_THEMES[dayName] || { label:'Open', tracks:[], color:'var(--accent)' };
-
-  // ── Morning startup state ──
-  function startupDoneToday() {
-    return localStorage.getItem('hq_startup_done') === now.toDateString();
-  }
-  function getHealthToday() {
-    try { const d = JSON.parse(localStorage.getItem('hq_health_today')||'{}'); return d.date===now.toDateString()?d:null; } catch(e){return null;}
-  }
-
-  const [showStartup, setShowStartup] = React.useState(!startupDoneToday());
-  const [healthData, setHealthData] = React.useState(getHealthToday());
-  const [droppedToday, setDroppedToday] = React.useState({});
-  const [showReprioritize, setShowReprioritize] = React.useState(false);
-
-  function handleStartupComplete({ healthData: hd, droppedIds }) {
-    setHealthData(hd);
-    const dropped = {};
-    droppedIds.forEach(id => { dropped[id] = true; });
-    setDroppedToday(dropped);
-    setShowStartup(false);
-  }
-
-  // Workout status color
-  function workoutColor(w) {
-    if (!w) return 'var(--text3)';
-    if (w.includes('Already done')) return 'var(--success)';
-    if (w.includes('Rest day')) return 'var(--text3)';
-    return 'var(--accent)';
-  }
-  function sleepColor(s) {
-    if (!s) return 'var(--text3)';
-    if (s.includes('Great')) return 'var(--success)';
-    if (s.includes('Decent')) return 'var(--accent)';
-    if (s.includes('Rough')) return 'var(--warning)';
-    return '#ff4444';
-  }
-
-  // Checked-off state (local only — resets daily, just UI)
-  const [checked, setChecked] = React.useState({});
-  const [energy, setEnergy] = React.useState(null);
-
-  function toggleCheck(id) {
-    setChecked(c => ({...c, [id]: !c[id]}));
-  }
-
-  // Build today's priorities: items from today's tracks, filtered by overdue/due-soon/stale
-  const allItems = Object.values(items).flat();
-
-  // Score items: overdue > due today/tomorrow > stale > in-progress
-  function scoreItem(item) {
-    if (!item.dueDate) return 0;
-    const due = new Date(item.dueDate + 'T12:00:00');
-    const diff = Math.ceil((due - now) / 86400000);
-    if (diff < 0) return 100 + Math.abs(diff); // overdue — highest priority
-    if (diff <= 2) return 80;
-    if (diff <= 7) return 50;
-    return 10;
-  }
-
-  function isDone(item) {
-    return (DONE_STATUSES[item.track] || []).includes(item.status);
-  }
-
-  // Today's track-specific items
-  const todayTrackItems = allItems.filter(i =>
-    theme.tracks.includes(i.track) && !isDone(i)
-  ).sort((a,b) => scoreItem(b) - scoreItem(a));
-
-  // Top 3 work priorities from today's tracks
-  const topPriorities = todayTrackItems.slice(0, 3);
-
-  // Revenue-driving items (freelance invoiced/booked, records items with dueDate soon)
-  const revItems = allItems.filter(i =>
-    !isDone(i) &&
-    (i.track === 'freelance' && ['Booked','In Progress'].includes(i.status))
-  ).slice(0, 2);
-
-  // One content item if it's not a content-theme day
-  const contentItem = !theme.tracks.includes('content')
-    ? allItems.filter(i => i.track === 'content' && !isDone(i) && ['In Progress','Planned'].includes(i.status))[0]
-    : null;
-
-  // Overload check: too many calendar events + too many priorities
-  const todayCalEvents = calEvents.filter(e => {
-    if (!e.start?.dateTime) return false;
-    return isSameDay(new Date(e.start.dateTime), now);
-  });
-  const isOverloaded = todayCalEvents.length >= 4 || topPriorities.length > 5;
-
-  // What to ignore today: items NOT from today's tracks that are trying to creep in
-  const ignoreItems = allItems.filter(i =>
-    !isDone(i) &&
-    !theme.tracks.includes(i.track) &&
-    i.dueDate && (() => {
-      const d = new Date(i.dueDate + 'T12:00:00');
-      return d > now && Math.ceil((d - now)/86400000) <= 3;
-    })()
-  ).slice(0, 3);
-
-  // Next calendar events today
-  const upcomingToday = calEvents.filter(e => {
-    if (!e.start?.dateTime) return false;
-    const start = new Date(e.start.dateTime);
-    return isSameDay(start, now) && start >= now;
-  }).sort((a,b) => new Date(a.start.dateTime) - new Date(b.start.dateTime)).slice(0, 5);
-
-  // Detect calendar track from event summary
-  function getEventTrackColor(event) {
-    const title = (event.summary || '').toLowerCase();
-    if (title.includes('records') || title.includes('real fun') || title.includes('[hq]')) {
-      if (title.includes('publishing')) return 'var(--publishing)';
-      return 'var(--records)';
+  async function handleSubmit() {
+    if (!form.wins.trim() && !form.stuck.trim() && !form.tomorrow.trim()) return;
+    setSaving(true);
+    const row = [todayStr, form.wins, form.stuck, form.tomorrow, form.energy, new Date().toLocaleTimeString()];
+    if (!demoMode) {
+      try { await appendRow('Journal', row); } catch(e) { console.error('Journal save failed:', e); }
     }
-    if (title.includes('songstage')) return 'var(--songstage)';
-    if (title.includes('freelance') || title.includes('session') || title.includes('coaching')) return 'var(--freelance)';
-    if (title.includes('content') || title.includes('youtube') || title.includes('substack')) return 'var(--content)';
-    return event._calendarColor || 'var(--text3)';
+    setSaved(true);
+    setSaving(false);
   }
 
-  const priorityId = (track, name) => `${track}::${name}`;
-
-  // Filter out dropped items from today's priorities
-  function isDroppedToday(item) {
-    return droppedToday[`${item.track}::${item.name}`];
-  }
-
-  const filteredTopPriorities = topPriorities.filter(i => !isDroppedToday(i));
+  const energyLabels = ['','😴 Drained','😑 Low','😐 Okay','🙂 Good','🔥 Fired up'];
 
   return (
     <div className="page">
-      {/* Morning startup modal */}
-      {showStartup && (
-        <MorningStartup items={items} goals={goals} onComplete={handleStartupComplete}/>
-      )}
+      <div style={{maxWidth:'600px'}}>
+        <div style={{marginBottom:'24px'}}>
+          <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px'}}>End of Day</div>
+          <div style={{fontSize:'11px',color:'var(--text2)'}}>{today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
+        </div>
 
-      {/* Hero / day theme */}
-      <div className="today-hero">
-        <div>
-          <div className="today-day-label">{dayName}</div>
-          <div className="today-day-sub">
-            {now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · Cutoff at 4:30 PM
+        {saved ? (
+          <div style={{background:'rgba(77,255,145,0.08)',border:'1px solid rgba(77,255,145,0.3)',borderLeft:'3px solid var(--success)',padding:'24px',textAlign:'center'}}>
+            <div style={{fontFamily:'Syne,sans-serif',fontSize:'20px',fontWeight:'700',color:'var(--success)',marginBottom:'8px'}}>Saved ✓</div>
+            <div style={{fontSize:'12px',color:'var(--text2)'}}>Good work today. See you tomorrow.</div>
+            <button className="btn-secondary" style={{marginTop:'16px',fontSize:'11px'}} onClick={()=>{setForm({wins:'',stuck:'',tomorrow:'',energy:'3'});setSaved(false);}}>New entry</button>
           </div>
-        </div>
-        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'8px'}}>
-          <div className="today-theme-badge" style={{color:theme.color,borderColor:theme.color}}>
-            {theme.label}
+        ) : (
+          <div>
+            <div style={{background:'var(--surface)',border:'1px solid var(--border)',padding:'20px',marginBottom:'16px'}}>
+              <label className="form-label" style={{marginBottom:'10px',display:'block'}}>⚡ Energy Level Today</label>
+              <div style={{display:'flex',gap:'8px'}}>
+                {[1,2,3,4,5].map(n=>(
+                  <button key={n} onClick={()=>setForm({...form,energy:String(n)})}
+                    style={{flex:1,padding:'8px 4px',fontFamily:'DM Mono,monospace',fontSize:'11px',cursor:'pointer',
+                      background:form.energy===String(n)?'var(--accent)':'var(--surface2)',
+                      color:form.energy===String(n)?'#000':'var(--text2)',
+                      border:'1px solid var(--border)'}}>
+                    {energyLabels[n]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {[
+              {key:'wins',    label:'✓ What got done today?',       placeholder:'What did you actually ship, move forward, or finish?'},
+              {key:'stuck',   label:'⚠ What felt stuck or hard?',   placeholder:'What got in the way? What felt off?'},
+              {key:'tomorrow',label:'→ Top priority tomorrow',       placeholder:'The one thing that has to happen tomorrow...'},
+            ].map(({key,label,placeholder})=>(
+              <div key={key} style={{background:'var(--surface)',border:'1px solid var(--border)',padding:'20px',marginBottom:'12px'}}>
+                <label className="form-label" style={{marginBottom:'10px',display:'block'}}>{label}</label>
+                <textarea className="form-textarea form-input" style={{minHeight:'80px'}}
+                  placeholder={placeholder} value={form[key]}
+                  onChange={e=>setForm({...form,[key]:e.target.value})}/>
+              </div>
+            ))}
+
+            <button className="btn-primary" style={{width:'100%',padding:'14px',marginTop:'8px'}}
+              onClick={handleSubmit} disabled={saving}>
+              {saving ? 'Saving...' : 'Submit Reflection →'}
+            </button>
+            {demoMode && <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px',textAlign:'center'}}>Demo mode — connect Google to save to your sheet</div>}
           </div>
-          {theme.tracks.length > 0 && (
-            <div style={{display:'flex',gap:'6px'}}>
-              {theme.tracks.map(t => (
-                <div key={t} style={{width:'8px',height:'8px',borderRadius:'50%',background:TRACKS[t]?.color||'var(--text3)'}}/>
-              ))}
-            </div>
-          )}
-          <button className="end-workday-btn" onClick={onEndWorkday}>End Workday →</button>
-        </div>
-      </div>
-
-      {/* Health bar — shows after startup complete */}
-      {healthData && !showStartup && (
-        <div className="health-bar">
-          {healthData.workout && (
-            <div className="health-bar-item">
-              <div className="health-bar-dot" style={{background:workoutColor(healthData.workout)}}/>
-              <div>
-                <div className="health-bar-label">Workout</div>
-                <div className="health-bar-val">{healthData.workout}</div>
-              </div>
-            </div>
-          )}
-          {healthData.sleep && (
-            <div className="health-bar-item">
-              <div className="health-bar-dot" style={{background:sleepColor(healthData.sleep)}}/>
-              <div>
-                <div className="health-bar-label">Sleep</div>
-                <div className="health-bar-val">{healthData.sleep}</div>
-              </div>
-            </div>
-          )}
-          {healthData.weight && (
-            <div className="health-bar-item">
-              <div className="health-bar-dot" style={{background:'var(--text3)'}}/>
-              <div>
-                <div className="health-bar-label">Weight</div>
-                <div className="health-bar-val">{healthData.weight} lbs</div>
-              </div>
-            </div>
-          )}
-          {healthData.note && (
-            <div className="health-bar-item" style={{flex:1}}>
-              <div className="health-bar-dot" style={{background:'var(--text3)'}}/>
-              <div>
-                <div className="health-bar-label">Note</div>
-                <div className="health-bar-val" style={{fontSize:'10px'}}>{healthData.note}</div>
-              </div>
-            </div>
-          )}
-          <button className="health-bar-edit" onClick={()=>setShowStartup(true)}>Edit</button>
-        </div>
-      )}
-
-      {/* Low sleep warning */}
-      {healthData?.sleep && (healthData.sleep.includes('Rough') || healthData.sleep.includes('Barely')) && (
-        <div className="overload-warning" style={{borderColor:'rgba(255,179,71,0.3)',marginBottom:'16px'}}>
-          😞 Rough sleep — protect your top 1 priority and keep the day lighter than you think you can handle.
-        </div>
-      )}
-
-      {isOverloaded && (
-        <div className="overload-warning">
-          ⚠ Heavy day — {todayCalEvents.length} calendar events. Consider dropping or moving one priority.
-        </div>
-      )}
-
-      {/* Reprioritize banner — only after 11am so it doesn't nag immediately after morning startup */}
-      {!showStartup && now.getHours() >= 11 && (
-        <div className="reprioritize-banner">
-          <span style={{color:'var(--text2)'}}>Day not going as planned?</span>
-          <button onClick={()=>setShowStartup(true)}>Reprioritize →</button>
-        </div>
-      )}
-
-      <div className="today-grid">
-        {/* Left: Today's priorities */}
-        <div>
-          <div className="today-focus-full">
-            <div className="today-section-title">
-              <span>Today's Priorities</span>
-              <span style={{color:'var(--text3)',fontSize:'9px'}}>{theme.tracks.map(t=>TRACKS[t]?.label).join(' · ')}</span>
-            </div>
-            {filteredTopPriorities.length === 0 && theme.tracks.length > 0 && (
-              <div style={{fontSize:'12px',color:'var(--text3)',padding:'8px 0'}}>
-                No active items for today's tracks — or you dropped them all. Good time to check in.
-              </div>
-            )}
-            {theme.tracks.length === 0 && (
-              <div style={{fontSize:'12px',color:'var(--text3)',padding:'8px 0'}}>
-                It's the weekend. No work tracks scheduled.
-              </div>
-            )}
-            {filteredTopPriorities.map(item => {
-              const id = priorityId(item.track, item.name);
-              const isDue = item.dueDate && (() => {
-                const d = new Date(item.dueDate+'T12:00:00');
-                const diff = Math.ceil((d-now)/86400000);
-                return { overdue: diff < 0, soon: diff <= 2, diff };
-              })();
-              return (
-                <div key={id} className="priority-item">
-                  <div
-                    className={`priority-check${checked[id]?' done':''}`}
-                    onClick={()=>toggleCheck(id)}
-                  >{checked[id]?'✓':''}</div>
-                  <div className="priority-track-dot" style={{background:TRACKS[item.track]?.color}}/>
-                  <div style={{flex:1}}>
-                    <div className={`priority-label${checked[id]?' done':''}`}>{item.name}</div>
-                    <div className="priority-meta">
-                      {TRACKS[item.track]?.label}
-                      {item.status && ` · ${item.status}`}
-                      {isDue && isDue.overdue && <span style={{color:'#ff4444',marginLeft:'6px'}}>⚠ Overdue</span>}
-                      {isDue && !isDue.overdue && isDue.soon && <span style={{color:'var(--warning)',marginLeft:'6px'}}>⏰ Due soon</span>}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Revenue item */}
-            {revItems.length > 0 && (
-              <>
-                <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--success)',margin:'16px 0 10px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>Revenue Priority</div>
-                {revItems.filter(i=>!isDroppedToday(i)).map(item => {
-                  const id = priorityId(item.track, item.name)+'_rev';
-                  return (
-                    <div key={id} className="priority-item">
-                      <div className={`priority-check${checked[id]?' done':''}`} onClick={()=>toggleCheck(id)}>{checked[id]?'✓':''}</div>
-                      <div className="priority-track-dot" style={{background:'var(--success)'}}/>
-                      <div style={{flex:1}}>
-                        <div className={`priority-label${checked[id]?' done':''}`}>{item.name}</div>
-                        <div className="priority-meta">{TRACKS[item.track]?.label} · {item.status}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </>
-            )}
-
-            {/* Content item if not a content day */}
-            {contentItem && !isDroppedToday(contentItem) && (
-              <>
-                <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--content)',margin:'16px 0 10px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>Content</div>
-                {(() => {
-                  const id = priorityId('content', contentItem.name)+'_c';
-                  return (
-                    <div className="priority-item">
-                      <div className={`priority-check${checked[id]?' done':''}`} onClick={()=>toggleCheck(id)}>{checked[id]?'✓':''}</div>
-                      <div className="priority-track-dot" style={{background:'var(--content)'}}/>
-                      <div style={{flex:1}}>
-                        <div className={`priority-label${checked[id]?' done':''}`}>{contentItem.name}</div>
-                        <div className="priority-meta">Content · {contentItem.status}</div>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </>
-            )}
-          </div>
-
-          {/* Ignore today */}
-          {ignoreItems.length > 0 && (
-            <div className="today-section" style={{marginTop:'0'}}>
-              <div className="today-section-title"><span>Leave Alone Today</span></div>
-              {ignoreItems.map((item,i) => (
-                <div key={i} className="ignore-item">
-                  <span style={{color:TRACKS[item.track]?.color,fontSize:'10px'}}>{TRACKS[item.track]?.label}</span>
-                  <span>{item.name}</span>
-                </div>
-              ))}
-              <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'10px'}}>Not today's tracks. Still there tomorrow.</div>
-            </div>
-          )}
-        </div>
-
-        {/* Right column */}
-        <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
-          {/* Energy check-in */}
-          <div className="today-section">
-            <div className="today-section-title"><span>Energy Check</span></div>
-            <div className="today-energy">
-              {['🔋 High','⚡ Medium','😴 Low','🔥 In the zone'].map(e => (
-                <button key={e} className={`energy-btn${energy===e?' active':''}`} onClick={()=>setEnergy(e)}>{e}</button>
-              ))}
-            </div>
-            {energy === '😴 Low' && (
-              <div style={{fontSize:'11px',color:'var(--text3)',marginTop:'12px',paddingTop:'10px',borderTop:'1px solid var(--border)'}}>
-                Low energy — protect the top 1 priority and let the rest wait.
-              </div>
-            )}
-          </div>
-
-          {/* Today's calendar */}
-          <div className="today-section">
-            <div className="today-section-title"><span>On Your Calendar Today</span></div>
-            {upcomingToday.length === 0
-              ? <div style={{fontSize:'12px',color:'var(--text3)'}}>Nothing scheduled yet today.</div>
-              : upcomingToday.map((e,i) => (
-                <div key={i} className="cal-event-row">
-                  <div className="cal-event-track-bar" style={{background:getEventTrackColor(e)}}/>
-                  <div className="cal-event-time">{fmtTime(new Date(e.start.dateTime))}</div>
-                  <div className="cal-event-name">{e.summary}</div>
-                </div>
-              ))}
-            {todayCalEvents.length === 0 && upcomingToday.length === 0 && (
-              <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px'}}>Connect Google Calendar to see today's events here.</div>
-            )}
-          </div>
-
-          {/* Weekly goals for today's tracks */}
-          {theme.tracks.some(t => goals[t]) && (
-            <div className="today-section">
-              <div className="today-section-title"><span>This Week's Goal</span></div>
-              {theme.tracks.filter(t => goals[t]).map(t => (
-                <div key={t} style={{marginBottom:'10px'}}>
-                  <div style={{fontSize:'10px',color:TRACKS[t]?.color,marginBottom:'4px',letterSpacing:'1px',textTransform:'uppercase'}}>{TRACKS[t]?.label}</div>
-                  <div style={{fontSize:'12px',color:'var(--text2)',lineHeight:'1.5'}}>{goals[t]}</div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* No goals nudge */}
-          {theme.tracks.length > 0 && !theme.tracks.some(t => goals[t]) && (
-            <div style={{background:'rgba(232,255,71,0.05)',border:'1px solid rgba(232,255,71,0.2)',padding:'16px',fontSize:'12px',color:'var(--text2)'}}>
-              No weekly goals set for today's tracks.
-              <button className="btn-sm" style={{marginLeft:'10px'}} onClick={onGoToCheckin}>Set Goals</button>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
@@ -3259,7 +2151,7 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin,
 function App() {
   const [authed, setAuthed]= useState(false);
   const [demoMode, setDemoMode]= useState(false);
-  const [page, setPage]= useState('today');
+  const [page, setPage]= useState('dashboard');
   const [items, setItems]= useState({records:[],publishing:[],songstage:[],freelance:[],content:[]});
   const [goals, setGoals]= useState({});
   const [calEvents, setCalEvents]= useState([]);
@@ -3270,70 +2162,6 @@ function App() {
   const [undoToast, setUndoToast]= useState(null); // {message, onUndo}
   const [newWeek, setNewWeek]= useState(false);
   const [sidebarOpen, setSidebarOpen]= useState(false);
-  // Shutdown / personal mode
-  const [appMode, setAppMode] = useState(() => {
-    // Restore personal mode if user was in it when they last closed the app (same day)
-    try {
-      const saved = localStorage.getItem('hq_app_mode');
-      const savedDate = localStorage.getItem('hq_app_mode_date');
-      if (saved === 'personal' && savedDate === todayKey()) return 'personal';
-    } catch {}
-    return 'work';
-  }); // 'work' | 'shutting_down' | 'transitioning' | 'personal'
-
-  useEffect(() => {
-    document.body.classList.toggle('personal-mode', appMode === 'personal');
-  }, [appMode]);
-
-  function handleEndWorkday() { setAppMode('shutting_down'); }
-
-  async function handleShutdownComplete(log) {
-    setAppMode('transitioning');
-    if (demoMode) return;
-    try { await appendDailyLog({ date: new Date().toISOString().split('T')[0], win: log.win, top3: log.top3, brainDump: log.brainDump }); } catch(e) {}
-    if (!log.gameSorted) return;
-    const tmrw = new Date(); tmrw.setDate(tmrw.getDate()+1);
-    const tmrwStr = tmrw.toISOString().split('T')[0];
-    for (const [key, decision] of Object.entries(log.gameSorted)) {
-      const [track, idStr] = key.split('::');
-      const id = parseInt(idStr);
-      const tab = TRACKS[track] && TRACKS[track].tab;
-      if (!tab) continue;
-      try {
-        if (decision === 'tomorrow') {
-          await updateCell(tab, id, 4, tmrwStr);
-          setItems(prev => ({...prev, [track]: prev[track].map(i => i.id===id ? {...i, dueDate:tmrwStr} : i)}));
-        } else if (decision === 'drop') {
-          const ds = TERMINAL[track] || 'Done';
-          await updateCell(tab, id, 2, ds);
-          setItems(prev => ({...prev, [track]: prev[track].map(i => i.id===id ? {...i, status:ds} : i)}));
-        }
-      } catch(e) { console.error('Creature sort failed:', key, e); }
-    }
-  }
-
-  function handleTransitionDone() {
-    setAppMode('personal');
-    setPage('personal');
-    try {
-      localStorage.setItem('hq_app_mode', 'personal');
-      localStorage.setItem('hq_app_mode_date', todayKey());
-    } catch {}
-  }
-
-  function handleExitPersonal() {
-    setAppMode('work');
-    setPage('today');
-    try { localStorage.removeItem('hq_app_mode'); } catch {}
-  }
-
-  function handleBeginWorkDay() {
-    // Exit personal mode, go to Today — morning startup modal will fire automatically
-    // since hq_startup_done won't be set yet
-    setAppMode('work');
-    setPage('today');
-    try { localStorage.removeItem('hq_app_mode'); } catch {}
-  }
 
   function showToast(msg) { setToast(msg); }
   function showUndoToast(message, onUndo) {
@@ -3380,29 +2208,45 @@ function App() {
 
   async function handleAdd(track, formData) {
     const {name,type,status,extra,dueDate,notes,block,slot,owner}=formData;
+    if (!name?.trim()) return;
     const dateAdded=new Date().toISOString().split('T')[0];
     let row;
     if (track==='songstage') {
-      // Feature/Task | Type | Status | Assigned To | Due Date | Sprint | Notes | Date Added
       row=[name,type,status,extra||'',dueDate,'',notes,dateAdded];
     } else if (track==='content') {
-      // Title | Type | Status | Platform | Publish Date | Notes | Date Added
       row=[name,type,status,extra||'',dueDate,notes,dateAdded];
     } else {
-      // Records, Publishing, Freelance: Name | Type | Status | Extra | Due Date | Notes | Owner | Date Added
       row=[name,type,status,extra||'',dueDate,notes,owner||'',dateAdded];
     }
-    if (!demoMode) await appendRow(TRACKS[track].tab, row);
-    const newItem={id:items[track].length,name,type,status,extra,dueDate,notes,owner:owner||'',dateAdded,track};
+
+    // Add to UI immediately
+    const newItem={id:items[track].length,name,type,status,extra:extra||'',dueDate,notes,owner:owner||'',dateAdded,track};
     setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
+
+    // Write to sheet
+    if (!demoMode) {
+      try {
+        await appendRow(TRACKS[track].tab, row);
+      } catch(e) {
+        console.error('Sheet write failed:', e);
+        showToast(`⚠ "${name}" added locally but sheet save failed — check your connection`);
+        return;
+      }
+    }
+
+    // Block calendar if slot selected
     if (block&&slot&&!demoMode) {
       try {
         await createCalendarEvent(name,slot.startISO,slot.endISO,TRACK_COLORS_HEX[track],formData.calendarId||'primary');
         const refreshed=await getCalendarEvents(4);
         setCalEvents(refreshed);
-        showToast(`✓ "${name}" added + time blocked ${slot.label}`);
-      } catch(e) { showToast(`✓ "${name}" added — calendar block failed`); }
-    } else { showToast(`✓ "${name}" added to ${TRACKS[track].label}`); }
+        showToast(`✓ "${name}" saved to sheet + time blocked`);
+      } catch(e) {
+        showToast(`✓ "${name}" saved to sheet — calendar block failed`);
+      }
+    } else {
+      showToast(`✓ "${name}" saved to ${TRACKS[track].label}`);
+    }
   }
 
   async function handleEditCalEvent(ev) {
@@ -3621,50 +2465,27 @@ function App() {
 
   const trackKeys=Object.keys(TRACKS);
 
-  // Transition screen — full takeover, no sidebar
-  if (appMode === 'transitioning') {
-    return <TransitionScreen onDone={handleTransitionDone}/>;
-  }
-
   return (
     <div className="app">
       <div className={`sidebar-overlay${sidebarOpen?' open':''}`} onClick={()=>setSidebarOpen(false)}/>
       <div className={`sidebar${sidebarOpen?' open':''}`}>
         <div className="logo">
           <div className="logo-text">Jesse HQ</div>
-          <div className="logo-sub">{appMode==='personal'?'Personal Mode':demoMode?'Demo Mode':'Connected'}</div>
+          <div className="logo-sub">{demoMode?'Demo Mode':'Connected'}</div>
         </div>
         <nav className="nav">
-          {appMode === 'personal' ? (
-            <>
-              <div className="nav-section-label">Personal</div>
-              <div className={`nav-item${page==='personal'?' active':''}`} data-track="personal" onClick={()=>{setPage('personal');setSidebarOpen(false);}}>
-                <div className="nav-dot" style={{background:'var(--accent)'}}/>Personal Mode
-              </div>
-              <div style={{borderTop:'1px solid var(--border)',margin:'12px 0'}}/>
-              <div className="nav-section-label">Work</div>
-              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Monday Check-In']].map(([key,label])=>(
-                <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
-                  <div className={`nav-dot ${key}`}/>{label}
-                </div>
-              ))}
-            </>
-          ) : (
-            <>
-              <div className="nav-section-label">Overview</div>
-              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Monday Check-In']].map(([key,label])=>(
-                <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
-                  <div className={`nav-dot ${key}`}/>{label}
-                </div>
-              ))}
-              <div className="nav-section-label" style={{marginTop:'8px'}}>Tracks</div>
-              {Object.entries(TRACKS).map(([key,t])=>(
-                <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
-                  <div className={`nav-dot ${key}`}/>{t.label}
-                </div>
-              ))}
-            </>
-          )}
+          <div className="nav-section-label">Overview</div>
+          {[['dashboard','Dashboard'],['today','Today'],['calendar','Calendar'],['checkin','Monday Check-In'],['journal','End of Day']].map(([key,label])=>(
+            <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
+              <div className={`nav-dot ${key}`}/>{label}
+            </div>
+          ))}
+          <div className="nav-section-label" style={{marginTop:'8px'}}>Tracks</div>
+          {Object.entries(TRACKS).map(([key,t])=>(
+            <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
+              <div className={`nav-dot ${key}`}/>{t.label}
+            </div>
+          ))}
         </nav>
         <div className="sidebar-bottom">
           <div className="auth-status">
@@ -3672,11 +2493,6 @@ function App() {
             {authed?'Sheets + Calendar':demoMode?'Demo mode':'Not connected'}
           </div>
           {!authed&&!demoMode&&<button className="signin-btn" onClick={requestToken}>Connect Google</button>}
-          {appMode==='personal'&&(
-            <button className="signin-btn" style={{marginTop:'8px',background:'transparent',border:'1px solid var(--border)',color:'var(--text2)'}} onClick={handleExitPersonal}>
-              ↩ Back to Work Mode
-            </button>
-          )}
         </div>
       </div>
 
@@ -3685,34 +2501,27 @@ function App() {
           <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
             <button className="hamburger" onClick={()=>setSidebarOpen(o=>!o)}>☰</button>
             <div className="topbar-title">
-            {appMode==='personal'&&page==='personal'&&'Personal Mode'}
-            {page==='today'&&'Today'}
             {page==='dashboard'&&'Dashboard'}
+            {page==='today'&&'Today'}
             {page==='calendar'&&'Calendar'}
             {page==='checkin'&&'Monday Check-In'}
+            {page==='journal'&&'End of Day'}
             {TRACKS[page]&&TRACKS[page].label}
             </div>
           </div>
           <div className="topbar-right">
             <span className="week-badge">{getWeekLabel()}</span>
             {trackKeys.includes(page)&&<button className="add-btn" onClick={()=>setModal({track:page})}>+ Add Item</button>}
-            {appMode==='work'&&page==='today'&&(
-              <button className="end-workday-btn" style={{fontSize:'11px',padding:'6px 14px'}} onClick={handleEndWorkday}>End Workday</button>
-            )}
           </div>
         </div>
 
-        {appMode==='personal'&&page==='personal'&&<PersonalModePage onExitPersonal={handleExitPersonal} onBeginWorkDay={handleBeginWorkDay}/>}
-        {page==='today'&&<TodayPage items={items} goals={goals} calEvents={calEvents}
-          onMarkDone={(track,item)=>handleMarkDone(track,item)}
-          onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}
-          onGoToCheckin={()=>setPage('checkin')}
-          onEndWorkday={handleEndWorkday}/>}
         {page==='dashboard'&&<DashboardPage items={items} goals={goals} calEvents={calEvents} newWeek={newWeek}
           onCheckIn={()=>setPage('checkin')}
           onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}}
           onMarkDone={(track,item)=>handleMarkDone(track,item)}
           onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}/>}
+        {page==='today'&&<TodayPage items={items} calEvents={calEvents} onMarkDone={(track,item)=>handleMarkDone(track,item)} demoMode={demoMode}/>}
+        {page==='journal'&&<JournalPage demoMode={demoMode}/>}
         {page==='calendar'&&<CalendarPage calEvents={calEvents} calendarList={calendarList} onAddEvent={handleAddCalEvent} onEditEvent={handleEditCalEvent} onDeleteEvent={handleDeleteCalEvent} demoMode={demoMode}/>}
         {page==='checkin'&&<CheckInPage items={items} calEvents={calEvents} goals={goals}
           onGoalChange={(track,val)=>setGoals(g=>({...g,[track]:val}))}
@@ -3729,7 +2538,6 @@ function App() {
           onEdit={(oldItem,newItem)=>handleEditItem(page,oldItem,newItem)}/>}
       </div>
 
-      {appMode==='shutting_down'&&<ShutdownModal items={items} onClose={()=>setAppMode('work')} onComplete={handleShutdownComplete}/>}
       {modal&&<AddItemModal track={modal.track} calEvents={calEvents} calendarList={calendarList} onClose={()=>setModal(null)} onAdd={formData=>handleAdd(modal.track,formData)}/>}
       {toast&&<Toast message={toast} onClose={()=>setToast(null)}/>}
       {undoToast&&<div style={{position:'fixed',bottom:'80px',right:'24px',zIndex:'2001'}}><UndoToast message={undoToast.message} onUndo={undoToast.onUndo} onClose={()=>setUndoToast(null)}/></div>}
@@ -3738,21 +2546,6 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
-</script>
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("/sw.js").catch(function (err) {
-        console.error("Service worker registration failed", err);
-      });
-    });
-  }
-</script>
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/service-worker.js")
-      .then(function() { console.log("Service Worker Registered"); });
-  }
 </script>
 </body>
 </html>
