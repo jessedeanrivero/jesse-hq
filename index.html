@@ -34,11 +34,13 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .nav-item[data-track="freelance"].active{border-left-color:var(--freelance);}
 .nav-item[data-track="content"].active{border-left-color:var(--content);}
 .nav-item[data-track="checkin"].active{border-left-color:var(--success);}
+.nav-item[data-track="today"].active{border-left-color:var(--accent3);}
+.nav-item[data-track="journal"].active{border-left-color:var(--content);}
 .nav-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .nav-dot.records{background:var(--records);} .nav-dot.publishing{background:var(--publishing);}
 .nav-dot.songstage{background:var(--songstage);} .nav-dot.freelance{background:var(--freelance);}
 .nav-dot.content{background:var(--content);} .nav-dot.dashboard{background:var(--accent);}
-.nav-dot.checkin{background:var(--success);} .nav-dot.calendar{background:var(--songstage);} .nav-dot.today{background:var(--accent3);}
+.nav-dot.checkin{background:var(--success);} .nav-dot.calendar{background:var(--songstage);} .nav-dot.today{background:var(--accent3);} .nav-dot.journal{background:var(--content);}
 .sidebar-bottom{padding:16px 24px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);}
 .auth-status{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
 .auth-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);}
@@ -240,9 +242,6 @@ const { useState, useEffect, useRef } = React;
 const CLIENT_ID    = '84777476766-nmbmb2oj9c497qqucmlcoemgvl7j74mb.apps.googleusercontent.com';
 const SHEET_ID     = '1awdiuld1ZjawYHo_vys0kHPp0KzY4oeT1J_TsQcB5KE';
 const SCOPES       = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/calendar';
-const TOKEN_KEY    = 'hq_token';
-const TOKEN_EXPIRY_KEY = 'hq_token_expiry';
-const CONNECTED_KEY = 'hq_google_connected';
 // AI calls route through /api/breakdown serverless function
 
 const TRACKS = {
@@ -317,13 +316,12 @@ const TERMINAL = {
   freelance:'Completed', content:'Published',
 };
 
-// Day schedule rules — suggestions use 1-hour blocks and stop after 4pm,
-// except Songstage's standing Tuesday 4-5pm meeting slot.
+// Day schedule rules — all times respect 4pm hard cutoff (nothing after 4pm)
 const DAY_SCHEDULE = {
   Monday:    [{ track:'records',    label:'Real Fun Records',    start:9,  end:16 },
               { track:'publishing', label:'Real Fun Publishing', start:9,  end:16 }],
-  Tuesday:   [{ track:'records',    label:'Real Fun Records',    start:9,  end:16 },
-              { track:'publishing', label:'Real Fun Publishing', start:9,  end:16 },
+  Tuesday:   [{ track:'records',    label:'Real Fun Records',    start:9,  end:15.5 },
+              { track:'publishing', label:'Real Fun Publishing', start:9,  end:15.5 },
               { track:'songstage',  label:'Songstage',           start:16, end:17 }],
   // Note: Songstage Tuesday is ONLY 4-5pm meeting slot — no other suggestions on Tue for Songstage
   Wednesday: [{ track:'freelance',  label:'Freelance',           start:9,  end:16 }],
@@ -338,8 +336,6 @@ const TRACK_COLORS_HEX = {
 
 // ── GOOGLE API ────────────────────────────────────────────────────────────────
 let gapiLoaded = false, gisLoaded = false, tokenClient = null;
-let sheetTitleCache = null;
-let sheetHeaderCache = {};
 
 function loadGapi() {
   return new Promise(res => {
@@ -376,9 +372,8 @@ async function initGoogle(onToken) {
       if (resp.access_token) {
         // Store token and expiry in localStorage
         const expiry = Date.now() + (resp.expires_in * 1000) - 60000; // 1min buffer
-        localStorage.setItem(TOKEN_KEY, resp.access_token);
-        localStorage.setItem(TOKEN_EXPIRY_KEY, expiry.toString());
-        localStorage.setItem(CONNECTED_KEY, '1');
+        localStorage.setItem('hq_token', resp.access_token);
+        localStorage.setItem('hq_token_expiry', expiry.toString());
         gapi.client.setToken({ access_token: resp.access_token });
       }
       onToken(resp);
@@ -386,22 +381,16 @@ async function initGoogle(onToken) {
   });
 
   // Try to restore saved token on load
-  const savedToken = localStorage.getItem(TOKEN_KEY);
-  const savedExpiry = parseInt(localStorage.getItem(TOKEN_EXPIRY_KEY) || '0');
+  const savedToken = localStorage.getItem('hq_token');
+  const savedExpiry = parseInt(localStorage.getItem('hq_token_expiry') || '0');
   if (savedToken && Date.now() < savedExpiry) {
     gapi.client.setToken({ access_token: savedToken });
     onToken({ access_token: savedToken }); // treat as authed
-    return;
-  }
-
-  // If this browser has connected before, try to restore the session silently.
-  if (localStorage.getItem(CONNECTED_KEY) === '1') {
-    tokenClient.requestAccessToken({ prompt: '' });
   }
 }
 
-function requestToken(prompt = '') {
-  tokenClient && tokenClient.requestAccessToken({ prompt });
+function requestToken() {
+  tokenClient && tokenClient.requestAccessToken({ prompt: '' });
 }
 
 function silentRefresh() {
@@ -431,71 +420,12 @@ async function appendRow(tab, values) {
   return result;
 }
 
-function getColumnLetter(colIndex) {
-  let index = colIndex + 1;
-  let out = '';
-  while (index > 0) {
-    const rem = (index - 1) % 26;
-    out = String.fromCharCode(65 + rem) + out;
-    index = Math.floor((index - 1) / 26);
-  }
-  return out;
-}
-
 async function updateCell(tab, rowIndex, colIndex, value) {
-  const col = getColumnLetter(colIndex);
+  const col = String.fromCharCode(65 + colIndex);
   await gapi.client.sheets.spreadsheets.values.update({
     spreadsheetId:SHEET_ID, range:`${tab}!${col}${rowIndex+2}`,
     valueInputOption:'USER_ENTERED', resource:{ values:[[value]] },
   });
-}
-
-async function updateRow(tab, rowIndex, values, startCol=0) {
-  const cleaned = values.map(v => v === null || v === undefined ? '' : String(v));
-  const start = getColumnLetter(startCol);
-  const end = getColumnLetter(startCol + cleaned.length - 1);
-  await gapi.client.sheets.spreadsheets.values.update({
-    spreadsheetId:SHEET_ID,
-    range:`${tab}!${start}${rowIndex+2}:${end}${rowIndex+2}`,
-    valueInputOption:'USER_ENTERED',
-    resource:{ values:[cleaned] },
-  });
-}
-
-async function getSheetTitles() {
-  if (sheetTitleCache) return sheetTitleCache;
-  const meta = await gapi.client.sheets.spreadsheets.get({ spreadsheetId:SHEET_ID });
-  sheetTitleCache = (meta.result.sheets || []).map(s => s.properties.title);
-  return sheetTitleCache;
-}
-
-async function resolveSheetTab(candidates) {
-  const titles = await getSheetTitles();
-  return candidates.find(tab => titles.includes(tab)) || null;
-}
-
-async function getSheetHeaders(tab) {
-  if (sheetHeaderCache[tab]) return sheetHeaderCache[tab];
-  const r = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId:SHEET_ID, range:`${tab}!A1:Z1` });
-  const headers = r.result.values?.[0] || [];
-  sheetHeaderCache[tab] = headers;
-  return headers;
-}
-
-async function findHeaderColumn(tab, headerName) {
-  const headers = await getSheetHeaders(tab);
-  return headers.findIndex(h => String(h || '').trim().toLowerCase() === headerName.trim().toLowerCase());
-}
-
-async function upsertRowByDate(tab, dateValue, values) {
-  const rows = await readSheet(tab);
-  const rowIndex = rows.findIndex(r => (r[0] || '') === dateValue);
-  if (rowIndex >= 0) {
-    await updateRow(tab, rowIndex, values);
-    return { rowIndex, inserted:false };
-  }
-  await appendRow(tab, values);
-  return { rowIndex:rows.length, inserted:true };
 }
 
 async function deleteRowFromSheet(tab, rowIndex) {
@@ -619,16 +549,15 @@ function getFirstDayOfMonth(year, month) {
 }
 
 // Get available slots for a track based on day rules, respecting 4pm cutoff
-function getSmartSlots(track, calEvents, durationHours=1, maxSlots=8) {
-  // Suggestions always happen in 1-hour blocks. We keep the AI estimate
-  // separate from the actual booking block so the UI behaves more like Buffer.
-  // Looks up to 42 days ahead (6 weeks) so there's always a slot available.
-  const BLOCK = 1;
+function getSmartSlots(track, calEvents, durationHours=1) {
+  // Always use 1-hour blocks, never suggest after 4pm
+  const BLOCK = durationHours <= 1 ? 1 : Math.ceil(durationHours);
+  const CUTOFF = 16; // hard 4pm cutoff
   const slots = [];
   const now = new Date();
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-  for (let i=0; i<42; i++) {
+  for (let i=0; i<14; i++) {
     const d = new Date(now);
     d.setDate(now.getDate() + i);
     const dayName = dayNames[d.getDay()];
@@ -650,9 +579,9 @@ function getSmartSlots(track, calEvents, durationHours=1, maxSlots=8) {
       }));
 
     for (const rule of trackRules) {
-      const earliestStart = i===0 ? now.getHours() + 1 : rule.start;
-      const dayStart = Math.max(Math.ceil(rule.start), Math.ceil(earliestStart));
-      const dayEnd = Math.floor(rule.end);
+      // Clamp to rule bounds and hard cutoff
+      const dayStart = Math.max(rule.start, i===0 ? now.getHours() + 1 : rule.start);
+      const dayEnd   = Math.min(rule.end, CUTOFF);
       if (dayStart >= dayEnd) continue;
 
       // Walk through hour-by-hour, offer every free 1-hour block
@@ -678,11 +607,11 @@ function getSmartSlots(track, calEvents, durationHours=1, maxSlots=8) {
           durationHours: BLOCK,
         });
 
-        if (slots.length >= maxSlots) break;
+        if (slots.length >= 8) break;
       }
-      if (slots.length >= maxSlots) break;
+      if (slots.length >= 8) break;
     }
-    if (slots.length >= maxSlots) break;
+    if (slots.length >= 8) break;
   }
   return slots;
 }
@@ -1068,10 +997,9 @@ function KanbanCard({ item, track, onStatusChange, onDelete, onMarkDone, onEdit 
   const isOrgTask = item.type === 'Org Task' || item.type === 'General Task';
   const dueDate = item.dueDate ? new Date(item.dueDate + 'T12:00:00') : null;
   const isValidDate = dueDate && !isNaN(dueDate.getTime());
-  const doneStatuses = DONE_STATUSES[item.track] || [];
-  const isDone = doneStatuses.includes(item.status);
-  const isOverdue = isValidDate && dueDate < new Date() && !isDone;
-  const isDueSoon = isValidDate && !isOverdue && !isDone && (dueDate - new Date()) < 3 * 86400000;
+  const isTerminal = TERMINAL[item.track] === item.status || ['Released','Monetizing','Shipped','Completed','Published'].includes(item.status);
+  const isOverdue = isValidDate && dueDate < new Date() && !isTerminal;
+  const isDueSoon = isValidDate && !isOverdue && !isTerminal && (dueDate - new Date()) < 3 * 86400000;
   return (
     <>
       <div className="card">
@@ -1553,8 +1481,9 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onGoalBlur, onSave
       }
       const bookedSlots = [], taskSlots = {};
       for (let i=0; i<tasks.length; i++) {
+        const duration = tasks[i].estimatedHours || 1;
         const fakeBooked = bookedSlots.map(s=>({ start:{dateTime:s.startISO}, end:{dateTime:s.endISO}, summary:'[HQ] Reserved' }));
-        const available = getSmartSlots(track, [...calEvents, ...fakeBooked], 1);
+        const available = getSmartSlots(track, [...calEvents, ...fakeBooked], duration);
         if (available.length > 0) { taskSlots[i] = available[0]; bookedSlots.push(available[0]); }
       }
       setAiTasks(t=>({...t,[track]:tasks}));
@@ -1589,7 +1518,7 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onGoalBlur, onSave
 
   const staleByTrack = {};
   Object.entries(items).forEach(([track,trackItems])=>{
-    staleByTrack[track]=trackItems.filter(i=>!(DONE_STATUSES[track]||[]).includes(i.status)&&daysSince(i.dateAdded)>5);
+    staleByTrack[track]=trackItems.filter(i=>i.status!==TERMINAL[track]&&daysSince(i.dateAdded)>5);
   });
 
   const thisWeekEvents = calEvents.filter(e=>{
@@ -1738,7 +1667,7 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onGoalBlur, onSave
                                 </div>
                                 <div style={{flex:1}}>
                                   <div className="ai-task-name">{task.name}</div>
-                                  <div className="ai-task-meta">{task.status} · 1h block{task.estimatedHours ? ` · est. ${task.estimatedHours}h` : ''}{task.notes ? ` · ${task.notes}` : ''}</div>
+                                  <div className="ai-task-meta">{task.status} · ~{task.estimatedHours}h · {task.notes}</div>
                                   {isSelected&&(slot?(
                                     <div style={{marginTop:'6px',display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
                                       <div style={{fontSize:'10px',color:'var(--accent)',background:'rgba(232,255,71,0.08)',border:'1px solid rgba(232,255,71,0.2)',padding:'3px 8px'}}>
@@ -1747,11 +1676,11 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onGoalBlur, onSave
                                       <select style={{fontFamily:'DM Mono,monospace',fontSize:'9px',background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--text2)',padding:'3px 6px',cursor:'pointer'}}
                                         onChange={ev=>{
                                           const idx=parseInt(ev.target.value);
-                                          const allSlots=getSmartSlots(track,calEvents,1);
+                                          const allSlots=getSmartSlots(track,calEvents,task.estimatedHours||1);
                                           if(idx>=0&&allSlots[idx]) setAiSlots(s=>({...s,[track]:{...s[track],[i]:allSlots[idx]}}));
                                         }}>
                                         <option value={-1}>Change slot...</option>
-                                        {getSmartSlots(track,calEvents,1).slice(0,5).map((s,si)=>(
+                                        {getSmartSlots(track,calEvents,task.estimatedHours||1).slice(0,5).map((s,si)=>(
                                           <option key={si} value={si}>{s.label}</option>
                                         ))}
                                       </select>
@@ -1822,8 +1751,6 @@ function DueSoonSection({ items, now, onMarkDone, onEdit }) {
         const isOverdue=d<now;
         const daysLeft=Math.ceil((d-now)/86400000);
         const isExpanded=expanded===i;
-        const doneStatuses = DONE_STATUSES[item.track] || [];
-        const isDone = doneStatuses.includes(item.status);
         return (
           <div key={i} style={{borderBottom:'1px solid var(--border)'}}>
             <div onClick={()=>setExpanded(isExpanded?null:i)}
@@ -1839,7 +1766,7 @@ function DueSoonSection({ items, now, onMarkDone, onEdit }) {
                 </div>
               </div>
               <div style={{display:'flex',alignItems:'center',gap:'10px',flexShrink:0}}>
-                {!isDone && (
+                {!['Released','Monetizing','Shipped','Completed','Published'].includes(item.status) && (
                   <span style={{fontSize:'10px',fontFamily:'DM Mono,monospace',color:isOverdue?'#ff4444':daysLeft<=3?'var(--warning)':'var(--text2)'}}>
                     {isOverdue?`${Math.abs(daysLeft)}d overdue`:daysLeft===0?'Today':daysLeft===1?'Tomorrow':`${daysLeft}d`}
                   </span>
@@ -1885,7 +1812,7 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
   const today = new Date();
   const isMonday = today.getDay() === 1;
   const allItems = Object.values(items).flat();
-  const stale = allItems.filter(i=>!(DONE_STATUSES[i.track]||[]).includes(i.status)&&daysSince(i.dateAdded)>7);
+  const stale = allItems.filter(i=>i.status!==TERMINAL[i.track]&&daysSince(i.dateAdded)>7);
   const weekGoals = Object.entries(goals).filter(([,v])=>v);
 
   // Due soon — items with due dates in the next 14 days, not yet done
@@ -2048,17 +1975,9 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
 }
 
 // ── TODAY PAGE ───────────────────────────────────────────────────────────────
-function TodayPage({ items, calEvents, onMarkDone, onSubmitMorning, onSubmitJournal, demoMode }) {
+function TodayPage({ items, calEvents, onMarkDone, demoMode }) {
   const today = new Date();
   const todayStr = today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-  const [morningForm, setMorningForm] = useState({ weight:'', sleep:'', healthNote:'', workout:'' });
-  const [savingMorning, setSavingMorning] = useState(false);
-  const [morningSaved, setMorningSaved] = useState(false);
-
-  // End of day state
-  const [eodForm, setEodForm] = useState({ wins:'', stuck:'', tomorrow:'', energy:'3' });
-  const [eodSaved, setEodSaved] = useState(false);
-  const [eodSaving, setEodSaving] = useState(false);
 
   // Calendar events for today
   const todayEvents = calEvents.filter(e => {
@@ -2070,82 +1989,24 @@ function TodayPage({ items, calEvents, onMarkDone, onSubmitMorning, onSubmitJour
     return at - bt;
   });
 
-  // Items due today or overdue — exclude done items
+  // Items due today or overdue — only active (non-done) items
   const dueTodayItems = Object.values(items).flat().filter(i => {
     if (!i.dueDate) return false;
     const due = new Date(i.dueDate+'T12:00:00');
     const doneStatuses = DONE_STATUSES[i.track] || [];
-    if (doneStatuses.includes(i.status)) return false; // skip done
+    if (doneStatuses.includes(i.status)) return false;
+    if (i.status === 'Done' || i.status === 'Completed') return false;
     return due <= today;
   }).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-  // HQ calendar blocks — only show ones that aren't already done
-  const hqEvents = todayEvents.filter(e => {
-    if (!(e.summary||'').startsWith('[HQ]')) return false;
-    const name = (e.summary||'').replace('[HQ] ','').toLowerCase();
-    // Check if a matching item is already done
-    for (const [track, trackItems] of Object.entries(items)) {
-      const match = trackItems.find(it => it.name.toLowerCase() === name);
-      if (match) {
-        const doneStatuses = DONE_STATUSES[track] || [];
-        if (doneStatuses.includes(match.status)) return false; // already done
-      }
-    }
-    return true;
-  });
-
-  async function handleMorningSubmit() {
-    if (!morningForm.weight.trim() && !morningForm.sleep.trim() && !morningForm.healthNote.trim() && !morningForm.workout.trim()) return;
-    setSavingMorning(true);
-    const ok = await onSubmitMorning(morningForm);
-    setSavingMorning(false);
-    if (ok) setMorningSaved(true);
-  }
-
-  async function handleEodSubmit() {
-    if (!eodForm.wins.trim() && !eodForm.stuck.trim() && !eodForm.tomorrow.trim()) return;
-    setEodSaving(true);
-    const ok = await onSubmitJournal(eodForm);
-    setEodSaving(false);
-    if (ok) setEodSaved(true);
-  }
-
-  const energyLabels = ['','😴 Drained','😑 Low','😐 Okay','🙂 Good','🔥 Fired up'];
+  // Active items scheduled for today (those with HQ calendar blocks today)
+  const hqEvents = todayEvents.filter(e => (e.summary||'').startsWith('[HQ]'));
 
   return (
     <div className="page">
       <div style={{marginBottom:'24px'}}>
         <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px'}}>Today</div>
         <div style={{fontSize:'11px',color:'var(--text2)'}}>{todayStr}</div>
-      </div>
-
-      {/* Morning Check-In */}
-      <div style={{background:'var(--surface)',border:'1px solid var(--border)',padding:'20px',marginBottom:'28px'}}>
-        <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>Good Morning</div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'12px'}}>
-          <div className="form-group" style={{marginBottom:0}}>
-            <label className="form-label">Weight</label>
-            <input className="form-input" value={morningForm.weight} onChange={e=>{setMorningSaved(false);setMorningForm(f=>({...f,weight:e.target.value}));}} placeholder="182.4"/>
-          </div>
-          <div className="form-group" style={{marginBottom:0}}>
-            <label className="form-label">Sleep</label>
-            <input className="form-input" value={morningForm.sleep} onChange={e=>{setMorningSaved(false);setMorningForm(f=>({...f,sleep:e.target.value}));}} placeholder="7h 15m"/>
-          </div>
-        </div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'12px'}}>
-          <div className="form-group" style={{marginBottom:0}}>
-            <label className="form-label">Health Note</label>
-            <textarea className="form-textarea form-input" style={{minHeight:'72px'}} value={morningForm.healthNote} onChange={e=>{setMorningSaved(false);setMorningForm(f=>({...f,healthNote:e.target.value}));}} placeholder="How are you feeling today?"/>
-          </div>
-          <div className="form-group" style={{marginBottom:0}}>
-            <label className="form-label">Workout</label>
-            <textarea className="form-textarea form-input" style={{minHeight:'72px'}} value={morningForm.workout} onChange={e=>{setMorningSaved(false);setMorningForm(f=>({...f,workout:e.target.value}));}} placeholder="Plan or log your workout"/>
-          </div>
-        </div>
-        <button className="btn-primary" onClick={handleMorningSubmit} disabled={savingMorning} style={{width:'100%'}}>
-          {savingMorning ? 'Saving...' : morningSaved ? 'Saved ✓' : 'Submit Morning Check-In'}
-        </button>
-        {demoMode && <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px',textAlign:'center'}}>Demo mode — connect Google to save</div>}
       </div>
 
       {/* Today's Calendar */}
@@ -2155,33 +2016,25 @@ function TodayPage({ items, calEvents, onMarkDone, onSubmitMorning, onSubmitJour
           ? <div style={{fontSize:'12px',color:'var(--text3)',padding:'16px',border:'1px dashed var(--border)',textAlign:'center'}}>Nothing on the calendar today</div>
           : todayEvents.map((e,i) => {
               const isHQ = (e.summary||'').startsWith('[HQ]');
-              const name = (e.summary||'').replace('[HQ] ','');
               const start = e.start?.dateTime ? new Date(e.start.dateTime) : null;
               const end   = e.end?.dateTime   ? new Date(e.end.dateTime)   : null;
-
-              // Check if this HQ item is already done
-              let isAlreadyDone = false;
-              if (isHQ) {
-                for (const [track, trackItems] of Object.entries(items)) {
-                  const match = trackItems.find(it => it.name.toLowerCase() === name.toLowerCase());
-                  if (match && (DONE_STATUSES[track]||[]).includes(match.status)) { isAlreadyDone = true; break; }
-                }
-              }
-
+              const color = e._calendarColor || (isHQ ? 'var(--accent)' : 'var(--text3)');
               return (
-                <div key={i} style={{display:'flex',gap:'16px',padding:'12px 0',borderBottom:'1px solid var(--border)',alignItems:'flex-start',opacity:isAlreadyDone?0.45:1}}>
+                <div key={i} style={{display:'flex',gap:'16px',padding:'12px 0',borderBottom:'1px solid var(--border)',alignItems:'flex-start'}}>
                   <div style={{minWidth:'80px',fontSize:'11px',color:'var(--text2)',paddingTop:'2px'}}>
                     {start ? fmtTime(start) : 'All day'}
                     {end && <div style={{fontSize:'10px',color:'var(--text3)'}}>{fmtTime(end)}</div>}
                   </div>
                   <div style={{flex:1}}>
-                    <div style={{fontSize:'13px',fontWeight:'500',color:isHQ&&!isAlreadyDone?'var(--accent)':'var(--text)',textDecoration:isAlreadyDone?'line-through':'none'}}>{name}</div>
+                    <div style={{fontSize:'13px',fontWeight:'500',color:isHQ?'var(--accent)':'var(--text)'}}>{(e.summary||'').replace('[HQ] ','')}</div>
                     {e._calendarName&&<div style={{fontSize:'10px',color:'var(--text3)',marginTop:'2px'}}>{e._calendarName}</div>}
-                    {isAlreadyDone&&<div style={{fontSize:'10px',color:'var(--success)',marginTop:'2px'}}>✓ Done</div>}
                   </div>
-                  {isHQ && !isAlreadyDone && (
+                  {isHQ && (
                     <button className="card-btn done" style={{flexShrink:0}} onClick={()=>{
-                      for (const [track, trackItems] of Object.entries(items)) {
+                      // Find matching item by name and mark done
+                      const name = (e.summary||'').replace('[HQ] ','');
+                      const allItems = Object.entries(items);
+                      for (const [track, trackItems] of allItems) {
                         const match = trackItems.find(it => it.name.toLowerCase() === name.toLowerCase());
                         if (match) { onMarkDone(track, match); return; }
                       }
@@ -2192,9 +2045,9 @@ function TodayPage({ items, calEvents, onMarkDone, onSubmitMorning, onSubmitJour
             })}
       </div>
 
-      {/* Due Today / Overdue — only non-done items */}
+      {/* Due Today / Overdue */}
       {dueTodayItems.length > 0 && (
-        <div style={{marginBottom:'32px'}}>
+        <div>
           <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--warning)',marginBottom:'12px'}}>Due Today / Overdue</div>
           {dueTodayItems.map((item,i) => {
             const due = new Date(item.dueDate+'T12:00:00');
@@ -2215,30 +2068,190 @@ function TodayPage({ items, calEvents, onMarkDone, onSubmitMorning, onSubmitJour
           })}
         </div>
       )}
+    </div>
+  );
+}
 
-      {/* End of Day Checkout */}
-      <div style={{borderTop:'1px solid var(--border)',paddingTop:'32px',marginTop:'8px'}}>
-        <div style={{marginBottom:'20px'}}>
-          <div style={{fontFamily:'Syne,sans-serif',fontSize:'20px',fontWeight:'700',marginBottom:'3px'}}>End of Day</div>
-          <div style={{fontSize:'11px',color:'var(--text2)'}}>Checkout before you close it down.</div>
+// ── END OF DAY PAGE ───────────────────────────────────────────────────────────
+function EndOfDayPage({ items, onMarkDone, onStatusChange, demoMode }) {
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const [step, setStep] = useState('triage'); // 'triage' | 'reflection' | 'done'
+  const [triage, setTriage] = useState({}); // itemKey -> 'done' | 'tomorrow' | 'drop' | null
+  const [form, setForm] = useState({ wins:'', stuck:'', tomorrow:'', energy:'3' });
+  const [saving, setSaving] = useState(false);
+
+  // Collect all active, non-done items that had due dates today or earlier
+  const triageItems = Object.values(items).flat().filter(i => {
+    if (!i.dueDate) return false;
+    const due = new Date(i.dueDate+'T12:00:00');
+    const doneStatuses = DONE_STATUSES[i.track] || [];
+    if (doneStatuses.includes(i.status)) return false;
+    if (i.status === 'Done' || i.status === 'Completed') return false;
+    return due <= today;
+  }).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+  const itemKey = i => `${i.track}-${i.id}`;
+  const allTriaged = triageItems.length === 0 || triageItems.every(i => triage[itemKey(i)]);
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+  async function applyTriage() {
+    for (const item of triageItems) {
+      const decision = triage[itemKey(item)];
+      if (!decision || decision === 'keep') continue;
+      if (decision === 'done') {
+        await onMarkDone(item.track, item);
+      } else if (decision === 'tomorrow') {
+        // Push due date to tomorrow
+        if (!demoMode) {
+          try { await updateCell(TRACKS[item.track].tab, item.id, 4, tomorrowStr); } catch(e) {}
+        }
+        // Update UI via status change trick — just refresh dueDate in local state
+        // (handled by onStatusChange with same status to trigger re-render isn't ideal,
+        //  so we use a lightweight local approach — the sheet is updated above)
+      } else if (decision === 'drop') {
+        await onStatusChange(item.track, item, 'General');
+      }
+    }
+  }
+
+  async function handleFinish() {
+    setSaving(true);
+    await applyTriage();
+    const row = [todayStr, form.wins, form.stuck, form.tomorrow, form.energy, new Date().toLocaleTimeString()];
+    if (!demoMode) {
+      try { await appendRow('Journal', row); } catch(e) { console.error('Journal save failed:', e); }
+    }
+    setSaving(false);
+    setStep('done');
+  }
+
+  const energyLabels = ['','😴 Drained','😑 Low','😐 Okay','🙂 Good','🔥 Fired up'];
+
+  const triageColors = {
+    done:     { bg:'rgba(77,255,145,0.12)',  border:'rgba(77,255,145,0.35)',  label:'var(--success)' },
+    tomorrow: { bg:'rgba(232,255,71,0.1)',   border:'rgba(232,255,71,0.35)',  label:'var(--accent)'  },
+    drop:     { bg:'rgba(136,136,136,0.08)', border:'rgba(136,136,136,0.25)', label:'var(--text3)'   },
+  };
+
+  return (
+    <div className="page">
+      <div style={{maxWidth:'620px'}}>
+        <div style={{marginBottom:'28px'}}>
+          <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px'}}>End of Day</div>
+          <div style={{fontSize:'11px',color:'var(--text2)'}}>{today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
         </div>
 
-        {eodSaved ? (
-          <div style={{background:'rgba(77,255,145,0.08)',border:'1px solid rgba(77,255,145,0.3)',borderLeft:'3px solid var(--success)',padding:'20px',textAlign:'center'}}>
-            <div style={{fontFamily:'Syne,sans-serif',fontSize:'18px',fontWeight:'700',color:'var(--success)',marginBottom:'6px'}}>Done ✓</div>
-            <div style={{fontSize:'12px',color:'var(--text2)'}}>Good work today. See you tomorrow.</div>
-            <button className="btn-secondary" style={{marginTop:'14px',fontSize:'11px'}} onClick={()=>{setEodForm({wins:'',stuck:'',tomorrow:'',energy:'3'});setEodSaved(false);}}>New entry</button>
+        {step === 'done' && (
+          <div style={{background:'rgba(77,255,145,0.08)',border:'1px solid rgba(77,255,145,0.3)',borderLeft:'3px solid var(--success)',padding:'32px',textAlign:'center'}}>
+            <div style={{fontFamily:'Syne,sans-serif',fontSize:'22px',fontWeight:'700',color:'var(--success)',marginBottom:'8px'}}>Clocked out ✓</div>
+            <div style={{fontSize:'12px',color:'var(--text2)',marginBottom:'20px'}}>Good work today. Go be with your family.</div>
+            <button className="btn-secondary" style={{fontSize:'11px'}} onClick={()=>{
+              setStep('triage');
+              setTriage({});
+              setForm({wins:'',stuck:'',tomorrow:'',energy:'3'});
+            }}>New entry</button>
           </div>
-        ) : (
-          <div style={{maxWidth:'600px'}}>
+        )}
+
+        {step === 'triage' && (
+          <div>
+            {triageItems.length === 0 ? (
+              <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderLeft:'3px solid var(--success)',padding:'20px',marginBottom:'20px'}}>
+                <div style={{fontSize:'13px',color:'var(--success)',fontWeight:'500',marginBottom:'4px'}}>Clean slate ✓</div>
+                <div style={{fontSize:'11px',color:'var(--text2)'}}>Nothing overdue or due today left open. Nice.</div>
+              </div>
+            ) : (
+              <div style={{marginBottom:'20px'}}>
+                <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--warning)',marginBottom:'4px'}}>
+                  {triageItems.length} item{triageItems.length!==1?'s':''} to triage
+                </div>
+                <div style={{fontSize:'11px',color:'var(--text2)',marginBottom:'16px'}}>
+                  What happens to each of these?
+                </div>
+                {triageItems.map(item => {
+                  const key = itemKey(item);
+                  const decision = triage[key];
+                  const due = new Date(item.dueDate+'T12:00:00');
+                  const daysOver = Math.floor((today - due) / 86400000);
+                  return (
+                    <div key={key} style={{
+                      background: decision ? triageColors[decision].bg : 'var(--surface)',
+                      border: `1px solid ${decision ? triageColors[decision].border : 'var(--border)'}`,
+                      padding:'14px 16px',
+                      marginBottom:'8px',
+                      transition:'all 0.15s',
+                    }}>
+                      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px',marginBottom:'10px'}}>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:'13px',fontWeight:'500'}}>{item.name}</div>
+                          <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'3px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                            <span style={{color:TRACKS[item.track]?.color}}>{TRACKS[item.track]?.label}</span>
+                            <span>· {item.status}</span>
+                            {daysOver > 0
+                              ? <span style={{color:'#ff4444'}}>· {daysOver}d overdue</span>
+                              : <span style={{color:'var(--warning)'}}>· due today</span>}
+                          </div>
+                        </div>
+                        {decision && (
+                          <div style={{fontSize:'10px',color:triageColors[decision].label,fontWeight:'500',flexShrink:0,textTransform:'uppercase',letterSpacing:'1px'}}>
+                            {decision === 'done' ? '✓ Done' : decision === 'tomorrow' ? '→ Tomorrow' : '✕ Dropped'}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
+                        {[
+                          {id:'done',     label:'✓ Done',      title:'Mark it complete'},
+                          {id:'tomorrow', label:'→ Tomorrow',   title:'Push to tomorrow'},
+                          {id:'drop',     label:'✕ Drop it',    title:'Clear due date pressure'},
+                        ].map(opt => (
+                          <button key={opt.id}
+                            title={opt.title}
+                            onClick={()=>setTriage(t=>({...t,[key]:t[key]===opt.id?null:opt.id}))}
+                            style={{
+                              fontFamily:'DM Mono,monospace',fontSize:'10px',
+                              padding:'5px 12px',cursor:'pointer',
+                              border:`1px solid ${decision===opt.id ? triageColors[opt.id].border : 'var(--border)'}`,
+                              background: decision===opt.id ? triageColors[opt.id].bg : 'transparent',
+                              color: decision===opt.id ? triageColors[opt.id].label : 'var(--text3)',
+                              transition:'all 0.15s',letterSpacing:'0.5px',
+                            }}>
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <button className="btn-primary" style={{width:'100%',padding:'13px'}}
+              onClick={()=>setStep('reflection')}
+              disabled={!allTriaged}>
+              {allTriaged ? 'Next → Reflection' : `Triage all ${triageItems.filter(i=>!triage[itemKey(i)]).length} remaining items first`}
+            </button>
+            {triageItems.length > 0 && !allTriaged && (
+              <button className="btn-secondary" style={{width:'100%',padding:'10px',marginTop:'8px',fontSize:'11px'}}
+                onClick={()=>setStep('reflection')}>
+                Skip triage, go to reflection
+              </button>
+            )}
+          </div>
+        )}
+
+        {step === 'reflection' && (
+          <div>
             <div style={{background:'var(--surface)',border:'1px solid var(--border)',padding:'20px',marginBottom:'12px'}}>
               <label className="form-label" style={{marginBottom:'10px',display:'block'}}>⚡ Energy Level Today</label>
               <div style={{display:'flex',gap:'8px'}}>
                 {[1,2,3,4,5].map(n=>(
-                  <button key={n} onClick={()=>setEodForm({...eodForm,energy:String(n)})}
+                  <button key={n} onClick={()=>setForm({...form,energy:String(n)})}
                     style={{flex:1,padding:'8px 4px',fontFamily:'DM Mono,monospace',fontSize:'11px',cursor:'pointer',
-                      background:eodForm.energy===String(n)?'var(--accent)':'var(--surface2)',
-                      color:eodForm.energy===String(n)?'#000':'var(--text2)',
+                      background:form.energy===String(n)?'var(--accent)':'var(--surface2)',
+                      color:form.energy===String(n)?'#000':'var(--text2)',
                       border:'1px solid var(--border)'}}>
                     {energyLabels[n]}
                   </button>
@@ -2253,14 +2266,18 @@ function TodayPage({ items, calEvents, onMarkDone, onSubmitMorning, onSubmitJour
               <div key={key} style={{background:'var(--surface)',border:'1px solid var(--border)',padding:'20px',marginBottom:'10px'}}>
                 <label className="form-label" style={{marginBottom:'10px',display:'block'}}>{label}</label>
                 <textarea className="form-textarea form-input" style={{minHeight:'72px'}}
-                  placeholder={placeholder} value={eodForm[key]}
-                  onChange={e=>setEodForm({...eodForm,[key]:e.target.value})}/>
+                  placeholder={placeholder} value={form[key]}
+                  onChange={e=>setForm({...form,[key]:e.target.value})}/>
               </div>
             ))}
-            <button className="btn-primary" style={{width:'100%',padding:'14px',marginTop:'4px'}}
-              onClick={handleEodSubmit} disabled={eodSaving}>
-              {eodSaving ? 'Saving...' : 'End Workday →'}
-            </button>
+            <div style={{display:'flex',gap:'8px',marginTop:'4px'}}>
+              <button className="btn-secondary" style={{padding:'13px 20px',fontSize:'11px'}}
+                onClick={()=>setStep('triage')}>← Back</button>
+              <button className="btn-primary" style={{flex:1,padding:'13px'}}
+                onClick={handleFinish} disabled={saving}>
+                {saving ? 'Saving...' : 'End Workday →'}
+              </button>
+            </div>
             {demoMode && <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px',textAlign:'center'}}>Demo mode — connect Google to save</div>}
           </div>
         )}
@@ -2269,7 +2286,6 @@ function TodayPage({ items, calEvents, onMarkDone, onSubmitMorning, onSubmitJour
   );
 }
 
-// ── JOURNAL PAGE ──────────────────────────────────────────────────────────────
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
   const [authed, setAuthed]= useState(false);
@@ -2295,20 +2311,10 @@ function App() {
   useEffect(()=>{
     initGoogle(async resp=>{
       if (resp.error) return;
-      if (!resp.access_token) return;
       setAuthed(true);
       await loadAllData();
     });
   },[]);
-
-  useEffect(() => {
-    if (!authed || demoMode) return;
-    const interval = setInterval(() => {
-      const expiry = parseInt(localStorage.getItem(TOKEN_EXPIRY_KEY) || '0');
-      if (expiry && Date.now() > expiry - 5 * 60 * 1000) silentRefresh();
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [authed, demoMode]);
 
   useEffect(()=>{ if(demoMode){setItems(DEMO);setGoals({});setNewWeek(true);} },[demoMode]);
 
@@ -2437,16 +2443,9 @@ function App() {
   }
 
   async function handleStatusChange(track, item, newStatus) {
-    try {
-      if (!demoMode) await updateCell(TRACKS[track].tab,item.id,2,newStatus);
-      setItems(prev=>({...prev,[track]:prev[track].map(i=>i.id===item.id?{...i,status:newStatus}:i)}));
-      showToast(`↑ "${item.name}" → ${newStatus}`);
-      return true;
-    } catch (e) {
-      console.error('Status update failed:', e);
-      showToast(`⚠ Could not sync "${item.name}" to Google Sheets`);
-      return false;
-    }
+    if (!demoMode) await updateCell(TRACKS[track].tab,item.id,2,newStatus);
+    setItems(prev=>({...prev,[track]:prev[track].map(i=>i.id===item.id?{...i,status:newStatus}:i)}));
+    showToast(`↑ "${item.name}" → ${newStatus}`);
   }
 
   async function handleEditItem(track, oldItem, newItem) {
@@ -2495,16 +2494,12 @@ function App() {
 
   async function handleMarkDone(track, item) {
     const doneStatus = getSmartDoneStatus(track, item);
-    const ok = await handleStatusChange(track, item, doneStatus);
-    if (!ok) return;
-
+    await handleStatusChange(track, item, doneStatus);
+    // Write completion date to sheet col 9 for stats tracking
     if (!demoMode) {
       try {
         const today = new Date().toISOString().split('T')[0];
-        const completedDateCol = await findHeaderColumn(TRACKS[track].tab, 'Completed Date');
-        if (completedDateCol >= 0) {
-          await updateCell(TRACKS[track].tab, item.id, completedDateCol, today);
-        }
+        await updateCell(TRACKS[track].tab, item.id, 9, today);
       } catch(e) {}
     }
   }
@@ -2521,10 +2516,8 @@ function App() {
       const colIdx = trackOrder.indexOf(track) + 1;
       if (existingIdx >= 0) {
         await updateCell('Weekly Goals', existingIdx, colIdx, val);
-        const statusCol = await findHeaderColumn('Weekly Goals', 'Status');
-        if (statusCol >= 0) await updateCell('Weekly Goals', existingIdx, statusCol, 'In Progress');
       } else {
-        const row = [thisWeek,'','','','','','In Progress'];
+        const row = [thisWeek,'','','','',''];
         row[colIdx] = val;
         await appendRow('Weekly Goals', row);
       }
@@ -2532,70 +2525,11 @@ function App() {
   }
 
   async function handleSaveGoals() {
-    if (!demoMode) {
-      const weekLabel = getWeekLabel();
-      const values = [weekLabel,goals.records||'',goals.publishing||'',goals.songstage||'',goals.freelance||'',goals.content||'', 'Locked In'];
-      const goalRows = await readSheet('Weekly Goals');
-      const existingIdx = goalRows.findIndex(r=>r[0]===weekLabel);
-      if (existingIdx >= 0) await updateRow('Weekly Goals', existingIdx, values);
-      else await appendRow('Weekly Goals', values);
-    }
+    if (!demoMode) await appendRow('Weekly Goals',[getWeekLabel(),goals.records||'',goals.publishing||'',goals.songstage||'',goals.freelance||'',goals.content||'']);
     setNewWeek(false);
     localStorage.setItem('hq_last_week', getWeekLabel());
     showToast('✓ Goals locked in for the week');
     setPage('dashboard');
-  }
-
-  async function handleMorningSubmit(form) {
-    if (demoMode) return true;
-    try {
-      const tab = await resolveSheetTab(['Good Morning','Daily Check-In','Daily Check In','Check-In','Morning','Daily Log']);
-      if (!tab) {
-        showToast('⚠ Add a "Good Morning" tab to your Google Sheet to track daily check-ins');
-        return false;
-      }
-      const today = new Date().toISOString().split('T')[0];
-      await upsertRowByDate(tab, today, [
-        today,
-        form.weight || '',
-        form.sleep || '',
-        form.healthNote || '',
-        form.workout || '',
-        new Date().toLocaleTimeString(),
-      ]);
-      showToast('✓ Morning check-in saved');
-      return true;
-    } catch (e) {
-      console.error('Morning check-in save failed:', e);
-      showToast(`⚠ Morning save failed: ${e.message||'check console'}`);
-      return false;
-    }
-  }
-
-  async function handleJournalSubmit(form) {
-    if (demoMode) return true;
-    try {
-      const tab = await resolveSheetTab(['Journal','End Workday','End of Day','End-of-Day','Daily Reflection','Reflection']);
-      if (!tab) {
-        showToast('⚠ Add a "Journal" tab to your Google Sheet to save end-of-day entries');
-        return false;
-      }
-      const today = new Date().toISOString().split('T')[0];
-      await upsertRowByDate(tab, today, [
-        today,
-        form.wins || '',
-        form.stuck || '',
-        form.tomorrow || '',
-        form.energy || '',
-        new Date().toLocaleTimeString(),
-      ]);
-      showToast('✓ End-of-day saved');
-      return true;
-    } catch (e) {
-      console.error('Journal save failed:', e);
-      showToast(`⚠ End-of-day save failed: ${e.message||'check console'}`);
-      return false;
-    }
   }
 
   async function handleTasksGenerated(track, tasks, slots={}) {
@@ -2609,15 +2543,8 @@ function App() {
       const taskType   = task.type   || TYPES[track][0];
       const taskStatus = task.status || STATUSES[track][0];
       const slot = slots[i];
-      const taskDueDate = task.dueDate || '';
-      let row;
-      if (track === 'songstage') {
-        row = [task.name, taskType, taskStatus, '', taskDueDate, '', task.notes||'', dateAdded];
-      } else if (track === 'content') {
-        row = [task.name, taskType, taskStatus, '', taskDueDate, task.notes||'', dateAdded];
-      } else {
-        row = [task.name, taskType, taskStatus, '', taskDueDate, task.notes||'', '', dateAdded];
-      }
+
+      const row = [task.name, taskType, taskStatus, '', slot?.label||'', task.notes||'', '', dateAdded];
       if (!demoMode) await appendRow(TRACKS[track].tab, row);
 
       if (slot && !demoMode) {
@@ -2635,7 +2562,7 @@ function App() {
       newItems.push({
         id: items[track].length + newItems.length,
         name: task.name, type: taskType, status: taskStatus,
-        extra: '', dueDate: taskDueDate, notes: task.notes||'',
+        extra: '', dueDate: slot?.label||'', notes: task.notes||'',
         taskType: '', dateAdded, track,
       });
     }
@@ -2665,7 +2592,7 @@ function App() {
               </div>
             ))}
           </div>
-          <button className="google-btn" onClick={()=>requestToken('consent')}>
+          <button className="google-btn" onClick={requestToken}>
             <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
             Sign in with Google
           </button>
@@ -2687,7 +2614,7 @@ function App() {
         </div>
         <nav className="nav">
           <div className="nav-section-label">Overview</div>
-          {[['dashboard','Dashboard'],['today','Today'],['calendar','Calendar'],['checkin','Monday Check-In']].map(([key,label])=>(
+          {[['dashboard','Dashboard'],['today','Today'],['calendar','Calendar'],['checkin','Monday Check-In'],['journal','End of Day']].map(([key,label])=>(
             <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
               <div className={`nav-dot ${key}`}/>{label}
             </div>
@@ -2704,7 +2631,7 @@ function App() {
             <div className={`auth-dot${authed?' connected':''}`}/>
             {authed?'Sheets + Calendar':demoMode?'Demo mode':'Not connected'}
           </div>
-          {!authed&&!demoMode&&<button className="signin-btn" onClick={()=>requestToken('consent')}>Connect Google</button>}
+          {!authed&&!demoMode&&<button className="signin-btn" onClick={requestToken}>Connect Google</button>}
         </div>
       </div>
 
@@ -2717,6 +2644,7 @@ function App() {
             {page==='today'&&'Today'}
             {page==='calendar'&&'Calendar'}
             {page==='checkin'&&'Monday Check-In'}
+            {page==='journal'&&'End of Day'}
             {TRACKS[page]&&TRACKS[page].label}
             </div>
           </div>
@@ -2731,7 +2659,8 @@ function App() {
           onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}}
           onMarkDone={(track,item)=>handleMarkDone(track,item)}
           onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}/>}
-        {page==='today'&&<TodayPage items={items} calEvents={calEvents} onMarkDone={(track,item)=>handleMarkDone(track,item)} onSubmitMorning={handleMorningSubmit} onSubmitJournal={handleJournalSubmit} demoMode={demoMode}/>}
+        {page==='today'&&<TodayPage items={items} calEvents={calEvents} onMarkDone={(track,item)=>handleMarkDone(track,item)} demoMode={demoMode}/>}
+        {page==='journal'&&<EndOfDayPage items={items} onMarkDone={(track,item)=>handleMarkDone(track,item)} onStatusChange={(track,item,status)=>handleStatusChange(track,item,status)} demoMode={demoMode}/>}
         {page==='calendar'&&<CalendarPage calEvents={calEvents} calendarList={calendarList} onAddEvent={handleAddCalEvent} onEditEvent={handleEditCalEvent} onDeleteEvent={handleDeleteCalEvent} demoMode={demoMode}/>}
         {page==='checkin'&&<CheckInPage items={items} calEvents={calEvents} goals={goals}
           onGoalChange={(track,val)=>setGoals(g=>({...g,[track]:val}))}
