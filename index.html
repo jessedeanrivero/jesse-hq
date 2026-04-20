@@ -11,7 +11,7 @@
   --bg:#0e0e0e; --surface:#161616; --surface2:#1e1e1e; --border:#2a2a2a;
   --accent:#e8ff47; --text:#f0f0f0; --text2:#888; --text3:#555;
   --records:#ff6b35; --publishing:#e8ff47; --songstage:#47c9ff;
-  --freelance:#b47cff; --content:#ff4d8f; --success:#4dff91; --warning:#ffb347;
+  --freelance:#b47cff; --content:#ff4d8f; --personal:#7dffb3; --success:#4dff91; --warning:#ffb347;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;overflow-x:hidden;}
@@ -35,12 +35,13 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .nav-item[data-track="content"].active{border-left-color:var(--content);}
 .nav-item[data-track="checkin"].active{border-left-color:var(--success);}
 .nav-item[data-track="today"].active{border-left-color:var(--accent);}
+.nav-item[data-track="personal-track"].active{border-left-color:var(--personal);}
 .nav-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .nav-dot.records{background:var(--records);} .nav-dot.publishing{background:var(--publishing);}
 .nav-dot.songstage{background:var(--songstage);} .nav-dot.freelance{background:var(--freelance);}
 .nav-dot.content{background:var(--content);} .nav-dot.dashboard{background:var(--accent);}
 .nav-dot.checkin{background:var(--success);} .nav-dot.calendar{background:var(--songstage);}
-.nav-dot.today{background:var(--accent);}
+.nav-dot.today{background:var(--accent);} .nav-dot.personal-track{background:var(--personal);}
 .sidebar-bottom{padding:16px 24px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);}
 .auth-status{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
 .auth-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);}
@@ -68,6 +69,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .stat-card.records::before{background:var(--records);} .stat-card.publishing::before{background:var(--publishing);}
 .stat-card.songstage::before{background:var(--songstage);} .stat-card.freelance::before{background:var(--freelance);}
 .stat-card.content::before{background:var(--content);} .stat-card.hours::before{background:var(--accent);}
+.stat-card.personal-track::before{background:var(--personal);}
 .stat-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
 .stat-number{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;line-height:1;margin-bottom:4px;}
 .stat-sub{font-size:10px;color:var(--text2);}
@@ -180,6 +182,7 @@ select option{background:#1e1e1e;color:#f0f0f0;}
 .checkin-section.songstage::before{background:var(--songstage);}
 .checkin-section.freelance::before{background:var(--freelance);}
 .checkin-section.content::before{background:var(--content);}
+.checkin-section.personal-track::before{background:var(--personal);}
 .checkin-section-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px;}
 .checkin-section-sub{font-size:11px;color:var(--text2);margin-bottom:14px;}
 .stale-prompt{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.2);padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--warning);}
@@ -354,6 +357,7 @@ const TRACKS = {
   songstage:  { label:'Songstage',           color:'var(--songstage)', tab:'Songstage',  icon:'🎛' },
   freelance:  { label:'Freelance',           color:'var(--freelance)', tab:'Freelance',  icon:'💼' },
   content:    { label:'Content',             color:'var(--content)',   tab:'Content',    icon:'📹' },
+  'personal-track': { label:'Personal',      color:'var(--personal)',  tab:'Personal',   icon:'🧭' },
 };
 
 const STATUSES = {
@@ -362,6 +366,7 @@ const STATUSES = {
   songstage: ['Backlog','In Progress','Review','Shipped','Done'],
   freelance: ['General','Booked','In Progress','Invoiced','Completed'],
   content:   ['Planned','In Progress','Scheduled','Published','Done'],
+  'personal-track': ['Open','In Progress','Done'],
 };
 
 // Which statuses count as "completed" for stats
@@ -371,6 +376,7 @@ const DONE_STATUSES = {
   songstage: ['Shipped','Done'],
   freelance: ['Completed'],
   content:   ['Published','Done'],
+  'personal-track': ['Done'],
 };
 
 // Hidden by default — these columns collapse unless toggled
@@ -380,6 +386,7 @@ const HIDDEN_STATUSES = {
   songstage: ['Done'],
   freelance: [],
   content:   ['Done'],
+  'personal-track': ['Done'],
 };
 
 // Smart done: Org Tasks go to 'Done', songs/projects go to terminal
@@ -393,6 +400,7 @@ function getSmartDoneStatus(track, item) {
     if (['Long-Form','Substack'].includes(item.type)) return 'Published';
     return 'Done';
   }
+  if (track === 'personal-track') return 'Done';
   return TERMINAL[track];
 }
 
@@ -402,6 +410,7 @@ const TYPES = {
   songstage: ['Feature','Bug','Task'],
   freelance: ['General Task','Session','Coaching','Production'],
   content:   ['Short-Form','Long-Form','Substack'],
+  'personal-track': ['Task','Habit','Goal','Project'],
 };
 
 const TYPE_DEFAULT_STATUS = {
@@ -417,7 +426,7 @@ const TYPE_DEFAULT_STATUS = {
 
 const TERMINAL = {
   records:'Released', publishing:'Monetizing', songstage:'Shipped',
-  freelance:'Completed', content:'Published',
+  freelance:'Completed', content:'Published', 'personal-track':'Done',
 };
 
 // Day schedule rules — all times respect 4pm hard cutoff (nothing after 4pm)
@@ -434,7 +443,7 @@ const DAY_SCHEDULE = {
 
 const TRACK_COLORS_HEX = {
   records:'#ff6b35', publishing:'#e8ff47', songstage:'#47c9ff',
-  freelance:'#b47cff', content:'#ff4d8f',
+  freelance:'#b47cff', content:'#ff4d8f', 'personal-track':'#7dffb3',
 };
 
 // ── GOOGLE API ────────────────────────────────────────────────────────────────
@@ -502,6 +511,26 @@ async function deleteRowFromSheet(tab, rowIndex) {
     spreadsheetId:SHEET_ID,
     resource:{ requests:[{ deleteDimension:{ range:{ sheetId:sheet.properties.sheetId, dimension:'ROWS', startIndex:rowIndex+1, endIndex:rowIndex+2 }}}]},
   });
+}
+
+async function readSheetRow(tab, rowIndex) {
+  try {
+    const r = await gapi.client.sheets.spreadsheets.values.get({
+      spreadsheetId:SHEET_ID, range:`${tab}!A${rowIndex+2}:Z${rowIndex+2}`
+    });
+    return (r.result.values || [[]])[0] || [];
+  } catch(e) { return []; }
+}
+
+// Cut row from source tab and append to Done tab with metadata prepended
+async function moveRowToDone(tab, trackLabel, rowIndex) {
+  try {
+    const row = await readSheetRow(tab, rowIndex);
+    const completedDate = new Date().toISOString().split('T')[0];
+    const doneRow = [completedDate, trackLabel, ...row];
+    await appendRow('Done', doneRow);
+    await deleteRowFromSheet(tab, rowIndex);
+  } catch(e) { console.error('moveRowToDone failed:', e); }
 }
 
 async function getAllCalendars() {
@@ -688,7 +717,7 @@ function rowToItem(track, row, index) {
       track,
     };
   }
-  // Records, Publishing, Freelance: Name | Type | Status | Extra | Due Date | Notes | Owner | Date Added
+  // Records, Publishing, Freelance, Personal: Name | Type | Status | Extra | Due Date | Notes | Owner | Date Added
   return {
     id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'',
     extra:row[3]||'', dueDate:row[4]||'', notes:row[5]||'',
@@ -717,6 +746,10 @@ const DEMO = {
   content:[
     {id:0,name:'How worship music gets licensed',type:'Long-Form',status:'In Progress',extra:'YouTube',dueDate:'2026-04-18',notes:'Script drafted',dateAdded:'2026-04-02',track:'content'},
     {id:1,name:'3 mistakes worship leaders make',type:'Short-Form',status:'Planned',extra:'Reels',dueDate:'2026-04-11',notes:'',dateAdded:'2026-04-07',track:'content'},
+  ],
+  'personal-track':[
+    {id:0,name:'Read Atomic Habits',type:'Goal',status:'In Progress',extra:'',dueDate:'2026-05-01',notes:'',dateAdded:'2026-04-01',track:'personal-track'},
+    {id:1,name:'Plan family trip',type:'Project',status:'Open',extra:'',dueDate:'',notes:'Summer Seattle trip',dateAdded:'2026-04-07',track:'personal-track'},
   ],
 };
 
@@ -754,7 +787,7 @@ function AddItemModal({ track, onClose, onAdd, calEvents, calendarList=[] }) {
   const [slots, setSlots]= useState([]);
   const [selected, setSelected]= useState(null);
   const t = TRACKS[track];
-  const extraLabel = {records:'Artist',publishing:'Partner',songstage:'Assigned To',freelance:'Client',content:'Platform'}[track];
+  const extraLabel = {records:'Artist',publishing:'Partner',songstage:'Assigned To',freelance:'Client',content:'Platform','personal-track':'Context'}[track]||'Extra';
 
   function next() {
     if (!form.name.trim()) return;
@@ -969,7 +1002,7 @@ function EditCardModal({ item, track, onClose, onSave, onDelete }) {
     owner:   item.owner   || '',
   });
 
-  const extraLabel = {records:'Artist',publishing:'Partner',songstage:'Assigned To',freelance:'Client',content:'Platform'}[track];
+  const extraLabel = {records:'Artist',publishing:'Partner',songstage:'Assigned To',freelance:'Client',content:'Platform','personal-track':'Context'}[track]||'Extra';
 
   function save() {
     onSave({ ...item, ...form });
@@ -1571,8 +1604,9 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onGoalBlur, onSave
     return start>=now&&start<=weekEnd;
   }).slice(0,5);
 
-  const allSaved = Object.keys(TRACKS).every(t => savedState[t]==='saved');
-  const anySaved = Object.keys(TRACKS).some(t => savedState[t]==='saved');
+  const workTracks = Object.keys(TRACKS).filter(t=>t!=='personal-track');
+  const allSaved = workTracks.every(t => savedState[t]==='saved');
+  const anySaved = workTracks.some(t => savedState[t]==='saved');
 
   function stateColor(state) {
     if (state==='saved') return 'var(--success)';
@@ -1611,7 +1645,7 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onGoalBlur, onSave
           </div>
         )}
 
-        {Object.entries(TRACKS).map(([track,t])=>{
+        {Object.entries(TRACKS).filter(([track])=>track!=='personal-track').map(([track,t])=>{
           const state = savedState[track]||'empty';
           const saving = savingTrack===track;
           return (
@@ -2803,7 +2837,7 @@ function App() {
   const [authed, setAuthed]= useState(false);
   const [demoMode, setDemoMode]= useState(false);
   const [page, setPage]= useState('today');
-  const [items, setItems]= useState({records:[],publishing:[],songstage:[],freelance:[],content:[]});
+  const [items, setItems]= useState({records:[],publishing:[],songstage:[],freelance:[],content:[],'personal-track':[]});
   const [goals, setGoals]= useState({});
   const [calEvents, setCalEvents]= useState([]);
   const [calendarList, setCalendarList]= useState([]); // all user's calendars
@@ -3031,13 +3065,23 @@ function App() {
 
   async function handleMarkDone(track, item) {
     const doneStatus = getSmartDoneStatus(track, item);
-    const ok = await handleStatusChange(track, item, doneStatus);
-    if (!ok) return;
     if (!demoMode) {
       try {
-        const today = new Date().toISOString().split('T')[0];
-        await updateCell(TRACKS[track].tab, item.id, 9, today);
-      } catch(e) {}
+        const tab = TRACKS[track].tab;
+        const trackLabel = TRACKS[track].label;
+        // Move the row to the Done tab and delete from source
+        await moveRowToDone(tab, trackLabel, item.id);
+        // Remove from UI state (row is gone from sheet)
+        setItems(prev=>({...prev,[track]:prev[track].filter(i=>i.id!==item.id)}));
+        showToast(`✓ "${item.name}" done — moved to Done tab`);
+      } catch(e) {
+        console.error('handleMarkDone failed:', e);
+        showToast(`⚠ Could not move "${item.name}" to Done`);
+      }
+    } else {
+      // Demo mode: just update status in UI
+      setItems(prev=>({...prev,[track]:prev[track].map(i=>i.id===item.id?{...i,status:doneStatus}:i)}));
+      showToast(`✓ "${item.name}" marked done`);
     }
   }
 
@@ -3178,11 +3222,15 @@ function App() {
                 </div>
               ))}
               <div className="nav-section-label" style={{marginTop:'8px'}}>Tracks</div>
-              {Object.entries(TRACKS).map(([key,t])=>(
+              {Object.entries(TRACKS).filter(([k])=>k!=='personal-track').map(([key,t])=>(
                 <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
                   <div className={`nav-dot ${key}`}/>{t.label}
                 </div>
               ))}
+              <div className="nav-section-label" style={{marginTop:'8px'}}>Personal</div>
+              <div className={`nav-item${page==='personal-track'?' active':''}`} data-track="personal-track" onClick={()=>{setPage('personal-track');setSidebarOpen(false);}}>
+                <div className="nav-dot personal-track"/>Personal
+              </div>
             </>
           )}
         </nav>
