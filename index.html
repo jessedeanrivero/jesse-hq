@@ -643,49 +643,87 @@ function getFirstDayOfMonth(year, month) {
   return new Date(year, month, 1).getDay();
 }
 
-// Get available slots for a track based on day rules, respecting 4pm cutoff
+// Get available 45min–1hr slots for a track based on day rules and actual calendar gaps
+// Logic: find the track's scheduled days → scan for 45-min free windows → check real cal conflicts
+// Returns slots this week first, then next week if none available
 function getSmartSlots(track, calEvents) {
   const slots = [];
   const today = new Date();
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const SLOT_DURATION = 60; // minutes (prefer 1hr)
+  const HARD_CUTOFF = 16; // 4pm
 
-  for (let i=0; i<7; i++) {
+  // Scan next 14 days
+  for (let i = 0; i < 14; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     const dayName = dayNames[d.getDay()];
     const schedule = DAY_SCHEDULE[dayName] || [];
     const trackSlots = schedule.filter(s => s.track === track);
+    if (trackSlots.length === 0) continue;
 
-    for (const slot of trackSlots) {
-      // Hard cutoff at 4pm
-      const endHour = Math.min(slot.end, 16);
-      if (slot.start >= 16) continue;
+    for (const sched of trackSlots) {
+      const schedStart = Math.max(sched.start, i === 0 ? Math.ceil(today.getHours() + today.getMinutes()/60 + 0.25) : sched.start);
+      const schedEnd = Math.min(sched.end, HARD_CUTOFF);
+      if (schedStart >= schedEnd) continue;
 
-      // Check for conflicts with existing calendar events
-      const startDt = new Date(d);
-      startDt.setHours(slot.start, 0, 0, 0);
-      const endDt = new Date(d);
-      endDt.setHours(endHour, 0, 0, 0);
+      // Build list of busy windows on this day from calendar
+      const dayBusy = calEvents
+        .filter(e => {
+          if (!e.start?.dateTime) return false;
+          return isSameDay(new Date(e.start.dateTime), d);
+        })
+        .map(e => ({
+          start: new Date(e.start.dateTime).getHours() + new Date(e.start.dateTime).getMinutes()/60,
+          end: e.end?.dateTime ? new Date(e.end.dateTime).getHours() + new Date(e.end.dateTime).getMinutes()/60 : 0,
+          name: e.summary || '',
+        }))
+        .sort((a,b) => a.start - b.start);
 
-      const conflict = calEvents.find(e => {
-        if (!e.start?.dateTime) return false;
-        const es = new Date(e.start.dateTime), ee = new Date(e.end?.dateTime || e.start.dateTime);
-        return es < endDt && ee > startDt;
-      });
+      // Find free windows in 30-min increments
+      const STEP = 0.5;
+      let cursor = schedStart;
+      while (cursor + SLOT_DURATION/60 <= schedEnd) {
+        const slotEnd = cursor + SLOT_DURATION/60;
+        const conflict = dayBusy.find(b => b.start < slotEnd && b.end > cursor);
+        if (!conflict) {
+          // Format times nicely
+          const fmt = h => {
+            const hr = Math.floor(h);
+            const min = Math.round((h - hr) * 60);
+            const suffix = hr >= 12 ? 'pm' : 'am';
+            const displayHr = hr > 12 ? hr - 12 : hr === 0 ? 12 : hr;
+            return min === 0 ? `${displayHr}${suffix}` : `${displayHr}:${String(min).padStart(2,'0')}${suffix}`;
+          };
+          const dateLabel = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : fmtDate(d);
+          const startDt = new Date(d); startDt.setHours(Math.floor(cursor), Math.round((cursor%1)*60), 0, 0);
+          const endDt = new Date(d); endDt.setHours(Math.floor(slotEnd), Math.round((slotEnd%1)*60), 0, 0);
+          slots.push({
+            date: d,
+            dayName,
+            label: `${dateLabel} ${fmt(cursor)}–${fmt(slotEnd)}`,
+            startHour: cursor,
+            endHour: slotEnd,
+            conflict: false,
+            conflictName: '',
+            startISO: startDt.toISOString(),
+            endISO: endDt.toISOString(),
+            isNextWeek: i >= 7,
+          });
+          // Only take 2 slots per day max
+          break;
+        } else {
+          // Jump past the conflict
+          cursor = Math.ceil(conflict.end * 2) / 2;
+        }
+      }
 
-      slots.push({
-        date: d,
-        dayName,
-        label: `${fmtDate(d)} ${slot.start}:00–${endHour}:00`,
-        startHour: slot.start,
-        endHour,
-        conflict: !!conflict,
-        conflictName: conflict?.summary || '',
-        startISO: startDt.toISOString(),
-        endISO: endDt.toISOString(),
-      });
+      // Stop collecting once we have 4 slots this week (slots before day 7)
+      const thisWeekSlots = slots.filter(s => !s.isNextWeek);
+      if (thisWeekSlots.length >= 4) break;
     }
   }
+
   return slots;
 }
 
@@ -865,22 +903,62 @@ function AddItemModal({ track, onClose, onAdd, calEvents, calendarList=[] }) {
             <div className="block-preview">
               <div className="block-preview-title">📅 Suggested Time Blocks</div>
               <div style={{fontSize:'11px',color:'var(--text2)',marginBottom:'12px'}}>
-                Based on your schedule — {t.label} days only, nothing after 4pm
+                45-min–1hr slots on your {t.label} days only · nothing after 4pm
               </div>
-              {slots.length===0
-                ? <div style={{fontSize:'12px',color:'var(--text3)'}}>No {t.label} slots available this week.</div>
-                : slots.map((s,i)=>(
-                  <div key={i} className="block-row" style={{cursor:'pointer'}} onClick={()=>setSelected(i)}>
-                    <div className="block-row-left">
-                      <div className="block-check checked" style={selected===i?{}:{background:'transparent',color:'transparent'}}>✓</div>
-                      <div>
-                        <div style={{fontSize:'12px'}}>{s.label}</div>
-                        {s.conflict&&<div style={{fontSize:'10px',color:'var(--warning)'}}>⚠ Overlaps with: {s.conflictName}</div>}
+              {(() => {
+                const thisWeek = slots.filter(s => !s.isNextWeek);
+                const nextWeek = slots.filter(s => s.isNextWeek);
+                if (slots.length === 0) {
+                  return (
+                    <div>
+                      <div style={{fontSize:'12px',color:'var(--warning)',marginBottom:'12px',padding:'10px',background:'rgba(255,179,71,0.08)',border:'1px solid rgba(255,179,71,0.2)'}}>
+                        ⚠ No open {t.label} slots in the next 2 weeks.
+                      </div>
+                      <div style={{fontSize:'11px',color:'var(--text2)',lineHeight:'1.6'}}>
+                        Your {t.label} days look full. Does this task bring in revenue?<br/>
+                        If yes, consider replacing a lower-priority item. Otherwise, save it without blocking.
                       </div>
                     </div>
-                    <div style={{fontSize:'10px',color:'var(--text3)'}}>{s.dayName}</div>
+                  );
+                }
+                return (
+                  <div>
+                    {thisWeek.length > 0 && (
+                      <div style={{marginBottom:'8px'}}>
+                        <div style={{fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'8px'}}>This Week</div>
+                        {thisWeek.map((s,i)=>(
+                          <div key={i} className="block-row" style={{cursor:'pointer'}} onClick={()=>setSelected(slots.indexOf(s))}>
+                            <div className="block-row-left">
+                              <div className="block-check checked" style={selected===slots.indexOf(s)?{}:{background:'transparent',color:'transparent'}}>✓</div>
+                              <div style={{fontSize:'12px'}}>{s.label}</div>
+                            </div>
+                            <div style={{fontSize:'10px',color:'var(--text3)'}}>{s.dayName}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {thisWeek.length === 0 && (
+                      <div style={{fontSize:'11px',color:'var(--warning)',padding:'8px 10px',background:'rgba(255,179,71,0.06)',border:'1px solid rgba(255,179,71,0.15)',marginBottom:'12px'}}>
+                        No open slots this week — showing next week's options below.
+                      </div>
+                    )}
+                    {nextWeek.length > 0 && (
+                      <div>
+                        <div style={{fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'8px',marginTop:'4px'}}>Next Week</div>
+                        {nextWeek.map((s,i)=>(
+                          <div key={i} className="block-row" style={{cursor:'pointer'}} onClick={()=>setSelected(slots.indexOf(s))}>
+                            <div className="block-row-left">
+                              <div className="block-check checked" style={selected===slots.indexOf(s)?{}:{background:'transparent',color:'transparent'}}>✓</div>
+                              <div style={{fontSize:'12px'}}>{s.label}</div>
+                            </div>
+                            <div style={{fontSize:'10px',color:'var(--text3)'}}>{s.dayName}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ))}
+                );
+              })()}
             </div>
           </div>
           <div className="modal-footer">
@@ -2049,25 +2127,43 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
   );
 }
 
-// ── SHUTDOWN + PERSONAL MODE CONSTANTS ───────────────────────────────────────
+// ── PERSONAL MODE CONSTANTS ───────────────────────────────────────────────────
+
+// Daily rotating questions for Kendall
+const KENDALL_QUESTIONS = [
+  'What\'s one thing that made you smile today?',
+  'What\'s something you\'re looking forward to this week?',
+  'How can I support you better right now?',
+  'What\'s one thing you wish we did more of together?',
+  'What\'s been on your mind lately?',
+  'What\'s something you\'re proud of this week?',
+  'What\'s one thing I can do differently for you?',
+  'How are you really doing — beyond the surface answer?',
+  'What do you need most from me right now?',
+  'What\'s something you want to dream about together?',
+  'What has felt heavy lately?',
+  'What\'s something new you want to try together?',
+  'What\'s a moment from this week you want to hold onto?',
+  'What\'s one small thing that would make tomorrow better for you?',
+];
+
+function getTodayKendallQuestion() {
+  const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  return KENDALL_QUESTIONS[dayOfYear % KENDALL_QUESTIONS.length];
+}
+
 const DEFAULT_PERSONAL_TASKS = [
-  { id:'walk',        category:'health',  label:'Walk 1 mile',                  active:true },
-  { id:'stretch',     category:'health',  label:'Stretch 5 minutes',            active:true },
-  { id:'family_din',  category:'family',  label:'Dinner with family',           active:true },
-  { id:'kids_time',   category:'family',  label:'Focused time with the boys',   active:true },
-  { id:'kendall',     category:'family',  label:'Intentional conversation with Kendall', active:false },
-  { id:'gratitude',   category:'reset',   label:'One thing you\'re grateful for', active:true },
-  { id:'brain_dump',  category:'reset',   label:'Brain dump — write it out',    active:false },
-  { id:'read',        category:'wind',    label:'Read 5–10 pages',              active:true },
-  { id:'no_phone',    category:'wind',    label:'Phone down by 9pm',            active:false },
-  { id:'music',       category:'wind',    label:'Listen to music for fun',      active:false },
+  { id:'exercise',    category:'health',  label:'Exercise 30 minutes',              active:true },
+  { id:'judah_jonas', category:'family',  label:'Spend intentional time with Judah and Jonas', active:true },
+  { id:'kendall',     category:'family',  label:'Ask Kendall one intentional question', active:true },
+  { id:'read_fun',    category:'wind',    label:'Read 5 pages of a fun book',        active:true },
+  { id:'scripture',   category:'wind',    label:'Read Scripture',                    active:true },
 ];
 
 const PERSONAL_CATEGORY_LABELS = {
   health: 'Health',
   family: 'Family',
-  reset:  'Reset',
-  wind:   'Wind Down',
+  wind:   'Evening',
 };
 
 function todayKey() { return new Date().toISOString().split('T')[0]; }
@@ -2161,23 +2257,55 @@ function ShutdownModal({ items, onClose, onComplete, onMarkDone, demoMode }) {
 
   async function handleComplete() {
     setSaving(true);
-    // Apply task decisions to sheets
-    for (const item of openItems) {
-      const key = `${item.track}::${item.id}`;
-      const decision = taskStates[key];
-      if (!decision) continue;
-      if (decision === 'done') {
-        await onMarkDone(item.track, item);
-      } else if (decision === 'tomorrow') {
-        if (!demoMode) {
+
+    if (!demoMode) {
+      // Handle non-done decisions first (no row deletion, safe to do in any order)
+      for (const item of openItems) {
+        const key = `${item.track}::${item.id}`;
+        const decision = taskStates[key];
+        if (decision === 'tomorrow') {
           try { await updateCell(TRACKS[item.track].tab, item.id, 4, tomorrowStr); } catch(e) { console.error(e); }
-        }
-      } else if (decision === 'drop') {
-        if (!demoMode) {
+        } else if (decision === 'drop') {
           try { await updateCell(TRACKS[item.track].tab, item.id, 4, ''); } catch(e) { console.error(e); }
         }
       }
+
+      // Handle 'done' items — group by tab and delete rows highest-index-first
+      // to avoid row shifting as we delete
+      const doneItems = openItems
+        .filter(i => taskStates[`${i.track}::${i.id}`] === 'done')
+        .sort((a, b) => b.id - a.id); // descending by row index
+
+      for (const item of doneItems) {
+        try {
+          const tab = TRACKS[item.track].tab;
+          const trackLabel = TRACKS[item.track].label;
+          const row = await readSheetRow(tab, item.id);
+          const completedDate = new Date().toISOString().split('T')[0];
+          const doneRow = [completedDate, trackLabel, ...row];
+          await appendRow('Done', doneRow);
+          await deleteRowFromSheet(tab, item.id);
+        } catch(e) { console.error('Shutdown done move failed:', item.name, e); }
+      }
     }
+
+    // Update React state for all done items at once
+    const doneItems = openItems.filter(i => taskStates[`${i.track}::${i.id}`] === 'done');
+    if (doneItems.length > 0) {
+      // Remove done items from UI state grouped by track
+      const doneByTrack = {};
+      doneItems.forEach(i => {
+        if (!doneByTrack[i.track]) doneByTrack[i.track] = new Set();
+        doneByTrack[i.track].add(i.id);
+      });
+      // We call onMarkDone only in demo mode (it handles its own state update)
+      if (demoMode) {
+        for (const item of doneItems) {
+          await onMarkDone(item.track, item);
+        }
+      }
+    }
+
     // Save journal entry
     const today = new Date().toISOString().split('T')[0];
     const row = [today, win, top3.join(' | '), brainDump, new Date().toLocaleTimeString()];
@@ -2354,6 +2482,68 @@ function TransitionScreen({ onDone }) {
   );
 }
 
+// ── PERSONAL TASK EDITOR (inline label edit) ──────────────────────────────────
+function PersonalTaskEditor({ task, onLabelChange }) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(task.label);
+  if (editing) {
+    return (
+      <input
+        className="form-input"
+        style={{flex:1,fontSize:'12px',padding:'4px 8px'}}
+        value={val}
+        autoFocus
+        onChange={e=>setVal(e.target.value)}
+        onBlur={()=>{onLabelChange(val.trim()||task.label);setEditing(false);}}
+        onKeyDown={e=>{if(e.key==='Enter'){onLabelChange(val.trim()||task.label);setEditing(false);}}}
+      />
+    );
+  }
+  return (
+    <div style={{flex:1,display:'flex',alignItems:'center',gap:'8px',opacity:task.active?1:0.4}}>
+      <div style={{fontSize:'13px'}}>{task.label}</div>
+      <button className="personal-task-edit-btn" onClick={()=>setEditing(true)}>rename</button>
+    </div>
+  );
+}
+
+function AddPersonalTaskRow({ category, onAdd }) {
+  const [adding, setAdding] = useState(false);
+  const [val, setVal] = useState('');
+  if (!adding) {
+    return (
+      <button className="personal-task-edit-btn"
+        style={{marginTop:'8px',padding:'4px 12px',fontSize:'10px'}}
+        onClick={()=>setAdding(true)}>+ Add task</button>
+    );
+  }
+  return (
+    <div style={{display:'flex',gap:'8px',marginTop:'8px',alignItems:'center'}}>
+      <input
+        className="form-input"
+        style={{flex:1,fontSize:'12px',padding:'4px 8px'}}
+        placeholder="Task label..."
+        value={val}
+        autoFocus
+        onChange={e=>setVal(e.target.value)}
+        onKeyDown={e=>{
+          if(e.key==='Enter'&&val.trim()){
+            onAdd({id:'custom_'+Date.now(),category,label:val.trim(),active:true});
+            setVal('');setAdding(false);
+          }
+          if(e.key==='Escape'){setAdding(false);setVal('');}
+        }}
+      />
+      <button className="personal-task-edit-btn"
+        onClick={()=>{
+          if(val.trim()) onAdd({id:'custom_'+Date.now(),category,label:val.trim(),active:true});
+          setVal('');setAdding(false);
+        }}>Add</button>
+      <button className="personal-task-edit-btn" onClick={()=>{setAdding(false);setVal('');}}>✕</button>
+    </div>
+  );
+}
+
 // ── PERSONAL MODE PAGE ────────────────────────────────────────────────────────
 function PersonalModePage({ onExitPersonal }) {
   const [tasks, setTasks] = useState(loadPersonalTasks);
@@ -2475,39 +2665,59 @@ function PersonalModePage({ onExitPersonal }) {
             <div className="personal-category-label">
               <span>{label}</span>
               <button className="personal-task-edit-btn" onClick={()=>setShowEditor(e=>!e)}>
-                {showEditor ? 'Done' : 'Edit'}
+                {showEditor ? 'Done editing' : 'Edit'}
               </button>
             </div>
             {catTasks.map(task => {
               const streak = streaks[task.id];
               const hasStreak = streak && streak.count > 1 && streak.lastDate === todayKey();
+              const isKendall = task.id === 'kendall';
               return (
-                <div key={task.id} className="personal-task-row">
-                  {showEditor ? (
-                    <>
-                      <div className={`personal-task-label`} style={{opacity:task.active?1:0.4}}>{task.label}</div>
-                      <button
-                        className="personal-task-edit-btn"
-                        onClick={()=>toggleTaskActive(task.id)}
-                      >{task.active ? 'Remove' : 'Add'}</button>
-                    </>
-                  ) : (
-                    <>
-                      <div
-                        className={`personal-check${checked[task.id]?' checked':''}`}
-                        onClick={()=>toggle(task.id)}
-                      >{checked[task.id]?'✓':''}</div>
-                      <div className={`personal-task-label${checked[task.id]?' checked':''}`}>
-                        {task.label}
-                      </div>
-                      {hasStreak && (
-                        <div className="streak-badge">{streak.count}d</div>
-                      )}
-                    </>
+                <div key={task.id} className="personal-task-row" style={{flexDirection:'column',alignItems:'flex-start',gap:'4px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'12px',width:'100%'}}>
+                    {showEditor ? (
+                      <>
+                        <PersonalTaskEditor task={task} onLabelChange={newLabel=>{
+                          const updated = tasks.map(t=>t.id===task.id?{...t,label:newLabel}:t);
+                          setTasks(updated); savePersonalTasks(updated);
+                        }}/>
+                        <button className="personal-task-edit-btn" onClick={()=>toggleTaskActive(task.id)}
+                          style={{flexShrink:0}}>
+                          {task.active ? 'Remove' : 'Add'}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className={`personal-check${checked[task.id]?' checked':''}`}
+                          onClick={()=>toggle(task.id)}>{checked[task.id]?'✓':''}</div>
+                        <div className={`personal-task-label${checked[task.id]?' checked':''}`} style={{flex:1}}>
+                          {task.label}
+                        </div>
+                        {hasStreak && <div className="streak-badge">{streak.count}d</div>}
+                      </>
+                    )}
+                  </div>
+                  {/* Kendall question — show today's rotating question */}
+                  {isKendall && !showEditor && (
+                    <div style={{
+                      marginLeft:'32px',fontSize:'11px',color:'var(--text2)',
+                      fontStyle:'italic',lineHeight:'1.5',padding:'6px 10px',
+                      background:'rgba(125,255,179,0.06)',border:'1px solid rgba(125,255,179,0.15)',
+                      borderRadius:'2px',width:'calc(100% - 32px)'
+                    }}>
+                      Today: "{getTodayKendallQuestion()}"
+                    </div>
                   )}
                 </div>
               );
             })}
+            {/* Add new task button (edit mode) */}
+            {showEditor && (
+              <AddPersonalTaskRow category={cat} onAdd={newTask=>{
+                const updated = [...tasks, newTask];
+                setTasks(updated); savePersonalTasks(updated);
+              }}/>
+            )}
           </div>
         );
       })}
@@ -2556,11 +2766,12 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin,
   const theme = DAY_THEMES[dayName] || { label:'Open', tracks:[], color:'var(--accent)' };
 
   // Checked-off state (local only — resets daily, just UI)
-  const [checked, setChecked] = React.useState({});
-  const [energy, setEnergy] = React.useState(null);
+  const [todayDone, setTodayDone] = React.useState({});
 
-  function toggleCheck(id) {
-    setChecked(c => ({...c, [id]: !c[id]}));
+  function toggleCheck(id, item) {
+    if (todayDone[id]) return; // already done
+    setTodayDone(c => ({...c, [id]: true}));
+    if (item) onMarkDone(item.track, item);
   }
 
   // Build today's priorities: items from today's tracks, filtered by overdue/due-soon/stale
@@ -2696,15 +2907,16 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin,
                 const diff = Math.ceil((d-now)/86400000);
                 return { overdue: diff < 0, soon: diff <= 2, diff };
               })();
+              const done = todayDone[id];
               return (
-                <div key={id} className="priority-item">
+                <div key={id} className="priority-item" style={{opacity: done ? 0.45 : 1, transition:'opacity 0.3s'}}>
                   <div
-                    className={`priority-check${checked[id]?' done':''}`}
-                    onClick={()=>toggleCheck(id)}
-                  >{checked[id]?'✓':''}</div>
+                    className={`priority-check${done?' done':''}`}
+                    onClick={()=>toggleCheck(id, item)}
+                  >{done?'✓':''}</div>
                   <div className="priority-track-dot" style={{background:TRACKS[item.track]?.color}}/>
                   <div style={{flex:1}}>
-                    <div className={`priority-label${checked[id]?' done':''}`}>{item.name}</div>
+                    <div className={`priority-label${done?' done':''}`}>{item.name}</div>
                     <div className="priority-meta">
                       {TRACKS[item.track]?.label}
                       {item.status && ` · ${item.status}`}
@@ -2722,12 +2934,13 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin,
                 <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--success)',margin:'16px 0 10px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>Revenue Priority</div>
                 {revItems.map(item => {
                   const id = priorityId(item.track, item.name)+'_rev';
+                  const done = todayDone[id];
                   return (
-                    <div key={id} className="priority-item">
-                      <div className={`priority-check${checked[id]?' done':''}`} onClick={()=>toggleCheck(id)}>{checked[id]?'✓':''}</div>
+                    <div key={id} className="priority-item" style={{opacity:done?0.45:1,transition:'opacity 0.3s'}}>
+                      <div className={`priority-check${done?' done':''}`} onClick={()=>toggleCheck(id, item)}>{done?'✓':''}</div>
                       <div className="priority-track-dot" style={{background:'var(--success)'}}/>
                       <div style={{flex:1}}>
-                        <div className={`priority-label${checked[id]?' done':''}`}>{item.name}</div>
+                        <div className={`priority-label${done?' done':''}`}>{item.name}</div>
                         <div className="priority-meta">{TRACKS[item.track]?.label} · {item.status}</div>
                       </div>
                     </div>
@@ -2742,12 +2955,13 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin,
                 <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--content)',margin:'16px 0 10px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>Content</div>
                 {(() => {
                   const id = priorityId('content', contentItem.name)+'_c';
+                  const done = todayDone[id];
                   return (
-                    <div className="priority-item">
-                      <div className={`priority-check${checked[id]?' done':''}`} onClick={()=>toggleCheck(id)}>{checked[id]?'✓':''}</div>
+                    <div className="priority-item" style={{opacity:done?0.45:1,transition:'opacity 0.3s'}}>
+                      <div className={`priority-check${done?' done':''}`} onClick={()=>toggleCheck(id, contentItem)}>{done?'✓':''}</div>
                       <div className="priority-track-dot" style={{background:'var(--content)'}}/>
                       <div style={{flex:1}}>
-                        <div className={`priority-label${checked[id]?' done':''}`}>{contentItem.name}</div>
+                        <div className={`priority-label${done?' done':''}`}>{contentItem.name}</div>
                         <div className="priority-meta">Content · {contentItem.status}</div>
                       </div>
                     </div>
@@ -2774,21 +2988,6 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin,
 
         {/* Right column */}
         <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
-          {/* Energy check-in */}
-          <div className="today-section">
-            <div className="today-section-title"><span>Energy Check</span></div>
-            <div className="today-energy">
-              {['🔋 High','⚡ Medium','😴 Low','🔥 In the zone'].map(e => (
-                <button key={e} className={`energy-btn${energy===e?' active':''}`} onClick={()=>setEnergy(e)}>{e}</button>
-              ))}
-            </div>
-            {energy === '😴 Low' && (
-              <div style={{fontSize:'11px',color:'var(--text3)',marginTop:'12px',paddingTop:'10px',borderTop:'1px solid var(--border)'}}>
-                Low energy day — protect your top 1 priority and let the rest wait.
-              </div>
-            )}
-          </div>
-
           {/* Today's calendar */}
           <div className="today-section">
             <div className="today-section-title"><span>On Your Calendar Today</span></div>
@@ -2864,7 +3063,18 @@ function App() {
 
   function handleEndWorkday() { setAppMode('shutting_down'); }
 
-  function handleShutdownComplete() {
+  async function handleShutdownComplete() {
+    // Reload all sheet data so done-moved rows are gone from UI
+    if (authed && !demoMode) {
+      try {
+        const loaded = {};
+        for (const track of Object.keys(TRACKS)) {
+          const rows = await readSheet(TRACKS[track].tab);
+          loaded[track] = rows.map((r,i) => rowToItem(track,r,i));
+        }
+        setItems(loaded);
+      } catch(e) { console.error('Post-shutdown reload failed:', e); }
+    }
     setAppMode('transitioning');
   }
 
@@ -3165,7 +3375,7 @@ function App() {
       <div className="auth-screen">
         <div className="auth-card">
           <div className="auth-logo">Jesse HQ</div>
-          <div className="auth-tagline">Your command center across all five tracks</div>
+          <div className="auth-tagline">Your command center across all tracks</div>
           <div className="auth-features">
             {Object.entries(TRACKS).map(([key,t])=>(
               <div key={key} className="auth-feature">
