@@ -335,6 +335,26 @@ body.personal-mode .block-check.checked { background:var(--accent); border-color
 .free-night-sub { font-size:11px; color:var(--text2); }
 .end-workday-btn { background:transparent; border:1px solid var(--border); color:var(--text2); font-family:'DM Mono',monospace; font-size:11px; padding:8px 16px; cursor:pointer; transition:all 0.2s; letter-spacing:1px; }
 .end-workday-btn:hover { border-color:var(--warning); color:var(--warning); }
+
+/* ── INCOME GENERATOR ─────────────────────────────────────────────────────── */
+.income-fab { position:fixed; bottom:28px; left:264px; z-index:500; background:var(--success); color:#000; border:none; font-family:'DM Mono',monospace; font-size:11px; font-weight:500; padding:10px 16px; cursor:pointer; letter-spacing:1px; display:flex; align-items:center; gap:8px; transition:all 0.2s; box-shadow:0 4px 20px rgba(77,255,145,0.25); }
+.income-fab:hover { opacity:0.9; box-shadow:0 6px 28px rgba(77,255,145,0.4); transform:translateY(-1px); }
+.income-fab-dot { width:7px; height:7px; border-radius:50%; background:#000; animation:pulse 2s infinite; }
+@media(max-width:768px){ .income-fab { left:16px; bottom:20px; } }
+.income-modal { background:var(--surface); border:1px solid var(--border); width:600px; max-width:95vw; max-height:90vh; overflow-y:auto; }
+.income-modal-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.income-modal-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; color:var(--success); }
+.income-modal-sub { font-size:11px; color:var(--text2); margin-top:3px; }
+.income-suggestion { background:var(--surface2); border:1px solid var(--border); border-left:3px solid var(--success); padding:16px 18px; margin-bottom:12px; }
+.income-suggestion:last-child { margin-bottom:0; }
+.income-suggestion-title { font-size:13px; font-weight:500; margin-bottom:4px; color:var(--text); }
+.income-suggestion-why { font-size:11px; color:var(--text2); line-height:1.6; }
+.income-suggestion-meta { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.income-tag { font-size:9px; letter-spacing:1px; text-transform:uppercase; padding:2px 8px; background:rgba(77,255,145,0.1); border:1px solid rgba(77,255,145,0.25); color:var(--success); }
+.income-tag.medium { background:rgba(255,179,71,0.1); border-color:rgba(255,179,71,0.25); color:var(--warning); }
+.income-tag.high { background:rgba(255,107,53,0.1); border-color:rgba(255,107,53,0.25); color:var(--records); }
+.income-loading { display:flex; align-items:center; gap:12px; padding:28px; color:var(--text2); font-size:12px; }
+.income-error { padding:20px; color:#ff6666; font-size:12px; background:rgba(255,68,68,0.06); border:1px solid rgba(255,68,68,0.2); }
 </style>
 </head>
 <body>
@@ -962,7 +982,7 @@ function AddItemModal({ track, onClose, onAdd, calEvents, calendarList=[] }) {
             </div>
           </div>
           <div className="modal-footer">
-            <button className="btn-secondary" onClick={()=>save(false)}>Skip</button>
+            <button className="btn-secondary" onClick={()=>save(false)} title="Save this task without adding it to your calendar">Skip (no calendar)</button>
             <button className="btn-primary" onClick={()=>save(selected!==null)}>
               {selected!==null?'Block Time + Save':'Save Without Blocking'}
             </button>
@@ -2230,7 +2250,7 @@ function saveShutdownLog(log) {
 // ── SHUTDOWN MODAL ────────────────────────────────────────────────────────────
 function ShutdownModal({ items, onClose, onComplete, onMarkDone, demoMode }) {
   const [step, setStep] = useState(0);
-  const [taskStates, setTaskStates] = useState({}); // { itemKey: 'tomorrow' | 'drop' | 'done' | null }
+  const [taskStates, setTaskStates] = useState({}); // { itemKey: 'later' | 'drop' | 'done' | null }
   const [win, setWin] = useState('');
   const [top3, setTop3] = useState(['','','']);
   const [brainDump, setBrainDump] = useState('');
@@ -2263,8 +2283,8 @@ function ShutdownModal({ items, onClose, onComplete, onMarkDone, demoMode }) {
       for (const item of openItems) {
         const key = `${item.track}::${item.id}`;
         const decision = taskStates[key];
-        if (decision === 'tomorrow') {
-          try { await updateCell(TRACKS[item.track].tab, item.id, 4, tomorrowStr); } catch(e) { console.error(e); }
+        if (decision === 'later') {
+          // Keep the same due date — no change needed
         } else if (decision === 'drop') {
           try { await updateCell(TRACKS[item.track].tab, item.id, 4, ''); } catch(e) { console.error(e); }
         }
@@ -2377,9 +2397,9 @@ function ShutdownModal({ items, onClose, onComplete, onMarkDone, demoMode }) {
                           onClick={()=>setTaskState(key,'done')}
                         >✓ Done</button>
                         <button
-                          className={`shutdown-task-btn${state==='tomorrow'?' moved':''}`}
-                          onClick={()=>setTaskState(key,'tomorrow')}
-                        >→ Tomorrow</button>
+                          className={`shutdown-task-btn${state==='later'?' moved':''}`}
+                          onClick={()=>setTaskState(key,'later')}
+                        >Later</button>
                         <button
                           className={`shutdown-task-btn${state==='drop'?' dropped':''}`}
                           onClick={()=>setTaskState(key,'drop')}
@@ -2829,12 +2849,12 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin,
     })()
   ).slice(0, 3);
 
-  // Next calendar events today
+  // All calendar events today (past + future) — like Google Calendar
   const upcomingToday = calEvents.filter(e => {
     if (!e.start?.dateTime) return false;
     const start = new Date(e.start.dateTime);
-    return isSameDay(start, now) && start >= now;
-  }).sort((a,b) => new Date(a.start.dateTime) - new Date(b.start.dateTime)).slice(0, 5);
+    return isSameDay(start, now);
+  }).sort((a,b) => new Date(a.start.dateTime) - new Date(b.start.dateTime)).slice(0, 8);
 
   // Detect calendar track from event summary
   function getEventTrackColor(event) {
@@ -2988,18 +3008,29 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin,
 
         {/* Right column */}
         <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
-          {/* Today's calendar */}
+          {/* Today's calendar — all events, past + future (Google Calendar style) */}
           <div className="today-section">
             <div className="today-section-title"><span>On Your Calendar Today</span></div>
             {upcomingToday.length === 0
               ? <div style={{fontSize:'12px',color:'var(--text3)'}}>Nothing scheduled yet today.</div>
-              : upcomingToday.map((e,i) => (
-                <div key={i} className="cal-event-row">
-                  <div className="cal-event-track-bar" style={{background:getEventTrackColor(e)}}/>
-                  <div className="cal-event-time">{fmtTime(new Date(e.start.dateTime))}</div>
-                  <div className="cal-event-name">{e.summary}</div>
-                </div>
-              ))}
+              : upcomingToday.map((e,i) => {
+                const eventStart = new Date(e.start.dateTime);
+                const eventEnd = e.end?.dateTime ? new Date(e.end.dateTime) : new Date(eventStart.getTime()+3600000);
+                const isPast = eventEnd < now;
+                const isNow = eventStart <= now && eventEnd >= now;
+                return (
+                  <div key={i} className="cal-event-row" style={{opacity: isPast ? 0.45 : 1, transition:'opacity 0.2s'}}>
+                    <div className="cal-event-track-bar" style={{background: isNow ? 'var(--accent)' : getEventTrackColor(e)}}/>
+                    <div className="cal-event-time" style={{color: isPast ? 'var(--text3)' : isNow ? 'var(--accent)' : undefined, textDecoration: isPast ? 'line-through' : undefined}}>
+                      {fmtTime(eventStart)}
+                    </div>
+                    <div className="cal-event-name" style={{color: isPast ? 'var(--text2)' : undefined}}>
+                      {e.summary}
+                      {isNow && <span style={{fontSize:'9px',color:'var(--accent)',marginLeft:'6px',letterSpacing:'1px',textTransform:'uppercase'}}>now</span>}
+                    </div>
+                  </div>
+                );
+              })}
             {todayCalEvents.length === 0 && upcomingToday.length === 0 && (
               <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px'}}>Google Calendar connected? Events will show here.</div>
             )}
@@ -3031,6 +3062,139 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin,
   );
 }
 
+// ── INCOME GENERATOR MODAL ────────────────────────────────────────────────────
+function IncomeGeneratorModal({ items, goals, calEvents, onClose }) {
+  const [state, setState] = useState('idle'); // idle | loading | done | error
+  const [suggestions, setSuggestions] = useState([]);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  // Build context from current items, goals, and calendar
+  function buildContext() {
+    const allItems = Object.entries(items).flatMap(([track, trackItems]) =>
+      trackItems.map(i => ({ ...i, track }))
+    );
+    const activeItems = allItems.filter(i => {
+      const doneStatuses = DONE_STATUSES[i.track] || [];
+      return !doneStatuses.includes(i.status);
+    });
+
+    const trackSummaries = Object.entries(items).map(([track, trackItems]) => {
+      const active = trackItems.filter(i => !(DONE_STATUSES[track]||[]).includes(i.status));
+      return `${TRACKS[track]?.label}: ${active.length} active items — ${active.slice(0,3).map(i=>i.name).join(', ')}${active.length>3?'…':''}`;
+    }).join('\n');
+
+    const goalSummary = Object.entries(goals).filter(([,v])=>v).map(([t,v]) => `${TRACKS[t]?.label}: ${v}`).join('\n') || 'No weekly goals set yet.';
+
+    const upcomingRevenue = activeItems.filter(i =>
+      i.track === 'freelance' || (i.track === 'publishing' && ['Collecting','Pitched'].includes(i.status))
+    ).map(i => `${i.name} (${TRACKS[i.track]?.label}, ${i.status})`).join(', ') || 'None visible';
+
+    return `Jesse runs a multi-track music business:
+- Real Fun Records: music production, artist projects
+- Publishing: song pitching, royalty collecting (ASCAP)
+- Songstage: a SaaS product for worship songwriting teams
+- Freelance: session guitar, session work, coaching/teaching
+- Content: YouTube, Substack, Reels about worship music / music business
+
+Current active work:
+${trackSummaries}
+
+Weekly goals:
+${goalSummary}
+
+Visible revenue activity: ${upcomingRevenue}`;
+  }
+
+  async function generate() {
+    setState('loading');
+    setErrorMsg('');
+    try {
+      const context = buildContext();
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: `You are a revenue advisor for Jesse, a music entrepreneur. Based on his current work context, suggest 4-5 specific, actionable income opportunities he may be overlooking or under-leveraging RIGHT NOW. Be specific to his actual tracks and items. Return ONLY a JSON array with no markdown, no preamble. Each item: { "title": string, "why": string (2-3 sentences, specific to his context), "effort": "Low"|"Medium"|"High", "timeframe": "This week"|"This month"|"Ongoing", "track": string }`,
+          messages: [{
+            role: 'user',
+            content: `Here is Jesse's current business context:\n\n${context}\n\nWhat income opportunities is he most likely missing or under-leveraging right now? Be specific — reference his actual items and tracks.`
+          }]
+        })
+      });
+
+      const data = await response.json();
+      const raw = data.content?.filter(b => b.type === 'text').map(b => b.text).join('') || '';
+      const clean = raw.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(clean);
+      setSuggestions(parsed);
+      setState('done');
+    } catch(e) {
+      console.error('Income generator error:', e);
+      setErrorMsg(e.message || 'Something went wrong. Try again.');
+      setState('error');
+    }
+  }
+
+  useEffect(() => { generate(); }, []);
+
+  const effortClass = e => e === 'Low' ? '' : e === 'Medium' ? 'medium' : 'high';
+
+  return (
+    <div className="modal-overlay" onClick={ev => ev.target === ev.currentTarget && onClose()}>
+      <div className="income-modal">
+        <div className="income-modal-header">
+          <div>
+            <div className="income-modal-title">💰 Income Opportunities</div>
+            <div className="income-modal-sub">Actions you might not be taking that could generate more revenue — based on your current work</div>
+          </div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="modal-body" style={{paddingTop:'20px'}}>
+          {state === 'loading' && (
+            <div className="income-loading">
+              <div className="ai-dot" style={{width:'8px',height:'8px',flexShrink:0}}/>
+              Analyzing your tracks, items, and goals for revenue opportunities...
+            </div>
+          )}
+
+          {state === 'error' && (
+            <div>
+              <div className="income-error">{errorMsg}</div>
+              <button className="btn-sm" style={{marginTop:'12px'}} onClick={generate}>Try again</button>
+            </div>
+          )}
+
+          {state === 'done' && suggestions.length > 0 && (
+            <div>
+              <div style={{fontSize:'11px',color:'var(--text3)',marginBottom:'16px',letterSpacing:'0.5px'}}>
+                {suggestions.length} opportunities identified based on your current work
+              </div>
+              {suggestions.map((s, i) => (
+                <div key={i} className="income-suggestion">
+                  <div className="income-suggestion-title">{s.title}</div>
+                  <div className="income-suggestion-why">{s.why}</div>
+                  <div className="income-suggestion-meta">
+                    <span className={`income-tag ${effortClass(s.effort)}`}>{s.effort} effort</span>
+                    <span className="income-tag">{s.timeframe}</span>
+                    {s.track && <span className="income-tag">{s.track}</span>}
+                  </div>
+                </div>
+              ))}
+              <div style={{marginTop:'16px',paddingTop:'16px',borderTop:'1px solid var(--border)',display:'flex',gap:'10px',justifyContent:'flex-end'}}>
+                <button className="btn-secondary" style={{fontSize:'11px'}} onClick={generate}>Regenerate</button>
+                <button className="btn-primary" style={{fontSize:'11px'}} onClick={onClose}>Got it</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
   const [authed, setAuthed]= useState(false);
@@ -3046,6 +3210,7 @@ function App() {
   const [undoToast, setUndoToast]= useState(null); // {message, onUndo}
   const [newWeek, setNewWeek]= useState(false);
   const [sidebarOpen, setSidebarOpen]= useState(false);
+  const [showIncomeModal, setShowIncomeModal] = useState(false);
   // Shutdown / personal mode
   const [appMode, setAppMode] = useState(() => {
     // Restore personal mode if user was in it when they last closed the app (same day)
@@ -3511,6 +3676,22 @@ function App() {
       {modal&&<AddItemModal track={modal.track} calEvents={calEvents} calendarList={calendarList} onClose={()=>setModal(null)} onAdd={formData=>handleAdd(modal.track,formData)}/>}
       {toast&&<Toast message={toast} onClose={()=>setToast(null)}/>}
       {undoToast&&<div style={{position:'fixed',bottom:'80px',right:'24px',zIndex:'2001'}}><UndoToast message={undoToast.message} onUndo={undoToast.onUndo} onClose={()=>setUndoToast(null)}/></div>}
+
+      {/* Income Generator FAB — only in work mode */}
+      {appMode==='work' && (
+        <button className="income-fab" onClick={()=>setShowIncomeModal(true)} title="Find income opportunities">
+          <span className="income-fab-dot"/>
+          💰 Income Ideas
+        </button>
+      )}
+      {showIncomeModal && (
+        <IncomeGeneratorModal
+          items={items}
+          goals={goals}
+          calEvents={calEvents}
+          onClose={()=>setShowIncomeModal(false)}
+        />
+      )}
     </div>
   );
 }
