@@ -1730,7 +1730,7 @@ function CheckInPage({ items, calEvents, goals, onGoalChange, onGoalBlur, onSave
     <div className="page">
       <div className="checkin-wrap">
         <div className="checkin-intro">
-          <div className="checkin-intro-title">Monday Check-In</div>
+          <div className="checkin-intro-title">Weekly Check-In</div>
           <div className="checkin-intro-sub">
             Goals auto-save when you click out of each field. Lock in when ready to commit and block your calendar.
           </div>
@@ -1987,6 +1987,108 @@ function DueSoonSection({ items, now, onMarkDone, onEdit }) {
   );
 }
 
+// ── CRITICAL ACTIONS CHECKLIST ────────────────────────────────────────────────
+const CRITICAL_ACTIONS = {
+  records: {
+    label: 'Real Fun Records',
+    color: 'var(--records)',
+    actions: [
+      { id: 'rfr_content',  label: 'Content Creation' },
+      { id: 'rfr_team',     label: 'Team Check-in' },
+      { id: 'rfr_lead',     label: 'Lead Generation' },
+    ],
+  },
+  freelance: {
+    label: 'Freelance',
+    color: 'var(--freelance)',
+    actions: [
+      { id: 'fl_leadflow',  label: 'Lead Flow — check in with someone or create a CTA on content' },
+      { id: 'fl_authority', label: 'Share Authority — via social media or Substack' },
+      { id: 'fl_thanks',    label: 'One Thank You text' },
+    ],
+  },
+  // songstage will go here when ready
+};
+
+function loadCriticalChecked() {
+  try {
+    const saved = localStorage.getItem('hq_critical_' + todayKey());
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+}
+
+function saveCriticalChecked(checked) {
+  try { localStorage.setItem('hq_critical_' + todayKey(), JSON.stringify(checked)); } catch {}
+}
+
+function CriticalActionsChecklist() {
+  const [checked, setChecked] = React.useState(loadCriticalChecked);
+
+  const allActions = Object.values(CRITICAL_ACTIONS).flatMap(g => g.actions);
+  const totalCount = allActions.length;
+  const doneCount  = allActions.filter(a => checked[a.id]).length;
+
+  function toggle(id) {
+    const next = { ...checked, [id]: !checked[id] };
+    setChecked(next);
+    saveCriticalChecked(next);
+  }
+
+  return (
+    <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderLeft:'3px solid var(--accent)',padding:'20px',marginBottom:'24px'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px',flexWrap:'wrap',gap:'8px'}}>
+        <div>
+          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--accent)',marginBottom:'3px'}}>My Critical Actions</div>
+          <div style={{fontSize:'11px',color:'var(--text3)'}}>Daily non-negotiables — resets each night</div>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+          <div style={{fontSize:'12px',color: doneCount===totalCount ? 'var(--success)' : 'var(--text3)'}}>
+            {doneCount}/{totalCount}
+          </div>
+          {doneCount === totalCount && totalCount > 0 && (
+            <span style={{fontSize:'10px',color:'var(--success)',letterSpacing:'1px',textTransform:'uppercase'}}>✓ All done</span>
+          )}
+        </div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:'16px'}}>
+        {Object.entries(CRITICAL_ACTIONS).map(([key, group]) => (
+          <div key={key}>
+            <div style={{fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:group.color,marginBottom:'10px'}}>{group.label}</div>
+            {group.actions.map(action => {
+              const done = checked[action.id];
+              return (
+                <div key={action.id}
+                  onClick={() => toggle(action.id)}
+                  style={{
+                    display:'flex',alignItems:'flex-start',gap:'10px',padding:'8px 0',
+                    borderBottom:'1px solid var(--border)',cursor:'pointer',
+                    opacity: done ? 0.5 : 1, transition:'opacity 0.2s',
+                  }}>
+                  <div style={{
+                    width:'16px',height:'16px',flexShrink:0,marginTop:'1px',
+                    border:`1px solid ${done ? group.color : 'var(--border)'}`,
+                    background: done ? group.color : 'transparent',
+                    display:'flex',alignItems:'center',justifyContent:'center',
+                    fontSize:'10px',color:'#000',transition:'all 0.15s',
+                  }}>
+                    {done && '✓'}
+                  </div>
+                  <div style={{
+                    fontSize:'12px',lineHeight:'1.4',
+                    textDecoration: done ? 'line-through' : 'none',
+                    color: done ? 'var(--text3)' : 'var(--text)',
+                  }}>{action.label}</div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── DASHBOARD PAGE ────────────────────────────────────────────────────────────
 function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWeek, onMarkDone, onEdit }) {
   const today = new Date();
@@ -2034,6 +2136,8 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
       </div>
 
       {dueSoon.length>0&&<DueSoonSection items={dueSoon} now={now} onMarkDone={onMarkDone} onEdit={onEdit}/>}
+
+      <CriticalActionsChecklist/>
 
       {(newWeek||(isMonday&&weekGoals.length===0))&&(
         <div style={{background:'rgba(232,255,71,0.06)',border:'1px solid rgba(232,255,71,0.3)',borderLeft:'3px solid var(--accent)',padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
@@ -2909,6 +3013,8 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin,
         </div>
       )}
 
+      <CriticalActionsChecklist/>
+
       <div className="today-grid">
         {/* Left: Today's priorities */}
         <div>
@@ -3589,7 +3695,7 @@ function App() {
               </div>
               <div style={{borderTop:'1px solid var(--border)',margin:'12px 0'}}/>
               <div className="nav-section-label">Work</div>
-              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Monday Check-In']].map(([key,label])=>(
+              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Weekly Check-In']].map(([key,label])=>(
                 <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
                   <div className={`nav-dot ${key}`}/>{label}
                 </div>
@@ -3598,7 +3704,7 @@ function App() {
           ) : (
             <>
               <div className="nav-section-label">Overview</div>
-              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Monday Check-In']].map(([key,label])=>(
+              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Weekly Check-In']].map(([key,label])=>(
                 <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
                   <div className={`nav-dot ${key}`}/>{label}
                 </div>
@@ -3639,7 +3745,7 @@ function App() {
             {page==='today'&&'Today'}
             {page==='dashboard'&&'Dashboard'}
             {page==='calendar'&&'Calendar'}
-            {page==='checkin'&&'Monday Check-In'}
+            {page==='checkin'&&'Weekly Check-In'}
             {TRACKS[page]&&TRACKS[page].label}
             </div>
           </div>
