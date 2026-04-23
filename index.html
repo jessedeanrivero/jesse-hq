@@ -560,9 +560,12 @@ async function getAllCalendars() {
   } catch(e) { return []; }
 }
 
-async function getCalendarEvents(weeksAhead=2) {
+async function getCalendarEvents(weeksAhead=4, weeksBehind=4) {
   try {
-    const now = new Date(), end = new Date(now);
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(start.getDate() - weeksBehind * 7);
+    const end = new Date(now);
     end.setDate(end.getDate() + weeksAhead * 7);
 
     // Fetch all calendars first
@@ -575,11 +578,11 @@ async function getCalendarEvents(weeksAhead=2) {
       try {
         const r = await gapi.client.calendar.events.list({
           calendarId: calId,
-          timeMin: now.toISOString(),
+          timeMin: start.toISOString(),
           timeMax: end.toISOString(),
           singleEvents: true,
           orderBy: 'startTime',
-          maxResults: 50,
+          maxResults: 250,
         });
         const cal = calendars.find(c => c.id === calId);
         return (r.result.items || []).map(e => ({
@@ -1393,19 +1396,23 @@ function CalendarPage({ calEvents, calendarList, onAddEvent, onEditEvent, onDele
         {dayNames.map(d=><div key={d} className="cal-day-header">{d}</div>)}
         {cells.map((cell,i)=>{
           const evs=eventsForDay(cell.date),isToday=isSameDay(cell.date,today);
+          const isPast = !isToday && cell.date < today && !cell.otherMonth;
           return (
-            <div key={i} className={`cal-day${cell.otherMonth?' other-month':''}${isToday?' today':''}`}>
-              <div className="cal-day-num">{cell.date.getDate()}</div>
+            <div key={i}
+              className={`cal-day${cell.otherMonth?' other-month':''}${isToday?' today':''}`}
+              style={isPast?{background:'rgba(255,255,255,0.015)'}:undefined}
+              onClick={()=>{setCurrent(new Date(cell.date));setView('day');}}>
+              <div className="cal-day-num" style={isPast?{color:'var(--text3)'}:undefined}>{cell.date.getDate()}</div>
               <div className="cal-day-add" onClick={e=>{e.stopPropagation();setAddEventDate(new Date(cell.date));}}>+</div>
               {evs.slice(0,3).map((e,j)=>(
                 <div key={j} className="cal-event-pill" onClick={ev=>{ev.stopPropagation();setEditEvent(e);}}
-                  style={{background:eventColor(e)+'22',color:eventColor(e),border:`1px solid ${eventColor(e)}44`,cursor:'pointer'}}
+                  style={{background:eventColor(e)+(isPast?'14':'22'),color:eventColor(e),border:`1px solid ${eventColor(e)}${isPast?'33':'44'}`,cursor:'pointer',opacity:isPast?0.6:1}}
                   title={`${e.summary}${e._calendarName?' ('+e._calendarName+')':''}`}>
                   {e.start?.dateTime?fmtTime(new Date(e.start.dateTime))+' ':''}{e.summary}
                 </div>
               ))}
               {evs.length>3&&<div style={{fontSize:'9px',color:'var(--text3)',cursor:'pointer'}}
-                onClick={()=>{setCurrent(new Date(cell.date));setView('day');}}>+{evs.length-3} more</div>}
+                onClick={ev=>{ev.stopPropagation();setCurrent(new Date(cell.date));setView('day');}}>+{evs.length-3} more</div>}
             </div>
           );
         })}
@@ -3210,7 +3217,7 @@ function App() {
   const [undoToast, setUndoToast]= useState(null); // {message, onUndo}
   const [newWeek, setNewWeek]= useState(false);
   const [sidebarOpen, setSidebarOpen]= useState(false);
-  const [showIncomeModal, setShowIncomeModal] = useState(false);
+
   // Shutdown / personal mode
   const [appMode, setAppMode] = useState(() => {
     // Restore personal mode if user was in it when they last closed the app (same day)
@@ -3294,7 +3301,7 @@ function App() {
       setNewWeek(true);
       localStorage.setItem('hq_last_week', thisWeek);
     }
-    const [events, cals] = await Promise.all([getCalendarEvents(4), getAllCalendars()]);
+    const [events, cals] = await Promise.all([getCalendarEvents(4, 4), getAllCalendars()]);
     setCalEvents(events);
     setCalendarList(cals);
     setLoading(false);
@@ -3320,7 +3327,7 @@ function App() {
     if (block&&slot&&!demoMode) {
       try {
         await createCalendarEvent(name,slot.startISO,slot.endISO,TRACK_COLORS_HEX[track],formData.calendarId||'primary');
-        const refreshed=await getCalendarEvents(4);
+        const refreshed=await getCalendarEvents(4,4);
         setCalEvents(refreshed);
         showToast(`✓ "${name}" added + time blocked ${slot.label}`);
       } catch(e) { showToast(`✓ "${name}" added — calendar block failed`); }
@@ -3335,7 +3342,7 @@ function App() {
           eventId: ev.id,
           resource: { summary: ev.summary, start: ev.start, end: ev.end },
         });
-        const refreshed = await getCalendarEvents(4);
+        const refreshed = await getCalendarEvents(4,4);
         setCalEvents(refreshed);
         showToast(`✓ "${ev.summary}" updated`);
       } catch(e) { showToast('Failed to update event'); }
@@ -3350,7 +3357,7 @@ function App() {
     if (!demoMode) {
       try {
         await gapi.client.calendar.events.delete({ calendarId: ev._calendarId || 'primary', eventId: ev.id });
-        const refreshed = await getCalendarEvents(4);
+        const refreshed = await getCalendarEvents(4,4);
         setCalEvents(refreshed);
         showToast(`✕ "${ev.summary}" deleted`);
       } catch(e) { showToast('Failed to delete event'); }
@@ -3365,7 +3372,7 @@ function App() {
     if (!demoMode) {
       try {
         await createCalendarEvent(ev.title, ev.startISO, ev.endISO, ev.color||'#888', targetCalId);
-        const refreshed=await getCalendarEvents(4);
+        const refreshed=await getCalendarEvents(4,4);
         setCalEvents(refreshed);
         const calName = calendarList.find(c=>c.id===targetCalId)?.summary || targetCalId;
         showToast(`✓ "${ev.title}" added to ${calName}`);
@@ -3526,7 +3533,7 @@ function App() {
     setItems(prev => ({ ...prev, [track]: [...prev[track], ...newItems] }));
 
     if (blockedCount > 0 && !demoMode) {
-      const refreshed = await getCalendarEvents(4);
+      const refreshed = await getCalendarEvents(4,4);
       setCalEvents(refreshed);
       showToast(`✓ ${tasks.length} tasks added · ${blockedCount} time blocks created`);
     } else {
@@ -3677,21 +3684,7 @@ function App() {
       {toast&&<Toast message={toast} onClose={()=>setToast(null)}/>}
       {undoToast&&<div style={{position:'fixed',bottom:'80px',right:'24px',zIndex:'2001'}}><UndoToast message={undoToast.message} onUndo={undoToast.onUndo} onClose={()=>setUndoToast(null)}/></div>}
 
-      {/* Income Generator FAB — only in work mode */}
-      {appMode==='work' && (
-        <button className="income-fab" onClick={()=>setShowIncomeModal(true)} title="Find income opportunities">
-          <span className="income-fab-dot"/>
-          💰 Income Ideas
-        </button>
-      )}
-      {showIncomeModal && (
-        <IncomeGeneratorModal
-          items={items}
-          goals={goals}
-          calEvents={calEvents}
-          onClose={()=>setShowIncomeModal(false)}
-        />
-      )}
+
     </div>
   );
 }
