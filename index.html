@@ -449,17 +449,7 @@ const TERMINAL = {
   freelance:'Completed', content:'Published', 'personal-track':'Done',
 };
 
-// Day schedule rules — all times respect 4pm hard cutoff (nothing after 4pm)
-const DAY_SCHEDULE = {
-  Monday:    [{ track:'records',    label:'Real Fun Records',    start:9,  end:16 },
-              { track:'publishing', label:'Real Fun Publishing', start:9,  end:16 }],
-  Tuesday:   [{ track:'records',    label:'Real Fun Records',    start:9,  end:15.5 },
-              { track:'publishing', label:'Real Fun Publishing', start:9,  end:15.5 },
-              { track:'songstage',  label:'Songstage',           start:16, end:17 }],
-  Wednesday: [{ track:'freelance',  label:'Freelance',           start:9,  end:16 }],
-  Thursday:  [{ track:'freelance',  label:'Freelance',           start:9,  end:16 }],
-  Friday:    [{ track:'songstage',  label:'Songstage',           start:9,  end:16 }],
-};
+// No day-schedule — all tracks are available every day. Slots are any open window 9am-4pm.
 
 const TRACK_COLORS_HEX = {
   records:'#ff6b35', publishing:'#e8ff47', songstage:'#47c9ff',
@@ -666,85 +656,77 @@ function getFirstDayOfMonth(year, month) {
   return new Date(year, month, 1).getDay();
 }
 
-// Get available 45min–1hr slots for a track based on day rules and actual calendar gaps
-// Logic: find the track's scheduled days → scan for 45-min free windows → check real cal conflicts
-// Returns slots this week first, then next week if none available
+// Get available 45min–1hr slots based on actual calendar gaps any business day 9am-4pm
 function getSmartSlots(track, calEvents) {
   const slots = [];
   const today = new Date();
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const SLOT_DURATION = 60; // minutes (prefer 1hr)
   const HARD_CUTOFF = 16; // 4pm
+  const WORK_START = 9;
 
-  // Scan next 14 days
+  // Scan next 14 days (business days only)
   for (let i = 0; i < 14; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
-    const dayName = dayNames[d.getDay()];
-    const schedule = DAY_SCHEDULE[dayName] || [];
-    const trackSlots = schedule.filter(s => s.track === track);
-    if (trackSlots.length === 0) continue;
+    const dow = d.getDay();
+    if (dow === 0 || dow === 6) continue; // skip weekends
 
-    for (const sched of trackSlots) {
-      const schedStart = Math.max(sched.start, i === 0 ? Math.ceil(today.getHours() + today.getMinutes()/60 + 0.25) : sched.start);
-      const schedEnd = Math.min(sched.end, HARD_CUTOFF);
-      if (schedStart >= schedEnd) continue;
+    const schedStart = i === 0
+      ? Math.max(WORK_START, Math.ceil(today.getHours() + today.getMinutes()/60 + 0.25))
+      : WORK_START;
+    const schedEnd = HARD_CUTOFF;
+    if (schedStart >= schedEnd) continue;
 
-      // Build list of busy windows on this day from calendar
-      const dayBusy = calEvents
-        .filter(e => {
-          if (!e.start?.dateTime) return false;
-          return isSameDay(new Date(e.start.dateTime), d);
-        })
-        .map(e => ({
-          start: new Date(e.start.dateTime).getHours() + new Date(e.start.dateTime).getMinutes()/60,
-          end: e.end?.dateTime ? new Date(e.end.dateTime).getHours() + new Date(e.end.dateTime).getMinutes()/60 : 0,
-          name: e.summary || '',
-        }))
-        .sort((a,b) => a.start - b.start);
+    // Build list of busy windows on this day from calendar
+    const dayBusy = calEvents
+      .filter(e => {
+        if (!e.start?.dateTime) return false;
+        return isSameDay(new Date(e.start.dateTime), d);
+      })
+      .map(e => ({
+        start: new Date(e.start.dateTime).getHours() + new Date(e.start.dateTime).getMinutes()/60,
+        end: e.end?.dateTime ? new Date(e.end.dateTime).getHours() + new Date(e.end.dateTime).getMinutes()/60 : 0,
+      }))
+      .sort((a,b) => a.start - b.start);
 
-      // Find free windows in 30-min increments
-      const STEP = 0.5;
-      let cursor = schedStart;
-      while (cursor + SLOT_DURATION/60 <= schedEnd) {
-        const slotEnd = cursor + SLOT_DURATION/60;
-        const conflict = dayBusy.find(b => b.start < slotEnd && b.end > cursor);
-        if (!conflict) {
-          // Format times nicely
-          const fmt = h => {
-            const hr = Math.floor(h);
-            const min = Math.round((h - hr) * 60);
-            const suffix = hr >= 12 ? 'pm' : 'am';
-            const displayHr = hr > 12 ? hr - 12 : hr === 0 ? 12 : hr;
-            return min === 0 ? `${displayHr}${suffix}` : `${displayHr}:${String(min).padStart(2,'0')}${suffix}`;
-          };
-          const dateLabel = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : fmtDate(d);
-          const startDt = new Date(d); startDt.setHours(Math.floor(cursor), Math.round((cursor%1)*60), 0, 0);
-          const endDt = new Date(d); endDt.setHours(Math.floor(slotEnd), Math.round((slotEnd%1)*60), 0, 0);
-          slots.push({
-            date: d,
-            dayName,
-            label: `${dateLabel} ${fmt(cursor)}–${fmt(slotEnd)}`,
-            startHour: cursor,
-            endHour: slotEnd,
-            conflict: false,
-            conflictName: '',
-            startISO: startDt.toISOString(),
-            endISO: endDt.toISOString(),
-            isNextWeek: i >= 7,
-          });
-          // Only take 2 slots per day max
-          break;
-        } else {
-          // Jump past the conflict
-          cursor = Math.ceil(conflict.end * 2) / 2;
-        }
+    // Find free windows in 30-min increments
+    const STEP = 0.5;
+    let cursor = schedStart;
+    while (cursor + SLOT_DURATION/60 <= schedEnd) {
+      const slotEnd = cursor + SLOT_DURATION/60;
+      const conflict = dayBusy.find(b => b.start < slotEnd && b.end > cursor);
+      if (!conflict) {
+        const fmt = h => {
+          const hr = Math.floor(h);
+          const min = Math.round((h - hr) * 60);
+          const suffix = hr >= 12 ? 'pm' : 'am';
+          const displayHr = hr > 12 ? hr - 12 : hr === 0 ? 12 : hr;
+          return min === 0 ? `${displayHr}${suffix}` : `${displayHr}:${String(min).padStart(2,'0')}${suffix}`;
+        };
+        const dateLabel = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : fmtDate(d);
+        const startDt = new Date(d); startDt.setHours(Math.floor(cursor), Math.round((cursor%1)*60), 0, 0);
+        const endDt = new Date(d); endDt.setHours(Math.floor(slotEnd), Math.round((slotEnd%1)*60), 0, 0);
+        slots.push({
+          date: d,
+          dayName: dayNames[d.getDay()],
+          label: `${dateLabel} ${fmt(cursor)}–${fmt(slotEnd)}`,
+          startHour: cursor,
+          endHour: slotEnd,
+          conflict: false,
+          conflictName: '',
+          startISO: startDt.toISOString(),
+          endISO: endDt.toISOString(),
+          isNextWeek: i >= 7,
+        });
+        break; // one slot per day
+      } else {
+        cursor = Math.ceil(conflict.end * 2) / 2;
       }
-
-      // Stop collecting once we have 4 slots this week (slots before day 7)
-      const thisWeekSlots = slots.filter(s => !s.isNextWeek);
-      if (thisWeekSlots.length >= 4) break;
     }
+
+    const thisWeekSlots = slots.filter(s => !s.isNextWeek);
+    if (thisWeekSlots.length >= 4) break;
   }
 
   return slots;
@@ -2090,12 +2072,10 @@ function CriticalActionsChecklist() {
 }
 
 // ── DASHBOARD PAGE ────────────────────────────────────────────────────────────
-function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWeek, onMarkDone, onEdit }) {
+function DashboardPage({ items, calEvents, newWeek, onMarkDone, onEdit }) {
   const today = new Date();
-  const isMonday = today.getDay() === 1;
   const allItems = Object.values(items).flat();
   const stale = allItems.filter(i=>i.status!==TERMINAL[i.track]&&daysSince(i.dateAdded)>7);
-  const weekGoals = Object.entries(goals).filter(([,v])=>v);
 
   // Due soon — items with due dates in the next 14 days, not yet done
   const now = new Date();
@@ -2111,7 +2091,6 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
   // Completion stats
   const totalCompleted = allItems.filter(i => (DONE_STATUSES[i.track]||[]).includes(i.status)).length;
   const activeItems = allItems.filter(i => !(DONE_STATUSES[i.track]||[]).includes(i.status)).length;
-  // This week = items added this week that are done (approximation until we have completedDate)
   const weekStart = new Date(now);
   const dayOfWeek = weekStart.getDay();
   weekStart.setDate(weekStart.getDate() - dayOfWeek + (dayOfWeek===0?-6:1));
@@ -2121,13 +2100,6 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
     i.dateAdded && new Date(i.dateAdded) >= weekStart
   ).length;
 
-  const thisWeekEvents = calEvents.filter(e=>{
-    const start = e.start?.dateTime?new Date(e.start.dateTime):null;
-    if (!start) return false;
-    const now=new Date(), end=new Date(); end.setDate(now.getDate()+7);
-    return start>=now&&start<=end;
-  }).slice(0,6);
-
   return (
     <div className="page">
       <div style={{marginBottom:'28px'}}>
@@ -2135,21 +2107,9 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
         <div style={{fontSize:'11px',color:'var(--text2)'}}>{getWeekLabel()} · {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
       </div>
 
-      {dueSoon.length>0&&<DueSoonSection items={dueSoon} now={now} onMarkDone={onMarkDone} onEdit={onEdit}/>}
-
       <CriticalActionsChecklist/>
 
-      {(newWeek||(isMonday&&weekGoals.length===0))&&(
-        <div style={{background:'rgba(232,255,71,0.06)',border:'1px solid rgba(232,255,71,0.3)',borderLeft:'3px solid var(--accent)',padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px'}}>
-          <div>
-            <div style={{fontFamily:'Syne,sans-serif',fontSize:'15px',fontWeight:'700',color:'var(--accent)',marginBottom:'3px'}}>
-              {isMonday?'New week — time to check in':'No goals set for this week yet'}
-            </div>
-            <div style={{fontSize:'11px',color:'var(--text2)'}}>Set your goals, review stale items, and block your time.</div>
-          </div>
-          <button className="add-btn" onClick={onCheckIn}>Start Check-In</button>
-        </div>
-      )}
+      {dueSoon.length>0&&<DueSoonSection items={dueSoon} now={now} onMarkDone={onMarkDone} onEdit={onEdit}/>}
 
       <div className="dashboard-grid">
         {Object.entries(TRACKS).map(([key,t])=>{
@@ -2158,21 +2118,15 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
           const active=trackItems.filter(i=>!doneStats.includes(i.status)).length;
           const done=trackItems.filter(i=>doneStats.includes(i.status)).length;
           return (
-            <div key={key} className={`stat-card ${key}`}>
+            <div key={key} className={`stat-card ${key}`}
+              style={{cursor:'pointer'}}
+              onClick={()=>window.__hqSetPage&&window.__hqSetPage(key)}>
               <div className="stat-label">{t.label}</div>
               <div className="stat-number" style={{color:t.color}}>{active}</div>
               <div className="stat-sub">active · <span style={{color:'var(--success)'}}>{done} done</span></div>
             </div>
           );
         })}
-        <div className="stat-card hours">
-          <div className="stat-label">Weekly Targets</div>
-          <div style={{fontSize:'12px',lineHeight:'2'}}>
-            <span style={{color:'var(--records)'}}>Real Fun: 10–15h</span><br/>
-            <span style={{color:'var(--songstage)'}}>Songstage: 15–20h</span><br/>
-            <span style={{color:'var(--freelance)'}}>Freelance: ~10h</span>
-          </div>
-        </div>
       </div>
 
       {/* Completion stats bar */}
@@ -2192,15 +2146,12 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
           <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',color:'var(--text2)'}}>{activeItems}</div>
         </div>
         <div style={{flex:1,minWidth:'120px'}}>
-          <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'6px'}}>
-            Overall Progress
-          </div>
+          <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'6px'}}>Overall Progress</div>
           <div style={{height:'4px',background:'var(--border)',borderRadius:'2px',overflow:'hidden'}}>
             <div style={{
               height:'100%',
               width:`${totalCompleted+activeItems>0?Math.round(totalCompleted/(totalCompleted+activeItems)*100):0}%`,
-              background:'var(--success)',
-              transition:'width 0.5s ease',
+              background:'var(--success)',transition:'width 0.5s ease',
             }}/>
           </div>
           <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'4px'}}>
@@ -2220,36 +2171,6 @@ function DashboardPage({ items, goals, calEvents, newWeek, onCheckIn, onAddToWee
                 <span className="tag" style={{marginLeft:'6px'}}>{item.status}</span>
                 <span className="stale-days">{daysSince(item.dateAdded)}d</span>
               </div>
-              <button className="btn-sm" onClick={()=>onAddToWeek(item)}>+ This week</button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {weekGoals.length>0&&(
-        <div style={{marginBottom:'24px'}}>
-          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>This Week's Goals</div>
-          {weekGoals.map(([track,goal])=>(
-            <div key={track} className="goal-card">
-              <div className="goal-track-name" style={{color:TRACKS[track].color}}>{TRACKS[track].label}</div>
-              <div className="goal-text">{goal}</div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {thisWeekEvents.length>0&&(
-        <div>
-          <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--text3)',marginBottom:'12px'}}>This Week's Calendar</div>
-          {thisWeekEvents.map((e,i)=>(
-            <div key={i} style={{display:'flex',alignItems:'center',gap:'16px',padding:'10px 0',borderBottom:'1px solid var(--border)',fontSize:'12px'}}>
-              <div style={{color:'var(--text3)',fontSize:'10px',minWidth:'140px'}}>
-                {e.start?.dateTime
-                  ? `${fmtDate(new Date(e.start.dateTime))} ${fmtTime(new Date(e.start.dateTime))}`
-                  : 'All day'}
-              </div>
-              <div style={{flex:1}}>{e.summary}</div>
-              {e.end?.dateTime&&<div style={{color:'var(--text3)',fontSize:'10px'}}>→ {fmtTime(new Date(e.end.dateTime))}</div>}
             </div>
           ))}
         </div>
@@ -2874,49 +2795,49 @@ function PersonalModePage({ onExitPersonal }) {
 }
 
 // ── TODAY PAGE ────────────────────────────────────────────────────────────────
-function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin, onEndWorkday }) {
+// ── TODAY PIN HELPERS ─────────────────────────────────────────────────────────
+function loadTodayPins() {
+  try {
+    const saved = localStorage.getItem('hq_pins_' + todayKey());
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  } catch { return new Set(); }
+}
+function saveTodayPins(pins) {
+  try { localStorage.setItem('hq_pins_' + todayKey(), JSON.stringify([...pins])); } catch {}
+}
+function loadTodayDone() {
+  try {
+    const saved = localStorage.getItem('hq_today_done_' + todayKey());
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+}
+function saveTodayDoneState(state) {
+  try { localStorage.setItem('hq_today_done_' + todayKey(), JSON.stringify(state)); } catch {}
+}
+
+// ── TODAY PAGE ────────────────────────────────────────────────────────────────
+function TodayPage({ items, calEvents, onMarkDone, onEndWorkday }) {
   const now = new Date();
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const dayName = dayNames[now.getDay()];
-  const daySchedule = DAY_SCHEDULE[dayName] || [];
 
-  // Today's track theme
-  const todayTracks = [...new Set(daySchedule.map(s => s.track))];
-  const primaryTrack = todayTracks[0] || null;
+  const [todayDone, setTodayDone] = React.useState(loadTodayDone);
+  const [pins, setPins] = React.useState(loadTodayPins);
+  const [showAllItems, setShowAllItems] = React.useState(false);
 
-  // Day theme label and color
-  const DAY_THEMES = {
-    Monday:    { label:'Real Fun Day', tracks:['records','publishing'], color:'var(--records)' },
-    Tuesday:   { label:'Real Fun + Songstage', tracks:['records','publishing','songstage'], color:'var(--songstage)' },
-    Wednesday: { label:'Freelance Day', tracks:['freelance'], color:'var(--freelance)' },
-    Thursday:  { label:'Freelance Day', tracks:['freelance'], color:'var(--freelance)' },
-    Friday:    { label:'Songstage Day', tracks:['songstage'], color:'var(--songstage)' },
-    Saturday:  { label:'Off', tracks:[], color:'var(--text3)' },
-    Sunday:    { label:'Off', tracks:[], color:'var(--text3)' },
-  };
-  const theme = DAY_THEMES[dayName] || { label:'Open', tracks:[], color:'var(--accent)' };
-
-  // Checked-off state (local only — resets daily, just UI)
-  const [todayDone, setTodayDone] = React.useState({});
-
-  function toggleCheck(id, item) {
-    if (todayDone[id]) return; // already done
-    setTodayDone(c => ({...c, [id]: true}));
+  function toggleDone(id, item) {
+    if (todayDone[id]) return;
+    const next = {...todayDone, [id]: true};
+    setTodayDone(next);
+    saveTodayDoneState(next);
     if (item) onMarkDone(item.track, item);
   }
 
-  // Build today's priorities: items from today's tracks, filtered by overdue/due-soon/stale
-  const allItems = Object.values(items).flat();
-
-  // Score items: overdue > due today/tomorrow > stale > in-progress
-  function scoreItem(item) {
-    if (!item.dueDate) return 0;
-    const due = new Date(item.dueDate + 'T12:00:00');
-    const diff = Math.ceil((due - now) / 86400000);
-    if (diff < 0) return 100 + Math.abs(diff); // overdue — highest priority
-    if (diff <= 2) return 80;
-    if (diff <= 7) return 50;
-    return 10;
+  function togglePin(id) {
+    const next = new Set(pins);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setPins(next);
+    saveTodayPins(next);
   }
 
   function isDone(item) {
@@ -2924,251 +2845,238 @@ function TodayPage({ items, goals, calEvents, onMarkDone, onEdit, onGoToCheckin,
     return doneStatuses.includes(item.status) || item.status === 'Done' || item.status === 'Completed';
   }
 
-  // Today's track-specific items
-  const todayTrackItems = allItems.filter(i =>
-    theme.tracks.includes(i.track) && !isDone(i)
-  ).sort((a,b) => scoreItem(b) - scoreItem(a));
+  // Score items for auto-rank: overdue > due very soon > due soon > pinned > revenue > in-progress
+  function scoreItem(item) {
+    const pid = `${item.track}::${item.name}`;
+    let score = 0;
+    if (pins.has(pid)) score += 200; // pinned floats to top
+    if (item.dueDate) {
+      const due = new Date(item.dueDate + 'T12:00:00');
+      const diff = Math.ceil((due - now) / 86400000);
+      if (diff < 0) score += 150 + Math.abs(diff); // overdue
+      else if (diff === 0) score += 120;
+      else if (diff <= 2) score += 90;
+      else if (diff <= 7) score += 60;
+      else if (diff <= 14) score += 30;
+    }
+    if (item.track === 'freelance' && ['Booked','In Progress'].includes(item.status)) score += 40;
+    if (item.status === 'In Progress') score += 20;
+    return score;
+  }
 
-  // Top 3 work priorities from today's tracks
-  const topPriorities = todayTrackItems.slice(0, 3);
+  const allItems = Object.values(items).flat();
+  const activeItems = allItems
+    .filter(i => !isDone(i) && i.track !== 'personal-track')
+    .sort((a, b) => scoreItem(b) - scoreItem(a));
 
-  // Revenue-driving items (freelance invoiced/booked, records items with dueDate soon)
-  const revItems = allItems.filter(i =>
-    !isDone(i) &&
-    (i.track === 'freelance' && ['Booked','In Progress'].includes(i.status))
-  ).slice(0, 2);
+  const priorityId = (item) => `${item.track}::${item.name}`;
 
-  // One content item if it's not a content-theme day
-  const contentItem = !theme.tracks.includes('content')
-    ? allItems.filter(i => i.track === 'content' && !isDone(i) && ['In Progress','Planned'].includes(i.status))[0]
-    : null;
+  // Top 7 to show by default; rest available via "show more"
+  const displayItems = showAllItems ? activeItems : activeItems.slice(0, 7);
 
-  // Overload check: too many calendar events + too many priorities
+  // Calendar events today
   const todayCalEvents = calEvents.filter(e => {
     if (!e.start?.dateTime) return false;
     return isSameDay(new Date(e.start.dateTime), now);
-  });
-  const isOverloaded = todayCalEvents.length >= 4 || topPriorities.length > 5;
+  }).sort((a,b) => new Date(a.start.dateTime) - new Date(b.start.dateTime));
 
-  // What to ignore today: items NOT from today's tracks that are trying to creep in
-  const ignoreItems = allItems.filter(i =>
-    !isDone(i) &&
-    !theme.tracks.includes(i.track) &&
-    i.dueDate && (() => {
-      const d = new Date(i.dueDate + 'T12:00:00');
-      return d > now && Math.ceil((d - now)/86400000) <= 3;
-    })()
-  ).slice(0, 3);
-
-  // All calendar events today (past + future) — like Google Calendar
-  const upcomingToday = calEvents.filter(e => {
-    if (!e.start?.dateTime) return false;
-    const start = new Date(e.start.dateTime);
-    return isSameDay(start, now);
-  }).sort((a,b) => new Date(a.start.dateTime) - new Date(b.start.dateTime)).slice(0, 8);
-
-  // Detect calendar track from event summary
   function getEventTrackColor(event) {
     const title = (event.summary || '').toLowerCase();
-    if (title.includes('records') || title.includes('real fun') || title.includes('[hq]')) {
-      if (title.includes('publishing')) return 'var(--publishing)';
-      return 'var(--records)';
-    }
+    if (title.includes('records') || title.includes('real fun') || title.includes('[hq]')) return 'var(--records)';
+    if (title.includes('publishing')) return 'var(--publishing)';
     if (title.includes('songstage')) return 'var(--songstage)';
     if (title.includes('freelance') || title.includes('session') || title.includes('coaching')) return 'var(--freelance)';
     if (title.includes('content') || title.includes('youtube') || title.includes('substack')) return 'var(--content)';
     return event._calendarColor || 'var(--text3)';
   }
 
-  const priorityId = (track, name) => `${track}::${name}`;
+  // Next upcoming event (to show time-awareness)
+  const nextEvent = todayCalEvents.find(e => new Date(e.start.dateTime) > now);
+  const currentEvent = todayCalEvents.find(e => {
+    const s = new Date(e.start.dateTime);
+    const en = e.end?.dateTime ? new Date(e.end.dateTime) : new Date(s.getTime()+3600000);
+    return s <= now && en >= now;
+  });
+
+  const isOverloaded = todayCalEvents.length >= 5;
 
   return (
     <div className="page">
-      {/* Hero / day theme */}
+      {/* Hero */}
       <div className="today-hero">
         <div>
           <div className="today-day-label">{dayName}</div>
           <div className="today-day-sub">
-            {now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · Cutoff at 4:30 PM
+            {now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
+            {currentEvent && (
+              <span style={{marginLeft:'12px',color:'var(--accent)'}}>
+                ● {currentEvent.summary}
+              </span>
+            )}
+            {!currentEvent && nextEvent && (
+              <span style={{marginLeft:'12px',color:'var(--text3)'}}>
+                Next: {nextEvent.summary} at {fmtTime(new Date(nextEvent.start.dateTime))}
+              </span>
+            )}
           </div>
         </div>
-        <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'8px'}}>
-          <div className="today-theme-badge" style={{color:theme.color,borderColor:theme.color}}>
-            {theme.label}
-          </div>
-          {theme.tracks.length > 0 && (
-            <div style={{display:'flex',gap:'6px'}}>
-              {theme.tracks.map(t => (
-                <div key={t} style={{width:'8px',height:'8px',borderRadius:'50%',background:TRACKS[t]?.color||'var(--text3)'}}/>
-              ))}
-            </div>
-          )}
-          <button className="end-workday-btn" onClick={onEndWorkday}>End Workday →</button>
-        </div>
+        <button className="end-workday-btn" onClick={onEndWorkday}>End Workday →</button>
       </div>
 
       {isOverloaded && (
         <div className="overload-warning">
-          ⚠ This looks like a heavy day — {todayCalEvents.length} calendar events. Consider dropping or moving one priority.
+          ⚠ Heavy calendar day — {todayCalEvents.length} events. Protect your focus time.
         </div>
       )}
 
+      {/* Critical Actions — top of page, full width */}
       <CriticalActionsChecklist/>
 
+      {/* Two-column layout */}
       <div className="today-grid">
-        {/* Left: Today's priorities */}
+        {/* Left: All-track priorities */}
         <div>
           <div className="today-focus-full">
             <div className="today-section-title">
               <span>Today's Priorities</span>
-              <span style={{color:'var(--text3)',fontSize:'9px'}}>{theme.tracks.map(t=>TRACKS[t]?.label).join(' · ')}</span>
+              <span style={{color:'var(--text3)',fontSize:'9px'}}>auto-ranked · pin to float</span>
             </div>
-            {topPriorities.length === 0 && theme.tracks.length > 0 && (
+
+            {activeItems.length === 0 && (
               <div style={{fontSize:'12px',color:'var(--text3)',padding:'8px 0'}}>
-                No active items for today's tracks. Good time to check in.
+                Nothing active across any track. Clean slate!
               </div>
             )}
-            {theme.tracks.length === 0 && (
-              <div style={{fontSize:'12px',color:'var(--text3)',padding:'8px 0'}}>
-                It's the weekend. No work tracks scheduled.
-              </div>
-            )}
-            {topPriorities.map(item => {
-              const id = priorityId(item.track, item.name);
-              const isDue = item.dueDate && (() => {
+
+            {displayItems.map(item => {
+              const id = priorityId(item);
+              const done = todayDone[id];
+              const pinned = pins.has(id);
+              const dueInfo = item.dueDate ? (() => {
                 const d = new Date(item.dueDate+'T12:00:00');
                 const diff = Math.ceil((d-now)/86400000);
                 return { overdue: diff < 0, soon: diff <= 2, diff };
-              })();
-              const done = todayDone[id];
+              })() : null;
+
               return (
-                <div key={id} className="priority-item" style={{opacity: done ? 0.45 : 1, transition:'opacity 0.3s'}}>
+                <div key={id} className="priority-item"
+                  style={{opacity: done ? 0.38 : 1, transition:'opacity 0.3s',
+                    background: pinned && !done ? 'rgba(232,255,71,0.03)' : undefined,
+                    borderLeft: pinned && !done ? '2px solid var(--accent)' : '2px solid transparent',
+                    paddingLeft: pinned && !done ? '8px' : undefined,
+                  }}>
+                  {/* Done check */}
                   <div
                     className={`priority-check${done?' done':''}`}
-                    onClick={()=>toggleCheck(id, item)}
+                    onClick={()=>toggleDone(id, item)}
                   >{done?'✓':''}</div>
+                  {/* Track dot */}
                   <div className="priority-track-dot" style={{background:TRACKS[item.track]?.color}}/>
+                  {/* Content */}
                   <div style={{flex:1}}>
                     <div className={`priority-label${done?' done':''}`}>{item.name}</div>
                     <div className="priority-meta">
-                      {TRACKS[item.track]?.label}
-                      {item.status && ` · ${item.status}`}
-                      {isDue && isDue.overdue && <span style={{color:'#ff4444',marginLeft:'6px'}}>⚠ Overdue</span>}
-                      {isDue && !isDue.overdue && isDue.soon && <span style={{color:'var(--warning)',marginLeft:'6px'}}>⏰ Due soon</span>}
+                      <span style={{color:TRACKS[item.track]?.color}}>{TRACKS[item.track]?.label}</span>
+                      {item.status && <span style={{color:'var(--text3)'}}> · {item.status}</span>}
+                      {dueInfo?.overdue && <span style={{color:'#ff4444',marginLeft:'6px'}}>⚠ Overdue</span>}
+                      {dueInfo && !dueInfo.overdue && dueInfo.soon && <span style={{color:'var(--warning)',marginLeft:'6px'}}>⏰ Due soon</span>}
                     </div>
                   </div>
+                  {/* Pin button */}
+                  {!done && (
+                    <button
+                      onClick={()=>togglePin(id)}
+                      title={pinned ? 'Unpin' : 'Pin to top'}
+                      style={{
+                        background:'none',border:'none',cursor:'pointer',
+                        fontSize:'12px',padding:'2px 4px',
+                        color: pinned ? 'var(--accent)' : 'var(--text3)',
+                        opacity: pinned ? 1 : 0.4,
+                        transition:'all 0.15s',
+                        flexShrink:0,
+                      }}
+                      onMouseEnter={e=>e.currentTarget.style.opacity='1'}
+                      onMouseLeave={e=>e.currentTarget.style.opacity=pinned?'1':'0.4'}
+                    >⊕</button>
+                  )}
                 </div>
               );
             })}
 
-            {/* Revenue item */}
-            {revItems.length > 0 && (
-              <>
-                <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--success)',margin:'16px 0 10px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>Revenue Priority</div>
-                {revItems.map(item => {
-                  const id = priorityId(item.track, item.name)+'_rev';
-                  const done = todayDone[id];
-                  return (
-                    <div key={id} className="priority-item" style={{opacity:done?0.45:1,transition:'opacity 0.3s'}}>
-                      <div className={`priority-check${done?' done':''}`} onClick={()=>toggleCheck(id, item)}>{done?'✓':''}</div>
-                      <div className="priority-track-dot" style={{background:'var(--success)'}}/>
-                      <div style={{flex:1}}>
-                        <div className={`priority-label${done?' done':''}`}>{item.name}</div>
-                        <div className="priority-meta">{TRACKS[item.track]?.label} · {item.status}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </>
-            )}
-
-            {/* Content item if not a content day */}
-            {contentItem && (
-              <>
-                <div style={{fontSize:'9px',letterSpacing:'3px',textTransform:'uppercase',color:'var(--content)',margin:'16px 0 10px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>Content</div>
-                {(() => {
-                  const id = priorityId('content', contentItem.name)+'_c';
-                  const done = todayDone[id];
-                  return (
-                    <div className="priority-item" style={{opacity:done?0.45:1,transition:'opacity 0.3s'}}>
-                      <div className={`priority-check${done?' done':''}`} onClick={()=>toggleCheck(id, contentItem)}>{done?'✓':''}</div>
-                      <div className="priority-track-dot" style={{background:'var(--content)'}}/>
-                      <div style={{flex:1}}>
-                        <div className={`priority-label${done?' done':''}`}>{contentItem.name}</div>
-                        <div className="priority-meta">Content · {contentItem.status}</div>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </>
+            {activeItems.length > 7 && (
+              <button
+                className="btn-sm"
+                style={{marginTop:'12px',width:'100%',textAlign:'center'}}
+                onClick={()=>setShowAllItems(s=>!s)}>
+                {showAllItems ? `Show less` : `+ ${activeItems.length - 7} more items`}
+              </button>
             )}
           </div>
-
-          {/* Ignore today */}
-          {ignoreItems.length > 0 && (
-            <div className="today-section" style={{marginTop:'0'}}>
-              <div className="today-section-title"><span>Leave Alone Today</span></div>
-              {ignoreItems.map((item,i) => (
-                <div key={i} className="ignore-item">
-                  <span style={{color:TRACKS[item.track]?.color,fontSize:'10px'}}>{TRACKS[item.track]?.label}</span>
-                  <span>{item.name}</span>
-                </div>
-              ))}
-              <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'10px'}}>These aren't today's tracks. They'll still be there tomorrow.</div>
-            </div>
-          )}
         </div>
 
-        {/* Right column */}
+        {/* Right: Calendar */}
         <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
-          {/* Today's calendar — all events, past + future (Google Calendar style) */}
           <div className="today-section">
-            <div className="today-section-title"><span>On Your Calendar Today</span></div>
-            {upcomingToday.length === 0
-              ? <div style={{fontSize:'12px',color:'var(--text3)'}}>Nothing scheduled yet today.</div>
-              : upcomingToday.map((e,i) => {
+            <div className="today-section-title">
+              <span>On Your Calendar Today</span>
+              {todayCalEvents.length > 0 && (
+                <span style={{fontSize:'9px',color:'var(--text3)'}}>{todayCalEvents.length} event{todayCalEvents.length!==1?'s':''}</span>
+              )}
+            </div>
+            {todayCalEvents.length === 0
+              ? <div style={{fontSize:'12px',color:'var(--text3)'}}>Nothing scheduled today.</div>
+              : todayCalEvents.map((e,i) => {
                 const eventStart = new Date(e.start.dateTime);
                 const eventEnd = e.end?.dateTime ? new Date(e.end.dateTime) : new Date(eventStart.getTime()+3600000);
                 const isPast = eventEnd < now;
                 const isNow = eventStart <= now && eventEnd >= now;
+                const dur = Math.round((eventEnd - eventStart)/60000);
                 return (
-                  <div key={i} className="cal-event-row" style={{opacity: isPast ? 0.45 : 1, transition:'opacity 0.2s'}}>
+                  <div key={i} className="cal-event-row" style={{opacity: isPast ? 0.4 : 1, transition:'opacity 0.2s'}}>
                     <div className="cal-event-track-bar" style={{background: isNow ? 'var(--accent)' : getEventTrackColor(e)}}/>
-                    <div className="cal-event-time" style={{color: isPast ? 'var(--text3)' : isNow ? 'var(--accent)' : undefined, textDecoration: isPast ? 'line-through' : undefined}}>
-                      {fmtTime(eventStart)}
-                    </div>
-                    <div className="cal-event-name" style={{color: isPast ? 'var(--text2)' : undefined}}>
-                      {e.summary}
-                      {isNow && <span style={{fontSize:'9px',color:'var(--accent)',marginLeft:'6px',letterSpacing:'1px',textTransform:'uppercase'}}>now</span>}
+                    <div style={{flex:1}}>
+                      <div className="cal-event-time" style={{
+                        color: isPast ? 'var(--text3)' : isNow ? 'var(--accent)' : undefined,
+                        textDecoration: isPast ? 'line-through' : undefined
+                      }}>
+                        {fmtTime(eventStart)}
+                        <span style={{color:'var(--text3)',marginLeft:'6px'}}>{dur}m</span>
+                        {isNow && <span style={{color:'var(--accent)',marginLeft:'6px',fontSize:'9px',letterSpacing:'1px',textTransform:'uppercase'}}>now</span>}
+                      </div>
+                      <div className="cal-event-name" style={{color: isPast ? 'var(--text2)' : undefined}}>
+                        {e.summary}
+                      </div>
                     </div>
                   </div>
                 );
               })}
-            {todayCalEvents.length === 0 && upcomingToday.length === 0 && (
-              <div style={{fontSize:'10px',color:'var(--text3)',marginTop:'8px'}}>Google Calendar connected? Events will show here.</div>
-            )}
           </div>
 
-          {/* Weekly goals for today's tracks */}
-          {theme.tracks.some(t => goals[t]) && (
-            <div className="today-section">
-              <div className="today-section-title"><span>This Week's Goal</span></div>
-              {theme.tracks.filter(t => goals[t]).map(t => (
-                <div key={t} style={{marginBottom:'10px'}}>
-                  <div style={{fontSize:'10px',color:TRACKS[t]?.color,marginBottom:'4px',letterSpacing:'1px',textTransform:'uppercase'}}>{TRACKS[t]?.label}</div>
-                  <div style={{fontSize:'12px',color:'var(--text2)',lineHeight:'1.5'}}>{goals[t]}</div>
-                </div>
-              ))}
+          {/* Quick-jump to tracks */}
+          <div className="today-section">
+            <div className="today-section-title"><span>Jump to Track</span></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}}>
+              {Object.entries(TRACKS).filter(([k])=>k!=='personal-track').map(([key,t])=>{
+                const active = (items[key]||[]).filter(i=>!(DONE_STATUSES[key]||[]).includes(i.status)).length;
+                return (
+                  <div key={key} style={{
+                    display:'flex',alignItems:'center',gap:'8px',
+                    padding:'8px 10px',background:'var(--surface2)',
+                    border:'1px solid var(--border)',cursor:'pointer',
+                    fontSize:'11px',color:'var(--text2)',
+                    transition:'border-color 0.15s',
+                  }}
+                  onClick={()=>window.__hqSetPage&&window.__hqSetPage(key)}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor=t.color}
+                  onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border)'}>
+                    <div style={{width:'6px',height:'6px',borderRadius:'50%',background:t.color,flexShrink:0}}/>
+                    <span style={{flex:1}}>{t.label}</span>
+                    <span style={{fontSize:'10px',color:'var(--text3)'}}>{active}</span>
+                  </div>
+                );
+              })}
             </div>
-          )}
-
-          {/* No goals nudge */}
-          {theme.tracks.length > 0 && !theme.tracks.some(t => goals[t]) && (
-            <div style={{background:'rgba(232,255,71,0.05)',border:'1px solid rgba(232,255,71,0.2)',padding:'16px',fontSize:'12px',color:'var(--text2)'}}>
-              No weekly goals set for today's tracks.
-              <button className="btn-sm" style={{marginLeft:'10px'}} onClick={onGoToCheckin}>Set Goals</button>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
@@ -3313,6 +3221,7 @@ function App() {
   const [authed, setAuthed]= useState(false);
   const [demoMode, setDemoMode]= useState(false);
   const [page, setPage]= useState('today');
+  useEffect(()=>{ window.__hqSetPage = setPage; }, [setPage]);
   const [items, setItems]= useState({records:[],publishing:[],songstage:[],freelance:[],content:[],'personal-track':[]});
   const [goals, setGoals]= useState({});
   const [calEvents, setCalEvents]= useState([]);
@@ -3695,7 +3604,7 @@ function App() {
               </div>
               <div style={{borderTop:'1px solid var(--border)',margin:'12px 0'}}/>
               <div className="nav-section-label">Work</div>
-              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Weekly Check-In']].map(([key,label])=>(
+              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar']].map(([key,label])=>(
                 <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
                   <div className={`nav-dot ${key}`}/>{label}
                 </div>
@@ -3704,7 +3613,7 @@ function App() {
           ) : (
             <>
               <div className="nav-section-label">Overview</div>
-              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar'],['checkin','Weekly Check-In']].map(([key,label])=>(
+              {[['today','Today'],['dashboard','Dashboard'],['calendar','Calendar']].map(([key,label])=>(
                 <div key={key} className={`nav-item${page===key?' active':''}`} data-track={key} onClick={()=>{setPage(key);setSidebarOpen(false);}}>
                   <div className={`nav-dot ${key}`}/>{label}
                 </div>
@@ -3745,7 +3654,6 @@ function App() {
             {page==='today'&&'Today'}
             {page==='dashboard'&&'Dashboard'}
             {page==='calendar'&&'Calendar'}
-            {page==='checkin'&&'Weekly Check-In'}
             {TRACKS[page]&&TRACKS[page].label}
             </div>
           </div>
@@ -3759,23 +3667,13 @@ function App() {
         </div>
 
         {appMode==='personal'&&page==='personal'&&<PersonalModePage onExitPersonal={handleExitPersonal}/>}
-        {page==='today'&&<TodayPage items={items} goals={goals} calEvents={calEvents}
+        {page==='today'&&<TodayPage items={items} calEvents={calEvents}
           onMarkDone={(track,item)=>handleMarkDone(track,item)}
-          onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}
-          onGoToCheckin={()=>setPage('checkin')}
           onEndWorkday={handleEndWorkday}/>}
-        {page==='dashboard'&&<DashboardPage items={items} goals={goals} calEvents={calEvents} newWeek={newWeek}
-          onCheckIn={()=>setPage('checkin')}
-          onAddToWeek={(item)=>{setPage('checkin');showToast(`Adding "${item.name}" to weekly focus`);}}
+        {page==='dashboard'&&<DashboardPage items={items} calEvents={calEvents}
           onMarkDone={(track,item)=>handleMarkDone(track,item)}
           onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}/>}
         {page==='calendar'&&<CalendarPage calEvents={calEvents} calendarList={calendarList} onAddEvent={handleAddCalEvent} onEditEvent={handleEditCalEvent} onDeleteEvent={handleDeleteCalEvent} demoMode={demoMode}/>}
-        {page==='checkin'&&<CheckInPage items={items} calEvents={calEvents} goals={goals}
-          onGoalChange={(track,val)=>setGoals(g=>({...g,[track]:val}))}
-          onGoalBlur={handleGoalBlur}
-          onSave={handleSaveGoals}
-          onTasksGenerated={handleTasksGenerated}
-          demoMode={demoMode}/>}
         {trackKeys.includes(page)&&<TrackPage track={page} items={items[page]||[]} loading={loading}
           calEvents={calEvents}
           onAdd={()=>setModal({track:page})}
