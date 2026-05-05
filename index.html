@@ -3636,19 +3636,36 @@ function InboundPage({ items, loading, onUpdate, demoMode }) {
   const [search, setSearch]   = React.useState('');
   const [sort, setSort]       = React.useState('newest');
   const [detail, setDetail]   = React.useState(null);
+  const [showActioned, setShowActioned] = React.useState(false);
 
   const FILTERS = ['All','Important','FYI','Junk','New','In Progress','Waiting','Done','Killed'];
 
+  // Items that have been acted on (junk queued, killed, done, or archived)
+  const actionedItems = items.filter(i =>
+    i.status==='Killed' || i.status==='Done' || (i.action && i.action!=='')
+  );
+  const actionedCount = actionedItems.length;
+
   const counts = React.useMemo(()=>({
-    total:     items.length,
-    important: items.filter(i=>i.priority==='Important').length,
-    fyi:       items.filter(i=>i.priority==='FYI').length,
-    junk:      items.filter(i=>i.priority==='Junk').length,
+    total:     items.filter(i=>i.status!=='Killed'&&i.status!=='Done'&&!(i.action&&i.action!=='')).length,
+    important: items.filter(i=>i.priority==='Important'&&i.status!=='Killed'&&i.status!=='Done').length,
+    fyi:       items.filter(i=>i.priority==='FYI'&&i.status!=='Killed'&&i.status!=='Done').length,
+    junk:      items.filter(i=>i.priority==='Junk'&&i.status!=='Killed'&&i.status!=='Done').length,
     active:    items.filter(i=>['New','In Progress','Waiting'].includes(i.status)).length,
   }),[items]);
 
   const filtered = React.useMemo(()=>{
     let list = [...items];
+
+    // Always hide actioned/killed/done unless showActioned is toggled on
+    if (!showActioned) {
+      list = list.filter(i =>
+        i.status !== 'Killed' &&
+        i.status !== 'Done' &&
+        !(i.action && i.action !== '')
+      );
+    }
+
     // filter
     if (filter!=='All') {
       list = list.filter(i=>i.priority===filter||i.status===filter);
@@ -3676,13 +3693,29 @@ function InboundPage({ items, loading, onUpdate, demoMode }) {
       list.sort((a,b)=>(ord[a.status]??5)-(ord[b.status]??5));
     }
     return list;
-  },[items, filter, search, sort]);
+  },[items, filter, search, sort, showActioned]);
 
   return (
     <div className="page">
-      <div style={{marginBottom:'24px'}}>
-        <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px',color:'#ff9f47'}}>Inbound</div>
-        <div style={{fontSize:'11px',color:'var(--text2)'}}>Command Center · {demoMode?'Demo data':'Live from Google Sheets'}</div>
+      <div style={{marginBottom:'24px',display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',flexWrap:'wrap'}}>
+        <div>
+          <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px',color:'#ff9f47'}}>Inbound</div>
+          <div style={{fontSize:'11px',color:'var(--text2)'}}>Command Center · {demoMode?'Demo data':'Live from Google Sheets'}</div>
+        </div>
+        {actionedCount>0&&(
+          <button
+            onClick={()=>setShowActioned(s=>!s)}
+            style={{
+              fontFamily:'DM Mono,monospace',fontSize:'10px',padding:'6px 14px',
+              border:'1px solid var(--border)',background:'transparent',
+              color: showActioned?'var(--text)':'var(--text3)',
+              cursor:'pointer',letterSpacing:'1px',marginTop:'6px',
+              borderColor: showActioned?'var(--text3)':'var(--border)',
+              transition:'all 0.15s',
+            }}>
+            {showActioned ? '↑ Hide actioned' : `Show ${actionedCount} actioned`}
+          </button>
+        )}
       </div>
 
       {/* Summary bar */}
@@ -3725,7 +3758,9 @@ function InboundPage({ items, loading, onUpdate, demoMode }) {
         <div className="inbound-empty">
           {items.length===0
             ? 'No inbound items yet. The Inbound tab in your Command Center sheet will appear here.'
-            : 'No items match this filter.'}
+            : actionedCount>0&&!showActioned&&filter==='All'&&!search
+              ? <span>All caught up — {actionedCount} item{actionedCount!==1?'s':''} actioned. <button onClick={()=>setShowActioned(true)} style={{fontFamily:'DM Mono,monospace',fontSize:'11px',background:'none',border:'none',color:'var(--text3)',cursor:'pointer',textDecoration:'underline'}}>Show them</button></span>
+              : 'No items match this filter.'}
         </div>
       ) : (
         <div className="inbound-list">
