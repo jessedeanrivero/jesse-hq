@@ -621,20 +621,22 @@ async function updateCmdRow(tab, sheetRowNumber, colUpdates) {
 
 function rowToInbound(row, index) {
   return {
-    id: index + 2,           // stable React key = sheetRowNumber
+    id: index + 2,
     sheetRowNumber: index + 2,
-    date:         row[0] || '',
-    source:       row[1] || '',
-    from:         row[2] || '',
-    what:         row[3] || '',
-    vertical:     row[4] || '',
-    status:       row[5] || 'New',
-    nextAction:   row[6] || '',
-    priority:     row[7] || '',
-    why:          row[8] || '',
-    threadId:     row[9] || '',
-    messageId:    row[10] || '',
+    date:           row[0]  || '',
+    source:         row[1]  || '',
+    from:           row[2]  || '',
+    what:           row[3]  || '',
+    vertical:       row[4]  || '',
+    status:         row[5]  || 'New',
+    nextAction:     row[6]  || '',
+    priority:       row[7]  || '',
+    why:            row[8]  || '',
+    threadId:       row[9]  || '',
+    messageId:      row[10] || '',
     suggestedReply: row[11] || '',
+    action:         row[12] || '',
+    actionLog:      row[13] || '',
   };
 }
 
@@ -3385,6 +3387,13 @@ function InboundDetailModal({ item, onClose, onUpdate }) {
     onClose();
   }
 
+  async function saveAndQueue(actionValue) {
+    setSaving(true);
+    await onUpdate(item, { ...form, action: actionValue });
+    setSaving(false);
+    onClose();
+  }
+
   return (
     <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="inbound-modal">
@@ -3479,8 +3488,33 @@ function InboundDetailModal({ item, onClose, onUpdate }) {
             </div>
           )}
         </div>
-        <div className="modal-footer">
+        <div className="modal-footer" style={{flexWrap:'wrap',gap:'8px'}}>
           <button className="btn-secondary" onClick={onClose}>Cancel</button>
+          <div style={{flex:1}}/>
+          {/* Gmail queue actions */}
+          {item.suggestedReply&&(
+            <button className="btn-secondary"
+              style={{borderColor:'rgba(71,201,255,0.4)',color:'var(--songstage)',fontSize:'11px'}}
+              onClick={()=>saveAndQueue('draft_reply')}
+              disabled={saving}
+              title="Saves changes + queues a Gmail draft. Apps Script creates it within 5 min.">
+              ✉ Save + Draft Reply
+            </button>
+          )}
+          <button className="btn-secondary"
+            style={{borderColor:'rgba(255,179,71,0.4)',color:'var(--warning)',fontSize:'11px'}}
+            onClick={()=>saveAndQueue('label_fyi')}
+            disabled={saving}
+            title="Saves changes + labels thread HQ/FYI in Gmail within 5 min.">
+            🏷 Save + Label FYI
+          </button>
+          <button className="btn-secondary"
+            style={{borderColor:'rgba(255,68,68,0.3)',color:'#ff6666',fontSize:'11px'}}
+            onClick={()=>saveAndQueue('archive')}
+            disabled={saving}
+            title="Saves changes + archives thread in Gmail within 5 min.">
+            🗑 Save + Archive
+          </button>
           <button className="btn-primary" onClick={save} disabled={saving}>{saving?'Saving…':'Save Changes'}</button>
         </div>
       </div>
@@ -3497,14 +3531,32 @@ function InboundCard({ item, onUpdate, onOpenDetail }) {
     setSaving('');
   }
 
+  async function queueAction(actionValue, extraUpdates) {
+    setSaving('action_'+actionValue);
+    await onUpdate(item, { action: actionValue, ...extraUpdates });
+    setSaving('');
+  }
+
+  const isQueued  = !!(item.action && item.action !== '');
+  const hasReply  = !!item.suggestedReply;
+  const busy      = !!saving;
+
   return (
-    <div className="inbound-card" style={{borderLeft:`3px solid ${priorityColor(item.priority)||'var(--border)'}`}}>
+    <div className="inbound-card" style={{
+      borderLeft:`3px solid ${priorityColor(item.priority)||'var(--border)'}`,
+      opacity: item.status==='Killed' ? 0.5 : 1,
+    }}>
       <div className="inbound-card-top">
         <div className="inbound-card-meta">
           <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'4px',flexWrap:'wrap'}}>
             <span className="inbound-card-from">{item.from||'Unknown'}</span>
             {item.source&&<span className="inbound-source-tag">{item.source}</span>}
             {item.vertical&&<span className="inbound-source-tag" style={{color:'var(--songstage)',borderColor:'rgba(71,201,255,0.25)'}}>{item.vertical}</span>}
+            {isQueued&&(
+              <span style={{fontSize:'9px',letterSpacing:'1px',padding:'2px 7px',background:'rgba(232,255,71,0.07)',color:'var(--accent)',border:'1px solid rgba(232,255,71,0.2)'}}>
+                ⏳ {item.action} queued
+              </span>
+            )}
           </div>
           <div className="inbound-card-what">{item.what}</div>
           <div className="inbound-card-tags">
@@ -3524,9 +3576,16 @@ function InboundCard({ item, onUpdate, onOpenDetail }) {
       </div>
 
       {item.nextAction&&(
-        <div style={{fontSize:'11px',color:'var(--text2)',marginBottom:'10px',paddingLeft:'0',lineHeight:'1.4'}}>
+        <div style={{fontSize:'11px',color:'var(--text2)',marginBottom:'8px',lineHeight:'1.4'}}>
           <span style={{color:'var(--text3)',fontSize:'9px',letterSpacing:'1px',textTransform:'uppercase',marginRight:'6px'}}>→</span>
           {item.nextAction}
+        </div>
+      )}
+
+      {/* Apps Script result log */}
+      {item.actionLog&&(
+        <div style={{fontSize:'10px',color:'var(--success)',marginBottom:'8px',opacity:0.8}}>
+          ✓ {item.actionLog}
         </div>
       )}
 
@@ -3535,19 +3594,37 @@ function InboundCard({ item, onUpdate, onOpenDetail }) {
         {INBOUND_PRIORITIES.map(p=>(
           <button key={p} className={`inbound-priority-btn${item.priority===p?' '+p:''}`}
             onClick={()=>quickUpdate('priority',p)}
-            disabled={saving==='priority'+p}
-            style={{opacity:saving?0.6:1}}>
+            disabled={busy} style={{opacity:busy?0.55:1}}>
             {p}
           </button>
         ))}
         <div style={{width:'1px',height:'20px',background:'var(--border)',margin:'0 2px'}}/>
-        {/* Status quick-set */}
+        {/* Status */}
         <select className="inbound-status-select" value={item.status}
           onChange={e=>quickUpdate('status',e.target.value)}
-          style={{color:statusColor(item.status)}}>
+          disabled={busy} style={{color:statusColor(item.status)}}>
           {INBOUND_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
         </select>
         <div style={{flex:1}}/>
+        {/* Gmail actions */}
+        {hasReply&&(
+          <button
+            className="inbound-detail-btn"
+            onClick={()=>queueAction('draft_reply')}
+            disabled={busy||isQueued}
+            title="Apps Script will create a Gmail draft from the Suggested Reply within 5 min"
+            style={{borderColor:'rgba(71,201,255,0.4)',color:isQueued?'var(--text3)':'var(--songstage)'}}>
+            {saving==='action_draft_reply'?'…':'✉ Draft'}
+          </button>
+        )}
+        <button
+          className="inbound-detail-btn"
+          onClick={()=>queueAction('archive',{priority:'Junk',status:'Killed'})}
+          disabled={busy||isQueued}
+          title="Marks Junk + archives in Gmail. Apps Script runs within 5 min."
+          style={{borderColor:'rgba(255,68,68,0.3)',color:isQueued?'var(--text3)':'#ff6666'}}>
+          {saving==='action_archive'?'…':'🗑 Junk'}
+        </button>
         <button className="inbound-detail-btn" onClick={()=>onOpenDetail(item)}>Details →</button>
       </div>
     </div>
@@ -3786,8 +3863,9 @@ function App() {
   }
 
   async function handleInboundUpdate(item, updates) {
-    // updates: { priority?, status?, vertical?, nextAction?, why?, suggestedReply? }
-    const colMap = { priority:7, status:5, vertical:4, nextAction:6, why:8, suggestedReply:11 };
+    // updates: { priority?, status?, vertical?, nextAction?, why?, suggestedReply?, action? }
+    // action column (M=12) is special — it queues work for Apps Script
+    const colMap = { priority:7, status:5, vertical:4, nextAction:6, why:8, suggestedReply:11, action:12 };
     const colUpdates = Object.entries(updates)
       .filter(([k]) => colMap[k] !== undefined)
       .map(([k, v]) => [colMap[k], v]);
@@ -3796,6 +3874,8 @@ function App() {
       catch(e) { console.error('Inbound update failed:', e); showToast('⚠ Could not save to sheet'); return; }
     }
     setInboundItems(prev => prev.map(i => i.id === item.id ? {...i, ...updates} : i));
+    // Surface a hint that Apps Script will process this
+    if (updates.action) showToast(`↑ Queued: ${updates.action} — Apps Script will process within 5 min`);
   }
 
   async function handleAdd(track, formData) {
