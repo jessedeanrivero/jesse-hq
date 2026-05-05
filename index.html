@@ -36,12 +36,14 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .nav-item[data-track="checkin"].active{border-left-color:var(--success);}
 .nav-item[data-track="today"].active{border-left-color:var(--accent);}
 .nav-item[data-track="personal-track"].active{border-left-color:var(--personal);}
+.nav-item[data-track="inbound"].active{border-left-color:#ff9f47;}
 .nav-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .nav-dot.records{background:var(--records);} .nav-dot.publishing{background:var(--publishing);}
 .nav-dot.songstage{background:var(--songstage);} .nav-dot.freelance{background:var(--freelance);}
 .nav-dot.content{background:var(--content);} .nav-dot.dashboard{background:var(--accent);}
 .nav-dot.checkin{background:var(--success);} .nav-dot.calendar{background:var(--songstage);}
 .nav-dot.today{background:var(--accent);} .nav-dot.personal-track{background:var(--personal);}
+.nav-dot.inbound{background:#ff9f47;}
 .sidebar-bottom{padding:16px 24px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);}
 .auth-status{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
 .auth-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);}
@@ -355,6 +357,49 @@ body.personal-mode .block-check.checked { background:var(--accent); border-color
 .income-tag.high { background:rgba(255,107,53,0.1); border-color:rgba(255,107,53,0.25); color:var(--records); }
 .income-loading { display:flex; align-items:center; gap:12px; padding:28px; color:var(--text2); font-size:12px; }
 .income-error { padding:20px; color:#ff6666; font-size:12px; background:rgba(255,68,68,0.06); border:1px solid rgba(255,68,68,0.2); }
+
+/* ── INBOUND PAGE ─────────────────────────────────────────────────────────── */
+--inbound:#ff9f47;
+.inbound-summary-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;}
+.inbound-stat{background:var(--surface);border:1px solid var(--border);padding:14px 18px;flex:1;min-width:100px;}
+.inbound-stat-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.inbound-stat-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1;}
+.inbound-controls{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.inbound-filter-btn{font-family:'DM Mono',monospace;font-size:10px;padding:5px 12px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s;letter-spacing:1px;}
+.inbound-filter-btn:hover,.inbound-filter-btn.active{border-color:#ff9f47;color:#ff9f47;background:rgba(255,159,71,0.07);}
+.inbound-search{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:6px 12px;outline:none;flex:1;min-width:160px;}
+.inbound-search:focus{border-color:#ff9f47;}
+.inbound-sort{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;cursor:pointer;outline:none;}
+.inbound-list{display:flex;flex-direction:column;gap:10px;}
+.inbound-card{background:var(--surface);border:1px solid var(--border);padding:16px;position:relative;transition:border-color 0.15s;}
+.inbound-card:hover{border-color:var(--text3);}
+.inbound-card-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;}
+.inbound-card-meta{flex:1;min-width:0;}
+.inbound-card-from{font-size:13px;font-weight:500;margin-bottom:3px;}
+.inbound-card-what{font-size:12px;color:var(--text2);line-height:1.4;margin-bottom:6px;}
+.inbound-card-tags{display:flex;gap:5px;flex-wrap:wrap;}
+.inbound-card-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.inbound-priority-btn{font-family:'DM Mono',monospace;font-size:9px;padding:3px 10px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all 0.15s;letter-spacing:1px;text-transform:uppercase;}
+.inbound-priority-btn:hover{border-color:#ff9f47;color:#ff9f47;}
+.inbound-priority-btn.Important{border-color:#ff6b35;color:#ff6b35;background:rgba(255,107,53,0.08);}
+.inbound-priority-btn.FYI{border-color:#e8ff47;color:#e8ff47;background:rgba(232,255,71,0.06);}
+.inbound-priority-btn.Junk{border-color:#555;color:#555;background:transparent;}
+.inbound-status-select{font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;letter-spacing:1px;}
+.inbound-detail-btn{font-family:'DM Mono',monospace;font-size:9px;padding:3px 10px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all 0.15s;letter-spacing:1px;}
+.inbound-detail-btn:hover{border-color:var(--text2);color:var(--text);}
+.inbound-source-tag{font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);}
+.inbound-date{font-size:10px;color:var(--text3);flex-shrink:0;}
+.inbound-empty{text-align:center;padding:60px 32px;color:var(--text3);font-size:12px;}
+/* Inbound detail modal */
+.inbound-modal{background:var(--surface);border:1px solid var(--border);width:640px;max-width:96vw;max-height:92vh;overflow-y:auto;}
+.inbound-modal-top{display:flex;align-items:flex-start;gap:'12px';}
+.inbound-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.inbound-copy-btn{font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all 0.15s;letter-spacing:1px;}
+.inbound-copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+/* Dashboard inbound card */
+.inbound-dash-card{background:var(--surface);border:1px solid var(--border);border-top:2px solid #ff9f47;padding:18px;margin-bottom:24px;cursor:pointer;}
+.inbound-dash-card:hover{border-color:var(--text3);}
+
 </style>
 </head>
 <body>
@@ -368,6 +413,7 @@ const { useState, useEffect, useRef } = React;
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CLIENT_ID    = '84777476766-nmbmb2oj9c497qqucmlcoemgvl7j74mb.apps.googleusercontent.com';
 const SHEET_ID     = '1awdiuld1ZjawYHo_vys0kHPp0KzY4oeT1J_TsQcB5KE';
+const CMD_SHEET_ID = '1dKDj8JD_r2utm0e2PVxgrLqnXg7FUooxpaVKa4aXpCw';
 const SCOPES       = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/calendar';
 // AI calls route through /api/breakdown serverless function
 
@@ -505,42 +551,91 @@ async function appendRow(tab, values) {
   });
 }
 
-async function updateCell(tab, rowIndex, colIndex, value) {
+// sheetRowNumber is the actual 1-based row number in the sheet (header is row 1, data starts at row 2)
+async function updateCell(tab, sheetRowNumber, colIndex, value) {
   const col = String.fromCharCode(65 + colIndex);
   await gapi.client.sheets.spreadsheets.values.update({
-    spreadsheetId:SHEET_ID, range:`${tab}!${col}${rowIndex+2}`,
+    spreadsheetId:SHEET_ID, range:`${tab}!${col}${sheetRowNumber}`,
     valueInputOption:'USER_ENTERED', resource:{ values:[[value]] },
   });
 }
 
-async function deleteRowFromSheet(tab, rowIndex) {
+async function deleteRowFromSheet(tab, sheetRowNumber) {
   const meta = await gapi.client.sheets.spreadsheets.get({ spreadsheetId:SHEET_ID });
   const sheet = meta.result.sheets.find(s => s.properties.title === tab);
   if (!sheet) return;
   await gapi.client.sheets.spreadsheets.batchUpdate({
     spreadsheetId:SHEET_ID,
-    resource:{ requests:[{ deleteDimension:{ range:{ sheetId:sheet.properties.sheetId, dimension:'ROWS', startIndex:rowIndex+1, endIndex:rowIndex+2 }}}]},
+    resource:{ requests:[{ deleteDimension:{ range:{ sheetId:sheet.properties.sheetId, dimension:'ROWS', startIndex:sheetRowNumber-1, endIndex:sheetRowNumber }}}]},
   });
 }
 
-async function readSheetRow(tab, rowIndex) {
+async function readSheetRow(tab, sheetRowNumber) {
   try {
     const r = await gapi.client.sheets.spreadsheets.values.get({
-      spreadsheetId:SHEET_ID, range:`${tab}!A${rowIndex+2}:Z${rowIndex+2}`
+      spreadsheetId:SHEET_ID, range:`${tab}!A${sheetRowNumber}:Z${sheetRowNumber}`
     });
     return (r.result.values || [[]])[0] || [];
   } catch(e) { return []; }
 }
 
+// Reload a single track from sheet — used after mutations to keep row numbers in sync
+async function reloadTrack(track) {
+  const rows = await readSheet(TRACKS[track].tab);
+  return rows.map((r, i) => rowToItem(track, r, i));
+}
+
 // Cut row from source tab and append to Done tab with metadata prepended
-async function moveRowToDone(tab, trackLabel, rowIndex) {
+async function moveRowToDone(tab, trackLabel, sheetRowNumber) {
   try {
-    const row = await readSheetRow(tab, rowIndex);
+    const row = await readSheetRow(tab, sheetRowNumber);
     const completedDate = new Date().toISOString().split('T')[0];
     const doneRow = [completedDate, trackLabel, ...row];
     await appendRow('Done', doneRow);
-    await deleteRowFromSheet(tab, rowIndex);
+    await deleteRowFromSheet(tab, sheetRowNumber);
   } catch(e) { console.error('moveRowToDone failed:', e); }
+}
+
+// ── COMMAND CENTER SHEET HELPERS ──────────────────────────────────────────────
+async function readCmdSheet(tab) {
+  try {
+    const r = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId:CMD_SHEET_ID, range:`${tab}!A2:L` });
+    return r.result.values || [];
+  } catch(e) { return []; }
+}
+
+async function updateCmdCell(tab, sheetRowNumber, colIndex, value) {
+  const col = String.fromCharCode(65 + colIndex);
+  await gapi.client.sheets.spreadsheets.values.update({
+    spreadsheetId:CMD_SHEET_ID, range:`${tab}!${col}${sheetRowNumber}`,
+    valueInputOption:'USER_ENTERED', resource:{ values:[[value]] },
+  });
+}
+
+async function updateCmdRow(tab, sheetRowNumber, colUpdates) {
+  // colUpdates: array of [colIndex, value]
+  for (const [colIndex, value] of colUpdates) {
+    await updateCmdCell(tab, sheetRowNumber, colIndex, value);
+  }
+}
+
+function rowToInbound(row, index) {
+  return {
+    id: index + 2,           // stable React key = sheetRowNumber
+    sheetRowNumber: index + 2,
+    date:         row[0] || '',
+    source:       row[1] || '',
+    from:         row[2] || '',
+    what:         row[3] || '',
+    vertical:     row[4] || '',
+    status:       row[5] || 'New',
+    nextAction:   row[6] || '',
+    priority:     row[7] || '',
+    why:          row[8] || '',
+    threadId:     row[9] || '',
+    messageId:    row[10] || '',
+    suggestedReply: row[11] || '',
+  };
 }
 
 async function getAllCalendars() {
@@ -733,39 +828,33 @@ function getSmartSlots(track, calEvents) {
 }
 
 function rowToItem(track, row, index) {
-  // Each track has slightly different column layout
+  // index is 0-based array position; sheetRowNumber is the actual 1-based sheet row (accounting for header)
+  const sheetRowNumber = index + 2;
   if (track === 'songstage') {
-    // Feature/Task | Type | Status | Assigned To | Due Date | Sprint | Notes | Date Added | Priority | Link
     return {
-      id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'',
-      extra:row[3]||'',   // Assigned To
-      dueDate:row[4]||'',
-      notes:row[6]||'',   // Notes (col 6, Sprint is col 5)
-      owner:row[3]||'',   // Assigned To doubles as owner for Songstage
-      sprint:row[5]||'',
-      dateAdded:row[7]||'',
-      priority:row[8]||'',
-      track,
+      id: sheetRowNumber, sheetRowNumber,
+      name:row[0]||'', type:row[1]||'', status:row[2]||'',
+      extra:row[3]||'', dueDate:row[4]||'',
+      notes:row[6]||'', owner:row[3]||'',
+      sprint:row[5]||'', dateAdded:row[7]||'',
+      priority:row[8]||'', track,
     };
   }
   if (track === 'content') {
-    // Title | Type | Status | Platform | Publish Date | Notes | Date Added
     return {
-      id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'',
-      extra:row[3]||'',   // Platform
-      dueDate:row[4]||'', // Publish Date
-      notes:row[5]||'',
-      owner:'Jesse',      // Content is always Jesse
-      dateAdded:row[6]||'',
-      track,
+      id: sheetRowNumber, sheetRowNumber,
+      name:row[0]||'', type:row[1]||'', status:row[2]||'',
+      extra:row[3]||'', dueDate:row[4]||'',
+      notes:row[5]||'', owner:'Jesse',
+      dateAdded:row[6]||'', track,
     };
   }
-  // Records, Publishing, Freelance, Personal: Name | Type | Status | Extra | Due Date | Notes | Owner | Date Added
   return {
-    id:index, name:row[0]||'', type:row[1]||'', status:row[2]||'',
-    extra:row[3]||'', dueDate:row[4]||'', notes:row[5]||'',
-    owner:row[6]||'', dateAdded:row[7]||'',
-    track,
+    id: sheetRowNumber, sheetRowNumber,
+    name:row[0]||'', type:row[1]||'', status:row[2]||'',
+    extra:row[3]||'', dueDate:row[4]||'',
+    notes:row[5]||'', owner:row[6]||'',
+    dateAdded:row[7]||'', track,
   };
 }
 
@@ -2072,7 +2161,7 @@ function CriticalActionsChecklist() {
 }
 
 // ── DASHBOARD PAGE ────────────────────────────────────────────────────────────
-function DashboardPage({ items, calEvents, newWeek, onMarkDone, onEdit }) {
+function DashboardPage({ items, calEvents, newWeek, onMarkDone, onEdit, inboundItems, onGoToInbound }) {
   const today = new Date();
   const allItems = Object.values(items).flat();
   const stale = allItems.filter(i=>i.status!==TERMINAL[i.track]&&daysSince(i.dateAdded)>7);
@@ -2108,6 +2197,41 @@ function DashboardPage({ items, calEvents, newWeek, onMarkDone, onEdit }) {
       </div>
 
       <CriticalActionsChecklist/>
+
+      {/* Inbound summary card */}
+      {inboundItems&&inboundItems.length>0&&(
+        <div className="inbound-dash-card" onClick={onGoToInbound}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
+            <div style={{fontSize:'10px',letterSpacing:'3px',textTransform:'uppercase',color:'#ff9f47'}}>Inbound</div>
+            <div style={{fontSize:'10px',color:'var(--text3)'}}>→ view all</div>
+          </div>
+          <div style={{display:'flex',gap:'20px',flexWrap:'wrap'}}>
+            {[
+              {label:'Important',val:inboundItems.filter(i=>i.priority==='Important').length,color:'#ff6b35'},
+              {label:'FYI',val:inboundItems.filter(i=>i.priority==='FYI').length,color:'#e8ff47'},
+              {label:'New',val:inboundItems.filter(i=>i.status==='New').length,color:'#47c9ff'},
+              {label:'Waiting',val:inboundItems.filter(i=>i.status==='Waiting').length,color:'#ffb347'},
+            ].map(({label,val,color})=>(
+              <div key={label}>
+                <div style={{fontFamily:'Syne,sans-serif',fontSize:'24px',fontWeight:'800',color,lineHeight:'1'}}>{val}</div>
+                <div style={{fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:'var(--text3)',marginTop:'2px'}}>{label}</div>
+              </div>
+            ))}
+          </div>
+          {inboundItems.filter(i=>i.priority==='Important'&&['New','In Progress'].includes(i.status)).length>0&&(
+            <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid var(--border)'}}>
+              <div style={{fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:'#ff6b35',marginBottom:'8px'}}>Action needed</div>
+              {inboundItems.filter(i=>i.priority==='Important'&&['New','In Progress'].includes(i.status)).slice(0,3).map(item=>(
+                <div key={item.id} style={{fontSize:'12px',color:'var(--text2)',padding:'4px 0',borderBottom:'1px solid var(--border)',display:'flex',gap:'8px',alignItems:'center'}}>
+                  <div style={{width:'5px',height:'5px',borderRadius:'50%',background:'#ff6b35',flexShrink:0}}/>
+                  <span style={{flex:1}}>{item.from}</span>
+                  <span style={{fontSize:'10px',color:'var(--text3)',textOverflow:'ellipsis',overflow:'hidden',whiteSpace:'nowrap',maxWidth:'180px'}}>{item.what}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {dueSoon.length>0&&<DueSoonSection items={dueSoon} now={now} onMarkDone={onMarkDone} onEdit={onEdit}/>}
 
@@ -2318,7 +2442,7 @@ function ShutdownModal({ items, onClose, onComplete, onMarkDone, demoMode }) {
         if (decision === 'later') {
           // Keep the same due date — no change needed
         } else if (decision === 'drop') {
-          try { await updateCell(TRACKS[item.track].tab, item.id, 4, ''); } catch(e) { console.error(e); }
+          try { await updateCell(TRACKS[item.track].tab, item.sheetRowNumber, 4, ''); } catch(e) { console.error(e); }
         }
       }
 
@@ -2326,17 +2450,17 @@ function ShutdownModal({ items, onClose, onComplete, onMarkDone, demoMode }) {
       // to avoid row shifting as we delete
       const doneItems = openItems
         .filter(i => taskStates[`${i.track}::${i.id}`] === 'done')
-        .sort((a, b) => b.id - a.id); // descending by row index
+        .sort((a, b) => b.sheetRowNumber - a.sheetRowNumber); // descending by sheet row
 
       for (const item of doneItems) {
         try {
           const tab = TRACKS[item.track].tab;
           const trackLabel = TRACKS[item.track].label;
-          const row = await readSheetRow(tab, item.id);
+          const row = await readSheetRow(tab, item.sheetRowNumber);
           const completedDate = new Date().toISOString().split('T')[0];
           const doneRow = [completedDate, trackLabel, ...row];
           await appendRow('Done', doneRow);
-          await deleteRowFromSheet(tab, item.id);
+          await deleteRowFromSheet(tab, item.sheetRowNumber);
         } catch(e) { console.error('Shutdown done move failed:', item.name, e); }
       }
     }
@@ -3216,6 +3340,332 @@ Visible revenue activity: ${upcomingRevenue}`;
   );
 }
 
+// ── INBOUND PAGE ──────────────────────────────────────────────────────────────
+const INBOUND_PRIORITIES = ['Important','FYI','Junk'];
+const INBOUND_STATUSES   = ['New','In Progress','Waiting','Done','Killed'];
+const INBOUND_VERTICALS  = ['Real Fun Records','Real Fun Publishing','Songstage','Freelance','Content','Personal'];
+
+function priorityColor(p) {
+  if (p==='Important') return '#ff6b35';
+  if (p==='FYI') return '#e8ff47';
+  if (p==='Junk') return '#555';
+  return 'var(--text3)';
+}
+function statusColor(s) {
+  if (s==='New') return '#47c9ff';
+  if (s==='In Progress') return '#e8ff47';
+  if (s==='Waiting') return '#ffb347';
+  if (s==='Done') return '#4dff91';
+  if (s==='Killed') return '#555';
+  return 'var(--text3)';
+}
+
+function InboundDetailModal({ item, onClose, onUpdate }) {
+  const [form, setForm] = React.useState({
+    priority:      item.priority,
+    status:        item.status,
+    vertical:      item.vertical,
+    nextAction:    item.nextAction,
+    why:           item.why,
+    suggestedReply: item.suggestedReply,
+  });
+  const [saving, setSaving] = React.useState(false);
+  const [copied, setCopied] = React.useState('');
+
+  function copy(val, key) {
+    try { navigator.clipboard.writeText(val); } catch(e) {}
+    setCopied(key);
+    setTimeout(()=>setCopied(''), 1500);
+  }
+
+  async function save() {
+    setSaving(true);
+    await onUpdate(item, form);
+    setSaving(false);
+    onClose();
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="inbound-modal">
+        <div className="modal-header" style={{borderTop:'3px solid #ff9f47'}}>
+          <div style={{flex:1,minWidth:0}}>
+            <div className="modal-title" style={{marginBottom:'4px'}}>{item.from || 'Inbound'}</div>
+            <div style={{fontSize:'11px',color:'var(--text2)',lineHeight:'1.4'}}>{item.what}</div>
+          </div>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          {/* Read-only meta */}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'18px',padding:'14px',background:'var(--surface2)',border:'1px solid var(--border)'}}>
+            <div>
+              <div className="form-label" style={{marginBottom:'3px'}}>Date</div>
+              <div style={{fontSize:'12px'}}>{item.date || '—'}</div>
+            </div>
+            <div>
+              <div className="form-label" style={{marginBottom:'3px'}}>Source</div>
+              <div style={{fontSize:'12px'}}>{item.source || '—'}</div>
+            </div>
+            <div style={{gridColumn:'1/-1'}}>
+              <div className="form-label" style={{marginBottom:'3px'}}>From</div>
+              <div style={{fontSize:'12px'}}>{item.from || '—'}</div>
+            </div>
+            <div style={{gridColumn:'1/-1'}}>
+              <div className="form-label" style={{marginBottom:'3px'}}>What they want</div>
+              <div style={{fontSize:'12px',color:'var(--text2)',lineHeight:'1.5'}}>{item.what || '—'}</div>
+            </div>
+          </div>
+
+          {/* Editable fields */}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px',marginBottom:'14px'}}>
+            <div className="form-group" style={{margin:0}}>
+              <label className="form-label">Priority</label>
+              <select className="form-select" value={form.priority} onChange={e=>setForm({...form,priority:e.target.value})}>
+                <option value="">—</option>
+                {INBOUND_PRIORITIES.map(p=><option key={p}>{p}</option>)}
+              </select>
+            </div>
+            <div className="form-group" style={{margin:0}}>
+              <label className="form-label">Status</label>
+              <select className="form-select" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
+                {INBOUND_STATUSES.map(s=><option key={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="form-group" style={{margin:0}}>
+              <label className="form-label">Vertical</label>
+              <select className="form-select" value={form.vertical} onChange={e=>setForm({...form,vertical:e.target.value})}>
+                <option value="">—</option>
+                {INBOUND_VERTICALS.map(v=><option key={v}>{v}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Next Action</label>
+            <input className="form-input" value={form.nextAction} onChange={e=>setForm({...form,nextAction:e.target.value})} placeholder="What needs to happen next?"/>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Why This Matters</label>
+            <textarea className="form-textarea form-input" style={{minHeight:'60px'}} value={form.why} onChange={e=>setForm({...form,why:e.target.value})}/>
+          </div>
+          <div className="form-group" style={{marginBottom:0}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'6px'}}>
+              <label className="form-label" style={{margin:0}}>Suggested Reply</label>
+              {item.suggestedReply&&<button className="inbound-copy-btn" onClick={()=>copy(item.suggestedReply,'reply')}>{copied==='reply'?'✓ Copied':'Copy'}</button>}
+            </div>
+            <textarea className="form-textarea form-input" style={{minHeight:'80px'}} value={form.suggestedReply} onChange={e=>setForm({...form,suggestedReply:e.target.value})}/>
+          </div>
+
+          {/* IDs */}
+          {(item.threadId||item.messageId)&&(
+            <div style={{marginTop:'16px',paddingTop:'16px',borderTop:'1px solid var(--border)',display:'flex',gap:'10px',flexWrap:'wrap'}}>
+              {item.threadId&&(
+                <div style={{flex:1,minWidth:'160px'}}>
+                  <div className="form-label" style={{marginBottom:'3px'}}>Thread ID</div>
+                  <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                    <div style={{fontSize:'11px',color:'var(--text3)',fontFamily:'DM Mono,monospace',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1}}>{item.threadId}</div>
+                    <button className="inbound-copy-btn" onClick={()=>copy(item.threadId,'thread')}>{copied==='thread'?'✓':'Copy'}</button>
+                  </div>
+                </div>
+              )}
+              {item.messageId&&(
+                <div style={{flex:1,minWidth:'160px'}}>
+                  <div className="form-label" style={{marginBottom:'3px'}}>Message ID</div>
+                  <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                    <div style={{fontSize:'11px',color:'var(--text3)',fontFamily:'DM Mono,monospace',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1}}>{item.messageId}</div>
+                    <button className="inbound-copy-btn" onClick={()=>copy(item.messageId,'msg')}>{copied==='msg'?'✓':'Copy'}</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button className="btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn-primary" onClick={save} disabled={saving}>{saving?'Saving…':'Save Changes'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InboundCard({ item, onUpdate, onOpenDetail }) {
+  const [saving, setSaving] = React.useState('');
+
+  async function quickUpdate(field, value) {
+    setSaving(field+value);
+    await onUpdate(item, {[field]: value});
+    setSaving('');
+  }
+
+  return (
+    <div className="inbound-card" style={{borderLeft:`3px solid ${priorityColor(item.priority)||'var(--border)'}`}}>
+      <div className="inbound-card-top">
+        <div className="inbound-card-meta">
+          <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'4px',flexWrap:'wrap'}}>
+            <span className="inbound-card-from">{item.from||'Unknown'}</span>
+            {item.source&&<span className="inbound-source-tag">{item.source}</span>}
+            {item.vertical&&<span className="inbound-source-tag" style={{color:'var(--songstage)',borderColor:'rgba(71,201,255,0.25)'}}>{item.vertical}</span>}
+          </div>
+          <div className="inbound-card-what">{item.what}</div>
+          <div className="inbound-card-tags">
+            {item.priority&&(
+              <span style={{fontSize:'9px',letterSpacing:'1px',textTransform:'uppercase',padding:'2px 6px',background:`rgba(${item.priority==='Important'?'255,107,53':item.priority==='FYI'?'232,255,71':'85,85,85'},0.1)`,color:priorityColor(item.priority),border:`1px solid ${priorityColor(item.priority)}44`}}>
+                {item.priority}
+              </span>
+            )}
+            {item.status&&(
+              <span style={{fontSize:'9px',letterSpacing:'1px',textTransform:'uppercase',padding:'2px 6px',color:statusColor(item.status),border:`1px solid ${statusColor(item.status)}44`,background:`${statusColor(item.status)}11`}}>
+                {item.status}
+              </span>
+            )}
+            {item.date&&<span style={{fontSize:'10px',color:'var(--text3)'}}>{item.date}</span>}
+          </div>
+        </div>
+      </div>
+
+      {item.nextAction&&(
+        <div style={{fontSize:'11px',color:'var(--text2)',marginBottom:'10px',paddingLeft:'0',lineHeight:'1.4'}}>
+          <span style={{color:'var(--text3)',fontSize:'9px',letterSpacing:'1px',textTransform:'uppercase',marginRight:'6px'}}>→</span>
+          {item.nextAction}
+        </div>
+      )}
+
+      <div className="inbound-card-actions">
+        {/* Priority quick-set */}
+        {INBOUND_PRIORITIES.map(p=>(
+          <button key={p} className={`inbound-priority-btn${item.priority===p?' '+p:''}`}
+            onClick={()=>quickUpdate('priority',p)}
+            disabled={saving==='priority'+p}
+            style={{opacity:saving?0.6:1}}>
+            {p}
+          </button>
+        ))}
+        <div style={{width:'1px',height:'20px',background:'var(--border)',margin:'0 2px'}}/>
+        {/* Status quick-set */}
+        <select className="inbound-status-select" value={item.status}
+          onChange={e=>quickUpdate('status',e.target.value)}
+          style={{color:statusColor(item.status)}}>
+          {INBOUND_STATUSES.map(s=><option key={s} value={s}>{s}</option>)}
+        </select>
+        <div style={{flex:1}}/>
+        <button className="inbound-detail-btn" onClick={()=>onOpenDetail(item)}>Details →</button>
+      </div>
+    </div>
+  );
+}
+
+function InboundPage({ items, loading, onUpdate, demoMode }) {
+  const [filter, setFilter]   = React.useState('All');
+  const [search, setSearch]   = React.useState('');
+  const [sort, setSort]       = React.useState('newest');
+  const [detail, setDetail]   = React.useState(null);
+
+  const FILTERS = ['All','Important','FYI','Junk','New','In Progress','Waiting','Done','Killed'];
+
+  const counts = React.useMemo(()=>({
+    total:     items.length,
+    important: items.filter(i=>i.priority==='Important').length,
+    fyi:       items.filter(i=>i.priority==='FYI').length,
+    junk:      items.filter(i=>i.priority==='Junk').length,
+    active:    items.filter(i=>['New','In Progress','Waiting'].includes(i.status)).length,
+  }),[items]);
+
+  const filtered = React.useMemo(()=>{
+    let list = [...items];
+    // filter
+    if (filter!=='All') {
+      list = list.filter(i=>i.priority===filter||i.status===filter);
+    }
+    // search
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(i=>
+        (i.from||'').toLowerCase().includes(q)||
+        (i.what||'').toLowerCase().includes(q)||
+        (i.nextAction||'').toLowerCase().includes(q)||
+        (i.suggestedReply||'').toLowerCase().includes(q)||
+        (i.source||'').toLowerCase().includes(q)
+      );
+    }
+    // sort
+    if (sort==='newest') list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    if (sort==='oldest') list.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    if (sort==='priority') {
+      const ord={Important:0,FYI:1,Junk:2,'':3};
+      list.sort((a,b)=>(ord[a.priority]??3)-(ord[b.priority]??3));
+    }
+    if (sort==='status') {
+      const ord={New:0,'In Progress':1,Waiting:2,Done:3,Killed:4,'':5};
+      list.sort((a,b)=>(ord[a.status]??5)-(ord[b.status]??5));
+    }
+    return list;
+  },[items, filter, search, sort]);
+
+  return (
+    <div className="page">
+      <div style={{marginBottom:'24px'}}>
+        <div style={{fontFamily:'Syne,sans-serif',fontSize:'28px',fontWeight:'800',marginBottom:'4px',color:'#ff9f47'}}>Inbound</div>
+        <div style={{fontSize:'11px',color:'var(--text2)'}}>Command Center · {demoMode?'Demo data':'Live from Google Sheets'}</div>
+      </div>
+
+      {/* Summary bar */}
+      <div className="inbound-summary-bar">
+        {[
+          {label:'Total',num:counts.total,color:'var(--text)'},
+          {label:'Important',num:counts.important,color:'#ff6b35'},
+          {label:'FYI',num:counts.fyi,color:'#e8ff47'},
+          {label:'Junk',num:counts.junk,color:'#555'},
+          {label:'Active',num:counts.active,color:'#47c9ff'},
+        ].map(({label,num,color})=>(
+          <div key={label} className="inbound-stat">
+            <div className="inbound-stat-label">{label}</div>
+            <div className="inbound-stat-num" style={{color}}>{num}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Controls */}
+      <div className="inbound-controls">
+        <input className="inbound-search" placeholder="Search sender, message, next action…"
+          value={search} onChange={e=>setSearch(e.target.value)}/>
+        <select className="inbound-sort" value={sort} onChange={e=>setSort(e.target.value)}>
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="priority">Priority first</option>
+          <option value="status">By status</option>
+        </select>
+      </div>
+      <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'20px'}}>
+        {FILTERS.map(f=>(
+          <button key={f} className={`inbound-filter-btn${filter===f?' active':''}`} onClick={()=>setFilter(f)}>{f}</button>
+        ))}
+      </div>
+
+      {/* List */}
+      {loading ? (
+        <div style={{color:'var(--text3)',fontSize:'12px',padding:'32px 0'}}>Loading inbound…</div>
+      ) : filtered.length===0 ? (
+        <div className="inbound-empty">
+          {items.length===0
+            ? 'No inbound items yet. The Inbound tab in your Command Center sheet will appear here.'
+            : 'No items match this filter.'}
+        </div>
+      ) : (
+        <div className="inbound-list">
+          {filtered.map(item=>(
+            <InboundCard key={item.id} item={item} onUpdate={onUpdate} onOpenDetail={setDetail}/>
+          ))}
+        </div>
+      )}
+
+      {detail&&(
+        <InboundDetailModal item={detail} onClose={()=>setDetail(null)}
+          onUpdate={async (item,updates)=>{ await onUpdate(item,updates); setDetail(prev=>prev?{...prev,...updates}:null); }}/>
+      )}
+    </div>
+  );
+}
+
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
   const [authed, setAuthed]= useState(false);
@@ -3223,6 +3673,8 @@ function App() {
   const [page, setPage]= useState('today');
   useEffect(()=>{ window.__hqSetPage = setPage; }, [setPage]);
   const [items, setItems]= useState({records:[],publishing:[],songstage:[],freelance:[],content:[],'personal-track':[]});
+  const [inboundItems, setInboundItems] = useState([]);
+  const [inboundLoading, setInboundLoading] = useState(false);
   const [goals, setGoals]= useState({});
   const [calEvents, setCalEvents]= useState([]);
   const [calendarList, setCalendarList]= useState([]); // all user's calendars
@@ -3319,7 +3771,31 @@ function App() {
     const [events, cals] = await Promise.all([getCalendarEvents(4, 4), getAllCalendars()]);
     setCalEvents(events);
     setCalendarList(cals);
+    // Load inbound
+    await loadInbound();
     setLoading(false);
+  }
+
+  async function loadInbound() {
+    setInboundLoading(true);
+    try {
+      const rows = await readCmdSheet('Inbound');
+      setInboundItems(rows.map((r, i) => rowToInbound(r, i)));
+    } catch(e) { console.error('Inbound load failed:', e); }
+    setInboundLoading(false);
+  }
+
+  async function handleInboundUpdate(item, updates) {
+    // updates: { priority?, status?, vertical?, nextAction?, why?, suggestedReply? }
+    const colMap = { priority:7, status:5, vertical:4, nextAction:6, why:8, suggestedReply:11 };
+    const colUpdates = Object.entries(updates)
+      .filter(([k]) => colMap[k] !== undefined)
+      .map(([k, v]) => [colMap[k], v]);
+    if (!demoMode && colUpdates.length > 0) {
+      try { await updateCmdRow('Inbound', item.sheetRowNumber, colUpdates); }
+      catch(e) { console.error('Inbound update failed:', e); showToast('⚠ Could not save to sheet'); return; }
+    }
+    setInboundItems(prev => prev.map(i => i.id === item.id ? {...i, ...updates} : i));
   }
 
   async function handleAdd(track, formData) {
@@ -3327,18 +3803,23 @@ function App() {
     const dateAdded=new Date().toISOString().split('T')[0];
     let row;
     if (track==='songstage') {
-      // Feature/Task | Type | Status | Assigned To | Due Date | Sprint | Notes | Date Added
       row=[name,type,status,extra||'',dueDate,'',notes,dateAdded];
     } else if (track==='content') {
-      // Title | Type | Status | Platform | Publish Date | Notes | Date Added
       row=[name,type,status,extra||'',dueDate,notes,dateAdded];
     } else {
-      // Records, Publishing, Freelance: Name | Type | Status | Extra | Due Date | Notes | Owner | Date Added
       row=[name,type,status,extra||'',dueDate,notes,owner||'',dateAdded];
     }
-    if (!demoMode) await appendRow(TRACKS[track].tab, row);
-    const newItem={id:items[track].length,name,type,status,extra,dueDate,notes,owner:owner||'',dateAdded,track};
-    setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
+    if (!demoMode) {
+      await appendRow(TRACKS[track].tab, row);
+      // Reload track to get stable sheetRowNumbers after append
+      const reloaded = await reloadTrack(track);
+      setItems(prev=>({...prev,[track]:reloaded}));
+    } else {
+      // Demo mode: assign a unique id > all existing
+      const maxId = items[track].reduce((m,i)=>Math.max(m,i.id||0),0);
+      const newItem={id:maxId+1,sheetRowNumber:maxId+1,name,type,status,extra,dueDate,notes,owner:owner||'',dateAdded,track};
+      setItems(prev=>({...prev,[track]:[...prev[track],newItem]}));
+    }
     if (block&&slot&&!demoMode) {
       try {
         await createCalendarEvent(name,slot.startISO,slot.endISO,TRACK_COLORS_HEX[track],formData.calendarId||'primary');
@@ -3405,7 +3886,7 @@ function App() {
 
   async function handleStatusChange(track, item, newStatus) {
     try {
-      if (!demoMode) await updateCell(TRACKS[track].tab, item.id, 2, newStatus);
+      if (!demoMode) await updateCell(TRACKS[track].tab, item.sheetRowNumber, 2, newStatus);
       setItems(prev=>({...prev,[track]:prev[track].map(i=>i.id===item.id?{...i,status:newStatus}:i)}));
       showToast(`↑ "${item.name}" → ${newStatus}`);
       return true;
@@ -3420,18 +3901,19 @@ function App() {
     if (!demoMode) {
       try {
         const tab = TRACKS[track].tab;
-        await updateCell(tab, oldItem.id, 0, newItem.name);
-        await updateCell(tab, oldItem.id, 1, newItem.type);
-        await updateCell(tab, oldItem.id, 2, newItem.status);
-        await updateCell(tab, oldItem.id, 3, newItem.extra);
-        await updateCell(tab, oldItem.id, 4, newItem.dueDate);
+        const srn = oldItem.sheetRowNumber;
+        await updateCell(tab, srn, 0, newItem.name);
+        await updateCell(tab, srn, 1, newItem.type);
+        await updateCell(tab, srn, 2, newItem.status);
+        await updateCell(tab, srn, 3, newItem.extra);
+        await updateCell(tab, srn, 4, newItem.dueDate);
         if (track==='songstage') {
-          await updateCell(tab, oldItem.id, 6, newItem.notes); // Notes is col 6 in Songstage
+          await updateCell(tab, srn, 6, newItem.notes);
         } else if (track==='content') {
-          await updateCell(tab, oldItem.id, 5, newItem.notes); // Notes is col 5 in Content
+          await updateCell(tab, srn, 5, newItem.notes);
         } else {
-          await updateCell(tab, oldItem.id, 5, newItem.notes);
-          await updateCell(tab, oldItem.id, 6, newItem.owner || '');
+          await updateCell(tab, srn, 5, newItem.notes);
+          await updateCell(tab, srn, 6, newItem.owner || '');
         }
       } catch(e) { console.error('Edit save failed:', e); }
     }
@@ -3445,16 +3927,20 @@ function App() {
   async function handleDelete(track, item) {
     // Remove immediately from UI
     setItems(prev=>({...prev,[track]:prev[track].filter(i=>i.id!==item.id)}));
-    // Show undo toast — if user doesn't undo within 5s, delete from sheet
     let undone = false;
     showUndoToast(`"${item.name}" deleted`, async () => {
       undone = true;
-      // Restore item to UI
-      setItems(prev=>({...prev,[track]:[...prev[track], item].sort((a,b)=>a.id-b.id)}));
+      // Restore item to UI — reload from sheet for correct row numbers
+      if (!demoMode) {
+        const reloaded = await reloadTrack(track);
+        setItems(prev=>({...prev,[track]:reloaded}));
+      } else {
+        setItems(prev=>({...prev,[track]:[...prev[track], item].sort((a,b)=>a.id-b.id)}));
+      }
     });
     setTimeout(async () => {
       if (!undone && !demoMode) {
-        try { await deleteRowFromSheet(TRACKS[track].tab, item.id); }
+        try { await deleteRowFromSheet(TRACKS[track].tab, item.sheetRowNumber); }
         catch(e) { console.error('Delete failed:', e); }
       }
     }, 5500);
@@ -3466,17 +3952,16 @@ function App() {
       try {
         const tab = TRACKS[track].tab;
         const trackLabel = TRACKS[track].label;
-        // Move the row to the Done tab and delete from source
-        await moveRowToDone(tab, trackLabel, item.id);
-        // Remove from UI state (row is gone from sheet)
-        setItems(prev=>({...prev,[track]:prev[track].filter(i=>i.id!==item.id)}));
+        await moveRowToDone(tab, trackLabel, item.sheetRowNumber);
+        // Reload track so remaining items have correct sheetRowNumbers
+        const reloaded = await reloadTrack(track);
+        setItems(prev=>({...prev,[track]:reloaded}));
         showToast(`✓ "${item.name}" done — moved to Done tab`);
       } catch(e) {
         console.error('handleMarkDone failed:', e);
         showToast(`⚠ Could not move "${item.name}" to Done`);
       }
     } else {
-      // Demo mode: just update status in UI
       setItems(prev=>({...prev,[track]:prev[track].map(i=>i.id===item.id?{...i,status:doneStatus}:i)}));
       showToast(`✓ "${item.name}" marked done`);
     }
@@ -3513,7 +3998,6 @@ function App() {
   async function handleTasksGenerated(track, tasks, slots={}) {
     if (!tasks || tasks.length === 0) return;
     const dateAdded = new Date().toISOString().split('T')[0];
-    const newItems = [];
     let blockedCount = 0;
 
     for (let i=0; i<tasks.length; i++) {
@@ -3536,16 +4020,26 @@ function App() {
           blockedCount++;
         } catch(e) { console.error('Calendar block failed:', task.name, e); }
       }
-
-      newItems.push({
-        id: items[track].length + newItems.length,
-        name: task.name, type: taskType, status: taskStatus,
-        extra: '', dueDate: slot?.label||'', notes: task.notes||'',
-        taskType: '', dateAdded, track,
-      });
     }
 
-    setItems(prev => ({ ...prev, [track]: [...prev[track], ...newItems] }));
+    // Reload track to get correct sheetRowNumbers for all added items
+    if (!demoMode) {
+      const reloaded = await reloadTrack(track);
+      setItems(prev => ({ ...prev, [track]: reloaded }));
+    } else {
+      // Demo: add fake items
+      const demoItems = tasks.map((task, i) => {
+        const maxId = items[track].reduce((m,it)=>Math.max(m,it.id||0),0);
+        return {
+          id: maxId + i + 1, sheetRowNumber: maxId + i + 1,
+          name: task.name, type: task.type || TYPES[track][0],
+          status: task.status || STATUSES[track][0],
+          extra: '', dueDate: slots[i]?.label||'', notes: task.notes||'',
+          dateAdded, track,
+        };
+      });
+      setItems(prev => ({ ...prev, [track]: [...prev[track], ...demoItems] }));
+    }
 
     if (blockedCount > 0 && !demoMode) {
       const refreshed = await getCalendarEvents(4,4);
@@ -3624,6 +4118,15 @@ function App() {
                   <div className={`nav-dot ${key}`}/>{t.label}
                 </div>
               ))}
+              <div className="nav-section-label" style={{marginTop:'8px'}}>Inbox</div>
+              <div className={`nav-item${page==='inbound'?' active':''}`} data-track="inbound" onClick={()=>{setPage('inbound');setSidebarOpen(false);}}>
+                <div className="nav-dot inbound"/>Inbound
+                {inboundItems.filter(i=>i.priority==='Important'&&['New','In Progress'].includes(i.status)).length>0&&(
+                  <span style={{marginLeft:'auto',fontSize:'9px',background:'#ff6b35',color:'#000',padding:'1px 5px',fontWeight:'600'}}>
+                    {inboundItems.filter(i=>i.priority==='Important'&&['New','In Progress'].includes(i.status)).length}
+                  </span>
+                )}
+              </div>
               <div className="nav-section-label" style={{marginTop:'8px'}}>Personal</div>
               <div className={`nav-item${page==='personal-track'?' active':''}`} data-track="personal-track" onClick={()=>{setPage('personal-track');setSidebarOpen(false);}}>
                 <div className="nav-dot personal-track"/>Personal
@@ -3654,6 +4157,7 @@ function App() {
             {page==='today'&&'Today'}
             {page==='dashboard'&&'Dashboard'}
             {page==='calendar'&&'Calendar'}
+            {page==='inbound'&&'Inbound'}
             {TRACKS[page]&&TRACKS[page].label}
             </div>
           </div>
@@ -3670,10 +4174,12 @@ function App() {
         {page==='today'&&<TodayPage items={items} calEvents={calEvents}
           onMarkDone={(track,item)=>handleMarkDone(track,item)}
           onEndWorkday={handleEndWorkday}/>}
-        {page==='dashboard'&&<DashboardPage items={items} calEvents={calEvents}
+        {page==='dashboard'&&<DashboardPage items={items} calEvents={calEvents} inboundItems={inboundItems}
           onMarkDone={(track,item)=>handleMarkDone(track,item)}
-          onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}/>}
+          onEdit={(track,oldItem,newItem)=>handleEditItem(track,oldItem,newItem)}
+          onGoToInbound={()=>setPage('inbound')}/>}
         {page==='calendar'&&<CalendarPage calEvents={calEvents} calendarList={calendarList} onAddEvent={handleAddCalEvent} onEditEvent={handleEditCalEvent} onDeleteEvent={handleDeleteCalEvent} demoMode={demoMode}/>}
+        {page==='inbound'&&<InboundPage items={inboundItems} loading={inboundLoading} onUpdate={handleInboundUpdate} demoMode={demoMode}/>}
         {trackKeys.includes(page)&&<TrackPage track={page} items={items[page]||[]} loading={loading}
           calEvents={calEvents}
           onAdd={()=>setModal({track:page})}
