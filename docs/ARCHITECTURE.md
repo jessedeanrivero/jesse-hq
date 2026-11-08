@@ -128,22 +128,29 @@ never move the character.
 6. Commits are authored under Jesse's GitHub identity so Vercel keeps building them if the repo goes private.
 7. Phone mode defaults to the laptop rule.
 8. Nothing merged to `main`; work ships on the `hq-rpg` branch for a preview first.
+9. The Dream Journal is the only writer: one new file per confirmed save, in a folder the app creates (drive.file),
+   never in the operating-system folders.
+10. Coworker answers are deterministic and labeled with their sources; an optional local Ollama model is off by
+    default and labeled as not checked against records.
+11. Voice commands are opt-in and always confirm before acting; dictation relies on the OS (Superwhisper or
+    macOS Dictation) typing into real text fields.
 
 ## Implementation checklist
 
 - [x] Phase 1: inspect repo, checkout skills, Drive conventions, lanes (inventory kept out of this public repo)
 - [x] Architecture and checklist committed
-- [ ] Next.js + Phaser scaffold, classic app preserved, legacy API routes ported
-- [ ] Shared parsers: markdown normalize, frontmatter, sections, loops tags, daily file, OS file, lane registry, ideas
-- [ ] Google sign-in (PKCE, allowlist, encrypted cookie, refresh) and setup/missing-permission states
-- [ ] Drive resolver + endpoints: overview, checkout, loops, OS, lanes, calendar, gmail, search, archive, doc, ideas,
+- [x] Next.js + Phaser scaffold, classic app preserved, legacy API routes ported
+- [x] Shared parsers: markdown normalize, frontmatter, sections, loops tags, daily file, OS file, lane registry, ideas
+- [x] Google sign-in (PKCE, allowlist, encrypted cookie, refresh) and setup/missing-permission states
+- [x] Drive resolver + endpoints: overview, checkout, loops, OS, lanes, calendar, gmail, search, archive, doc, ideas,
       automations, personal, journal (confirm-gated), war room (public site data)
-- [ ] World: original pixel art, rooms, collisions, transitions, interactables, NPCs, lighting, sound with mute/volume
-- [ ] Input router: gamepad (dead zones, repeat, reconnect, indicator), keyboard, mouse, touch controls, text mode
-- [ ] Panels: briefing, checkout, loops, calendar, deadlines, decisions, lanes, comms, compose, search, map, menu,
+- [x] World: original pixel art, rooms, collisions, transitions, interactables, NPCs, lighting, sound with mute/volume
+- [x] Input router: gamepad (dead zones, repeat, reconnect, indicator), keyboard, mouse, touch controls, text mode
+- [x] Panels: briefing, checkout, loops, calendar, deadlines, decisions, lanes, comms, compose, search, map, menu,
       settings, NPC dialogue, archive, automations, war room, dream board, surprise me, journal, personal
-- [ ] Voice: dictation-ready focus, opt-in speech commands with confirmation
-- [ ] Mobile: responsive canvas, touch joystick and buttons, phone mode
-- [ ] Tests: unit, real-data parser check (local only, never committed), headless browser walk with simulated gamepad,
+- [x] Voice: dictation-ready focus, opt-in speech commands with confirmation
+- [x] Mobile: responsive canvas, touch joystick and buttons, phone mode
+- [x] Tests: unit, real-data parser check (local only, never committed), headless browser walk with simulated gamepad,
       offline / denied-permission run, phone viewport
-- [ ] Branch pushed, preview verified, setup steps documented
+- [x] Setup steps documented (docs/SETUP-GOOGLE.md)
+- [ ] Branch pushed, preview verified
