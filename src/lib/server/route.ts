@@ -15,7 +15,11 @@ export function errorJson(e: unknown): NextResponse {
     return json(body, e.status);
   }
   // Never log private content: only the error class.
-  console.error('[hq] unexpected error', (e as Error)?.name ?? 'Error');
+  const name = (e as Error)?.name ?? 'Error';
+  if (/fetch failed|ECONNRESET|ETIMEDOUT|ENOTFOUND/i.test((e as Error)?.message ?? '')) {
+    return json({ error: 'Couldn’t reach Google just now.', code: 'unavailable', detail: 'Try again in a moment.' } satisfies ApiError, 503);
+  }
+  console.error('[hq] unexpected error', name);
   return json({ error: 'Something went wrong loading this.', code: 'google_error' } satisfies ApiError, 500);
 }
 

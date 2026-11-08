@@ -169,7 +169,10 @@ export async function settle<T>(part: string, p: Promise<T>, errors: PartError[]
     return await p;
   } catch (e) {
     const err = e as { code?: PartError['code']; message?: string; detail?: string };
-    errors.push({ part, message: [err.message ?? 'Failed to load.', err.detail].filter(Boolean).join(' '), code: err.code });
+    // A network failure (TypeError: fetch failed) says nothing useful; describe it plainly instead.
+    const network = /fetch failed|ECONNRESET|ETIMEDOUT|ENOTFOUND/i.test(err.message ?? '');
+    const message = network ? 'Couldn’t reach Google just now. Try again in a moment.' : [err.message ?? 'Failed to load.', err.detail].filter(Boolean).join(' ');
+    errors.push({ part, message, code: network ? 'unavailable' : err.code });
     return null;
   }
 }

@@ -151,6 +151,7 @@ never move the character.
 - [x] Voice: dictation-ready focus, opt-in speech commands with confirmation
 - [x] Mobile: responsive canvas, touch joystick and buttons, phone mode
 - [x] Tests: unit, real-data parser check (local only, never committed), headless browser walk with simulated gamepad,
-      offline / denied-permission run, phone viewport
+      offline / denied-permission run, phone viewport, and a signed-in walk of every panel and coworker topic with
+      Google mocked (e2e/README.md)
 - [x] Setup steps documented (docs/SETUP-GOOGLE.md)
-- [ ] Branch pushed, preview verified
+- [x] Branch `hq-rpg` pushed; Vercel preview builds and reports Ready (draft PR #1, not merged)

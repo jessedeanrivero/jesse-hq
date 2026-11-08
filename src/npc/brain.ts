@@ -8,7 +8,7 @@ import { getState } from '@/ui/store';
 import type { GmailResponse, LoopsResponse, Overview, SlimLoop } from '@/ui/types';
 import type { WarRoomData } from '@/ui/panels/warroom';
 import { CATEGORY_LABEL } from '@/lib/shared/ideas';
-import { STATUS_LABEL } from '@/lib/shared/loops';
+import { STATUS_LABEL, isOpen } from '@/lib/shared/loops';
 import { daysBetween, greetingFor, hourIn, todayIn } from '@/lib/shared/dates';
 import type { Idea, LoopStatus, SourceRef } from '@/lib/shared/types';
 import type { NpcDef } from './npcs';
@@ -96,7 +96,7 @@ function roomReply(): Reply {
   const room = getState().room;
   if (!room) return { lines: ['We’re between rooms. Try again in a second.'], fromRecords: false };
   return {
-    lines: [`This is the ${room.name}. ${room.blurb}`],
+    lines: [room.id.startsWith('lane:') ? `You’re in the ${room.name} building. ${room.blurb}` : `This is the ${room.name}. ${room.blurb}`],
     items: [...room.things.map((t) => ({ label: t })), ...room.exits.map((e) => ({ label: e, sub: 'Exit' }))],
     fromRecords: false,
   };
@@ -399,7 +399,7 @@ const HANDLERS: Record<string, Record<string, Handler>> = {
     },
     planning: async () => {
       const l = await api<LoopsResponse>('/api/hq/loops', { ttl: 120_000 });
-      const items = (l.loops?.items ?? []).filter((i) => !i.sensitive && FOOTBALL.test(`${i.title} ${i.text} ${i.section}`));
+      const items = (l.loops?.items ?? []).filter((i) => !i.sensitive && isOpen(i) && FOOTBALL.test(`${i.title} ${i.text} ${i.section}`));
       return {
         lines: [items.length ? 'Loops that mention the war room:' : 'None of your loops mention the war room right now.'],
         items: items.slice(0, 8).map(loopItem),

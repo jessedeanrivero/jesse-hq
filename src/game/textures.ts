@@ -155,9 +155,17 @@ export function ensureBuilding(scene: Phaser.Scene, laneId: string, name: string
       vline(g, wx + 7, 20, 10, '#2a2f3a');
     }
   }
-  // sign plate
-  box(g, 6, 36, W - 12, 11, '#1a1d26', { outline: shade(pal.trim, -0.3) });
-  const label = fitText(name, W - 18);
+  // sign plate: the short form of the lane name ("Publishing / X" -> "Publishing"), whole words only
+  box(g, 4, 36, W - 8, 11, '#1a1d26', { outline: shade(pal.trim, -0.3) });
+  const maxW = W - 12;
+  const short = name.split(/\s+[/|]\s+/)[0].replace(/\s*\([^)]*\)\s*/g, ' ').trim() || name;
+  let label = '';
+  for (const word of short.split(/\s+/)) {
+    const next = label ? `${label} ${word}` : word;
+    if (textWidth(next) > maxW) break;
+    label = next;
+  }
+  if (!label) label = fitText(short, maxW);
   drawText(g, label, Math.floor((W - textWidth(label)) / 2), 38, locked ? '#9aa1ad' : '#f4efe2');
   // door
   block(g, W / 2 - 9, 46, 18, 18, 2, shade(pal.trim, 0.1), shade(pal.trim, -0.25));

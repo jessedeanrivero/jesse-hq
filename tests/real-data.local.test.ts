@@ -24,3 +24,20 @@ describe.skipIf(!has)('real loops spine (local only)', () => {
     expect(counts.open ?? 0).toBeLessThan(spine.items.length * 0.25);
   });
 });
+
+const osPath = `${DIR}/os-latest.raw.md`;
+
+describe.skipIf(!existsSync(osPath) || !has)('real OS file + lane registry (local only)', () => {
+  it('finds the lanes, their names and room themes', async () => {
+    const { parseOsDoc } = await import('@/lib/shared/osdoc');
+    const { buildLaneRegistry } = await import('@/lib/shared/lanes');
+    const src = { kind: 'os' as const, name: 'os.md', url: 'x', freshness: 'fresh' as const };
+    const os = parseOsDoc(readFileSync(osPath, 'utf8'), src);
+    const spine = parseLoopsSpine(readFileSync(loopsPath, 'utf8'), { ...src, kind: 'loops' }, '2026-11-08', { ownerNames: ['jesse'] });
+    const lanes = buildLaneRegistry({ os, loops: spine, daily: null });
+    // Printed locally only; this output is never committed.
+    console.log('os.updated', os.updated, 'allocation', os.allocation.length, 'laneMap', os.laneMap.length, 'weekPlan', os.weekPlan?.days.length);
+    for (const l of lanes) console.log(`lane ${l.id} | ${l.name} | ${l.theme} | closed=${l.closed} personal=${l.personal} open=${l.openCount} waiting=${l.waitingCount}`);
+    expect(lanes.length).toBeGreaterThanOrEqual(8);
+  });
+});

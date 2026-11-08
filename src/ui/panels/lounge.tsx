@@ -20,6 +20,19 @@ export function useIdeas(enabled = true) {
   return useApi<IdeasResponse>(enabled ? '/api/hq/ideas' : null, 600_000);
 }
 
+const CATEGORY_SHORT: Record<IdeaCategory, string> = {
+  build: 'Build',
+  music: 'Music',
+  content: 'Content',
+  community: 'Community',
+  family: 'Family',
+  game: 'Games',
+  experience: 'Experiences',
+  venture: 'Ventures',
+  skill: 'Skills',
+  other: 'Other',
+};
+
 const ORIGIN: Record<Idea['origin'], string> = { loops: 'From your loops', os: 'From your OS file', folder: 'From a creative folder' };
 
 function IdeaCard({ idea, actions = true }: { idea: Idea; actions?: boolean }) {
@@ -71,7 +84,7 @@ export function DreamBoardPanel() {
       icon="🌙"
       tone="lounge"
       subtitle="Ideas you already wrote down. Nothing here is a task unless you make it one."
-      tabs={[{ id: 'all', label: 'All', count: data?.ideas.length }, ...cats.slice(0, 6).map(([c, n]) => ({ id: c, label: CATEGORY_LABEL[c].replace(/^(A|An|Something) /, ''), count: n }))]}
+      tabs={[{ id: 'all', label: 'All', count: data?.ideas.length }, ...cats.slice(0, 6).map(([c, n]) => ({ id: c, label: CATEGORY_SHORT[c], count: n }))]}
       tab={cat}
       onTab={setCat}
       size="lg"

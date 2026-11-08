@@ -5,6 +5,7 @@ import { useApi } from '../api';
 import { Btn, Empty, Gate, LoopRow, Panel, Row, Section, copyText, fmtDay } from '../components';
 import { useStore } from '../store';
 import type { LoopsResponse } from '../types';
+import { isOpen } from '@/lib/shared/loops';
 
 export interface WarRoomData {
   site: string;
@@ -42,7 +43,7 @@ export function WarRoomPanel({ tab: t0 }: { tab?: string }) {
     const t = window.setTimeout(() => setFrameState((s) => (s === 'loading' ? 'slow' : s)), 5000);
     return () => window.clearTimeout(t);
   }, [tab]);
-  const planning = useMemo(() => (loops.data?.loops?.items ?? []).filter((i) => !i.sensitive && FOOTBALL.test(`${i.title} ${i.text} ${i.section}`)), [loops.data]);
+  const planning = useMemo(() => (loops.data?.loops?.items ?? []).filter((i) => !i.sensitive && isOpen(i) && FOOTBALL.test(`${i.title} ${i.text} ${i.section}`)), [loops.data]);
   const sheets = (wr.data?.pages ?? []).filter((p) => p.kind !== 'page');
   const latestSheet = sheets.find((p) => p.kind === 'sheet');
   const latestRecap = sheets.find((p) => p.kind === 'recap');

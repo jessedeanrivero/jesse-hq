@@ -8,6 +8,15 @@ function topRoot(): HTMLElement | null {
   return roots.length ? roots[roots.length - 1] : null;
 }
 
+/** Is the element inside the visible part of its scrolling panel body (or outside any scroller)? */
+function inView(el: HTMLElement): boolean {
+  const scroller = el.closest<HTMLElement>('[data-scroll]');
+  if (!scroller) return true;
+  const a = el.getBoundingClientRect();
+  const b = scroller.getBoundingClientRect();
+  return a.bottom > b.top + 4 && a.top < b.bottom - 4;
+}
+
 function visible(el: HTMLElement): boolean {
   const r = el.getBoundingClientRect();
   return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden';
@@ -49,8 +58,21 @@ class FocusManager {
   ensure(): HTMLElement | null {
     const items = this.items();
     if (this.current && items.includes(this.current) && document.contains(this.current)) return this.current;
-    this.set(this.preferred(items) ?? items[0] ?? null);
+    // Pick automatically without scrolling, so a panel always opens at the top of its content.
+    this.set(this.defaultPick(items), false);
     return this.current;
+  }
+
+  /**
+   * The element focus starts on: the panel's autofocus element if it's on screen, otherwise the first visible
+   * thing in the panel body, otherwise the footer. Close is the last resort (B already closes).
+   */
+  private defaultPick(items: HTMLElement[]): HTMLElement | null {
+    const pref = this.preferred(items);
+    if (pref && inView(pref)) return pref;
+    const body = items.find((el) => !!el.closest('[data-scroll]') && inView(el));
+    const foot = items.find((el) => !!el.closest('.panel-foot'));
+    return body ?? foot ?? pref ?? items[0] ?? null;
   }
 
   /**
@@ -67,8 +89,8 @@ class FocusManager {
       return;
     }
     if (cur.classList.contains('panel-close')) {
-      const pref = this.preferred();
-      if (pref) this.set(pref);
+      const next = this.defaultPick(this.items());
+      if (next && next !== cur) this.set(next, false);
     }
   }
 

@@ -393,8 +393,9 @@ button.chip {
 .panel-backdrop {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: calc(64px + var(--safe-top)) 16px calc(20px + var(--safe-bottom));
   background: rgba(4, 6, 14, 0.55);
   pointer-events: auto;
@@ -549,6 +550,7 @@ button.chip {
 
 .panel-body {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 14px 16px 18px;
   line-height: 1.5;
@@ -1702,7 +1704,7 @@ button.reply-item:hover {
 @media (max-width: 640px) {
   .panel-backdrop {
     padding: 0;
-    place-items: stretch;
+    align-items: stretch;
   }
 
   .panel,
