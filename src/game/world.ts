@@ -327,17 +327,19 @@ function workDistrict(ctx: WorldContext): RoomDef {
 }
 
 // ── Lane rooms ────────────────────────────────────────────────────────────────
+// Extras sit clear of the fixed furniture: tools desk and waiting tray on the right (x 14-16), the
+// bookshelf and plant on the left, and the walkway from the door (x 7-10, y 10+).
 const CENTERPIECE: Record<RoomTheme, { sprite: string; extra: { sprite: string; dx: number; dy: number; solid?: boolean }[] }> = {
-  devoffice: { sprite: 'serverDesk', extra: [{ sprite: 'rack', dx: 5, dy: -1 }, { sprite: 'deskPc', dx: -4, dy: 2 }, { sprite: 'plant', dx: 6, dy: 3 }] },
-  writersroom: { sprite: 'piano', extra: [{ sprite: 'guitar', dx: 3, dy: 0 }, { sprite: 'floorLamp', dx: -3, dy: 0 }, { sprite: 'armchair', dx: 5, dy: 3 }] },
+  devoffice: { sprite: 'serverDesk', extra: [{ sprite: 'rack', dx: 6, dy: 0 }, { sprite: 'deskPc', dx: -5, dy: 2 }, { sprite: 'plant', dx: 3, dy: 3 }] },
+  writersroom: { sprite: 'piano', extra: [{ sprite: 'guitar', dx: 3, dy: 0 }, { sprite: 'floorLamp', dx: -3, dy: 0 }, { sprite: 'armchair', dx: -5, dy: 2 }] },
   studio: { sprite: 'mixer', extra: [{ sprite: 'mic', dx: 4, dy: 3 }, { sprite: 'guitar', dx: -4, dy: 3 }, { sprite: 'floorLamp', dx: 6, dy: 0 }] },
-  workshop: { sprite: 'table', extra: [{ sprite: 'chair', dx: -2, dy: 1 }, { sprite: 'chair', dx: 2, dy: 1 }, { sprite: 'plant', dx: 6, dy: 2 }, { sprite: 'coffee', dx: -5, dy: 3 }] },
-  label: { sprite: 'crate', extra: [{ sprite: 'crate', dx: 2, dy: 0 }, { sprite: 'recordPlayer', dx: -3, dy: 0 }, { sprite: 'armchair', dx: 5, dy: 3 }] },
+  workshop: { sprite: 'table', extra: [{ sprite: 'chair', dx: -2, dy: 1 }, { sprite: 'chair', dx: 2, dy: 1 }, { sprite: 'plant', dx: 3, dy: 3 }, { sprite: 'coffee', dx: -5, dy: 3 }] },
+  label: { sprite: 'crate', extra: [{ sprite: 'crate', dx: 2, dy: 0 }, { sprite: 'recordPlayer', dx: -3, dy: 0 }, { sprite: 'armchair', dx: -5, dy: 2 }] },
   archive: { sprite: 'boxes', extra: [{ sprite: 'boxes', dx: 3, dy: 1 }, { sprite: 'boxes', dx: -4, dy: 2 }, { sprite: 'cabinet', dx: 6, dy: 0 }] },
   broadcast: { sprite: 'camera', extra: [{ sprite: 'ringlight', dx: 2, dy: 0 }, { sprite: 'mic', dx: -2, dy: 2 }, { sprite: 'beanbag', dx: 0, dy: 3 }] },
-  office: { sprite: 'desk', extra: [{ sprite: 'chair', dx: 0, dy: 1 }, { sprite: 'clock', dx: 4, dy: -3 }, { sprite: 'plant', dx: 6, dy: 2 }] },
+  office: { sprite: 'desk', extra: [{ sprite: 'chair', dx: 0, dy: 1 }, { sprite: 'clock', dx: 4, dy: -3 }, { sprite: 'plant', dx: 3, dy: 3 }] },
   backstage: { sprite: 'mic', extra: [{ sprite: 'guitar', dx: 2, dy: 0 }, { sprite: 'boxes', dx: -4, dy: 1 }, { sprite: 'floorLamp', dx: 5, dy: 0 }] },
-  generic: { sprite: 'desk', extra: [{ sprite: 'plant', dx: 5, dy: 1 }, { sprite: 'chair', dx: 0, dy: 1 }] },
+  generic: { sprite: 'desk', extra: [{ sprite: 'plant', dx: 3, dy: 3 }, { sprite: 'chair', dx: 0, dy: 1 }] },
 };
 
 export function laneRoom(lane: LaneLite): RoomDef {

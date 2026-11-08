@@ -1081,6 +1081,9 @@ p.card.warn {
 }
 
 .tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
   font-size: 14px;
   color: #d9d6cb;
 }

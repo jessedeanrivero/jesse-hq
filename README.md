@@ -21,8 +21,11 @@ The coworkers are fictional characters. Their answers are your own records, arra
 npm install
 npm run dev        # http://localhost:3000
 npm test           # parser and voice-routing tests
-npm run e2e        # headless Chrome walk with a simulated controller (needs a running server, see e2e/)
+npm run e2e        # headless Chrome walk with a simulated controller (needs a running server)
 ```
+
+`e2e/README.md` also covers the signed-in walk, which runs every panel and coworker topic with Google mocked.
+After setup, `docs/TEST-CHECKLIST.md` is a 15-minute hands-on check.
 
 Google sign-in setup (about 10 minutes, free): [docs/SETUP-GOOGLE.md](docs/SETUP-GOOGLE.md).
 How it's built and the privacy rules it follows: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
